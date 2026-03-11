@@ -1,0 +1,42 @@
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import type { Env } from "./types/env";
+import upload from "./routes/upload";
+import convert from "./routes/convert";
+import status from "./routes/status";
+import download from "./routes/download";
+import callback from "./routes/callback";
+
+const app = new Hono<{ Bindings: Env }>();
+
+// CORS
+app.use(
+  "/api/*",
+  async (c, next) => {
+    const allowedOrigins = (c.env.CORS_ORIGIN || "*")
+      .split(",")
+      .map((o) => o.trim());
+    const middleware = cors({
+      origin: (origin) => {
+        if (allowedOrigins.includes("*")) return origin;
+        return allowedOrigins.includes(origin) ? origin : "";
+      },
+      allowMethods: ["GET", "POST", "OPTIONS"],
+      allowHeaders: ["Content-Type"],
+      maxAge: 86400,
+    });
+    return middleware(c, next);
+  }
+);
+
+// Health check
+app.get("/health", (c) => c.json({ status: "ok" }));
+
+// Routes
+app.route("/api/upload", upload);
+app.route("/api/convert", convert);
+app.route("/api/status", status);
+app.route("/api/download", download);
+app.route("/api/callback", callback);
+
+export default app;
