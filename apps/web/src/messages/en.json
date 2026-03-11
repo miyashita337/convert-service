@@ -1,0 +1,27 @@
+{
+  "common": {
+    "siteName": "QuickConv",
+    "tagline": "Fast, Free Online Image Converter",
+    "description": "Convert images between HEIC, WebP, AVIF, PNG, JPG formats instantly. Free, no registration required.",
+    "upload": "Upload",
+    "convert": "Convert",
+    "download": "Download",
+    "processing": "Processing...",
+    "completed": "Completed",
+    "failed": "Conversion failed",
+    "dragDrop": "Drag & drop files here, or click to select",
+    "maxSize": "Max file size: {size}MB",
+    "supportedFormats": "Supported: JPG, PNG, WebP, AVIF, HEIC, GIF, SVG",
+    "selectFormat": "Convert to",
+    "startConversion": "Start Conversion",
+    "downloadFile": "Download",
+    "convertAnother": "Convert Another",
+    "expiresIn": "File expires in {hours} hours",
+    "language": "Language",
+    "privacy": "Files are automatically deleted after 24 hours"
+  },
+  "seo": {
+    "titleTemplate": "{from} to {to} Converter - Free Online | QuickConv",
+    "descriptionTemplate": "Convert {from} to {to} online for free. No registration, no watermark. Fast and secure image conversion."
+  }
+}

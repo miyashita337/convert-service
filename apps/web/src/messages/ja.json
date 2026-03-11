@@ -1,0 +1,27 @@
+{
+  "common": {
+    "siteName": "QuickConv",
+    "tagline": "高速・無料のオンライン画像変換",
+    "description": "HEIC、WebP、AVIF、PNG、JPG形式の画像を瞬時に変換。無料、登録不要。",
+    "upload": "アップロード",
+    "convert": "変換",
+    "download": "ダウンロード",
+    "processing": "処理中...",
+    "completed": "完了",
+    "failed": "変換に失敗しました",
+    "dragDrop": "ファイルをドラッグ＆ドロップ、またはクリックして選択",
+    "maxSize": "最大ファイルサイズ: {size}MB",
+    "supportedFormats": "対応形式: JPG, PNG, WebP, AVIF, HEIC, GIF, SVG",
+    "selectFormat": "変換先",
+    "startConversion": "変換開始",
+    "downloadFile": "ダウンロード",
+    "convertAnother": "別のファイルを変換",
+    "expiresIn": "ファイルは{hours}時間後に自動削除されます",
+    "language": "言語",
+    "privacy": "ファイルは24時間後に自動削除されます"
+  },
+  "seo": {
+    "titleTemplate": "{from}から{to}への変換 - 無料オンライン | QuickConv",
+    "descriptionTemplate": "{from}を{to}にオンラインで無料変換。登録不要、ウォーターマークなし。高速で安全な画像変換。"
+  }
+}
