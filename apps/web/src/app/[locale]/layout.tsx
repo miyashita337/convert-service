@@ -38,6 +38,14 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
+        <meta
+          name="keywords"
+          content="image converter, file conversion, HEIC, WebP, AVIF, PNG, JPG, online converter"
+        />
+        <meta
+          name="category"
+          content="image converter, file conversion, HEIC, WebP, AVIF"
+        />
         <OrganizationJsonLd />
       </head>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
