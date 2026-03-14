@@ -31,7 +31,14 @@
     "footerConversions": "Conversions",
     "remainingCount": "{remaining}/{limit} left today",
     "remainingWarning": "Running low on free conversions today.",
-    "rateLimitReached": "Daily limit reached. Try again tomorrow."
+    "rateLimitReached": "Daily limit reached. Try again tomorrow.",
+    "batchLimitExceeded": "You can convert up to {limit} files at a time. Only the first file was selected.",
+    "batchLimitByRemaining": "You only have {count} conversion(s) left today. Only the first file was selected.",
+    "guide": "Guide",
+    "guideDescription": "Learn about next-generation image formats and how to convert them",
+    "readMore": "Read more",
+    "tryConverter": "Try It Free",
+    "tableOfContents": "Table of Contents"
   },
   "seo": {
     "homeTitle": "QuickConv - Free Online Image Converter | WebP AVIF HEIC",
@@ -41,7 +48,15 @@
     "privacyTitle": "Privacy Policy | QuickConv",
     "privacyDescription": "Learn how QuickConv protects your privacy. We collect minimal data, auto-delete files in 24 hours, and never share your information.",
     "termsTitle": "Terms of Service | QuickConv",
-    "termsDescription": "Read the QuickConv Terms of Service. Free online image conversion with automatic file deletion and fair usage policies."
+    "termsDescription": "Read the QuickConv Terms of Service. Free online image conversion with automatic file deletion and fair usage policies.",
+    "guideListTitle": "Image Conversion Guide | QuickConv",
+    "guideListDescription": "Learn about next-generation image formats like AVIF, WebP, and HEIC. Comprehensive guides on image conversion methods and format comparisons.",
+    "guideWhatIsAvifTitle": "What Is AVIF? Browser Support & Conversion Guide | QuickConv",
+    "guideWhatIsAvifDescription": "Learn about AVIF format, its browser compatibility, and three ways to convert images to AVIF. Includes step-by-step guide using QuickConv.",
+    "guideHeicToJpgTitle": "3 Ways to Convert iPhone HEIC Photos to JPG | QuickConv",
+    "guideHeicToJpgDescription": "Convert HEIC photos from iPhone to JPG easily. Compare three conversion methods: online tools, macOS Preview, and mobile apps.",
+    "guideWebpVsAvifVsHeicTitle": "WebP vs AVIF vs HEIC: Next-Gen Image Format Comparison | QuickConv",
+    "guideWebpVsAvifVsHeicDescription": "Compare WebP, AVIF, and HEIC image formats. Learn the differences in compression, quality, browser support, and which format to use."
   },
   "cookieConsent": {
     "message": "This website uses cookies to provide you with a better experience. We use cookies for rate limiting and service improvement.",
@@ -97,6 +112,23 @@
     "limitationDescription": "To the fullest extent permitted by law, QuickConv shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service.",
     "changesTitle": "Changes to Terms",
     "changesDescription": "We reserve the right to modify these Terms at any time. Continued use of the Service after changes constitutes acceptance of the updated Terms."
+  },
+  "upgrade": {
+    "modalTitle": "You've used all {limit} free conversions today",
+    "modalDescription": "Wait for the daily reset or upgrade your plan for unlimited conversions.",
+    "resetsIn": "Resets in",
+    "passTitle": "7-Day Pass",
+    "pass7days": "7 days",
+    "plusTitle": "Plus",
+    "perMonth": "mo",
+    "featureUnlimited": "Unlimited conversions",
+    "featureNoAds": "No ads",
+    "featurePriority": "Priority processing",
+    "recommended": "Recommended",
+    "comingSoon": "Coming Soon",
+    "comeBackTomorrow": "Come back tomorrow",
+    "bannerTitle": "You've used all free conversions today",
+    "bannerDescription": "Get unlimited conversions with Plus for just ¥380/mo."
   },
   "jsonLd": {
     "webAppName": "QuickConv - Free Online Image Converter",

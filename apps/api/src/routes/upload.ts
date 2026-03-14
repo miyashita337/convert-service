@@ -5,6 +5,7 @@ import {
   ALLOWED_MIME_TYPES,
   MAX_FILE_SIZE_BYTES,
   ANONYMOUS_MAX_FILE_SIZE_BYTES,
+  ANONYMOUS_MAX_BATCH_FILES,
 } from "@quickconv/shared";
 import type { Env, AppVariables } from "../types/env";
 import { uploadToR2 } from "../services/r2";
@@ -12,8 +13,25 @@ import { uploadToR2 } from "../services/r2";
 const upload = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
 upload.post("/", async (c) => {
-  const body = await c.req.parseBody();
-  const file = body["file"];
+  const body = await c.req.parseBody({ all: true });
+  const rawFile = body["file"];
+
+  // Batch size validation: reject if more than ANONYMOUS_MAX_BATCH_FILES files
+  if (Array.isArray(rawFile)) {
+    if (rawFile.length > ANONYMOUS_MAX_BATCH_FILES) {
+      return c.json(
+        {
+          error: "batch_limit_exceeded",
+          message: `Too many files. Maximum ${ANONYMOUS_MAX_BATCH_FILES} files per request.`,
+          maxFiles: ANONYMOUS_MAX_BATCH_FILES,
+        },
+        400,
+      );
+    }
+  }
+
+  // For now, only process the first file (single-file conversion)
+  const file = Array.isArray(rawFile) ? rawFile[0] : rawFile;
 
   if (!file || !(file instanceof File)) {
     return c.json({ error: "validation", message: "No file provided" }, 400);
