@@ -6,6 +6,7 @@ import { routing } from "@/lib/i18n/routing";
 import { locales } from "@/lib/i18n/config";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -36,6 +37,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   return (
     <html lang={locale}>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
+        <GoogleAnalytics />
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main className="flex-1">{children}</main>
