@@ -33,7 +33,12 @@
     "remainingWarning": "本日の無料変換回数が残りわずかです。",
     "rateLimitReached": "本日の変換回数の上限に達しました。明日またお試しください。",
     "batchLimitExceeded": "一度に変換できるのは{limit}枚までです。最初のファイルのみ選択されました。",
-    "batchLimitByRemaining": "本日の残り変換回数は{count}回です。最初のファイルのみ選択されました。"
+    "batchLimitByRemaining": "本日の残り変換回数は{count}回です。最初のファイルのみ選択されました。",
+    "guide": "ガイド",
+    "guideDescription": "次世代画像フォーマットについて学び、効率的に変換する方法を紹介します",
+    "readMore": "続きを読む",
+    "tryConverter": "無料で試す",
+    "tableOfContents": "目次"
   },
   "seo": {
     "homeTitle": "QuickConv - 無料オンライン画像変換 | WebP AVIF HEIC対応",
@@ -43,7 +48,15 @@
     "privacyTitle": "プライバシーポリシー | QuickConv",
     "privacyDescription": "QuickConvのプライバシー保護について。最小限のデータ収集、24時間以内のファイル自動削除、第三者への情報共有なし。",
     "termsTitle": "利用規約 | QuickConv",
-    "termsDescription": "QuickConvの利用規約。無料オンライン画像変換サービスの利用条件、ファイル自動削除、公正利用ポリシー。"
+    "termsDescription": "QuickConvの利用規約。無料オンライン画像変換サービスの利用条件、ファイル自動削除、公正利用ポリシー。",
+    "guideListTitle": "画像変換ガイド | QuickConv",
+    "guideListDescription": "AVIF、WebP、HEICなどの次世代画像フォーマットについて詳しく解説。変換方法やフォーマット比較の総合ガイド。",
+    "guideWhatIsAvifTitle": "AVIFとは？対応ブラウザと変換方法まとめ | QuickConv",
+    "guideWhatIsAvifDescription": "AVIFフォーマットの概要、ブラウザ対応状況、3つの変換方法を解説。QuickConvでの変換手順も紹介。",
+    "guideHeicToJpgTitle": "iPhoneのHEIC写真をJPGに変換する3つの方法 | QuickConv",
+    "guideHeicToJpgDescription": "iPhoneのHEIC写真をJPGに簡単変換。オンラインツール、macOSプレビュー、アプリの3つの方法を比較。",
+    "guideWebpVsAvifVsHeicTitle": "WebP vs AVIF vs HEIC：次世代画像フォーマット比較 | QuickConv",
+    "guideWebpVsAvifVsHeicDescription": "WebP、AVIF、HEICの画像フォーマットを徹底比較。圧縮率、品質、ブラウザ対応、用途別の推奨フォーマットを解説。"
   },
   "cookieConsent": {
     "message": "当サイトでは、より良いサービスを提供するためにCookieを使用しています。レート制限およびサービス改善の目的で使用されます。",
