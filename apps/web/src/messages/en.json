@@ -331,6 +331,16 @@
     "bannerTitle": "You've used all free conversions today",
     "bannerDescription": "Get unlimited conversions with Plus for just ¥380/mo."
   },
+  "share": {
+    "shareResult": "Share your conversion result",
+    "shareText": "Converted {from} to {to} with QuickConv!",
+    "shareOnX": "Share on X",
+    "shareOnFacebook": "Share on Facebook",
+    "shareOnLine": "Share on LINE",
+    "copyLink": "Copy link",
+    "nativeShare": "Share",
+    "linkCopied": "Link copied to clipboard!"
+  },
   "jsonLd": {
     "webAppName": "QuickConv - Free Online Image Converter",
     "webAppDescription": "Convert images between HEIC, WebP, AVIF, PNG, and JPG formats instantly. Free, fast, and secure.",

@@ -8,6 +8,7 @@ import { FormatSelector } from "./format-selector";
 import { ProgressBar } from "./progress-bar";
 import { UpgradeModal } from "./upgrade-modal";
 import { UpgradeBanner } from "./upgrade-banner";
+import { ShareButtons } from "./share-buttons";
 import { AdSlot } from "./ad-slot";
 import { useConversion } from "@/hooks/use-conversion";
 import { useGAEvent } from "@/hooks/use-ga-event";
@@ -197,6 +198,10 @@ export function ConversionCard() {
             {t("downloadFile")}
           </a>
           <p className="text-xs text-muted-foreground">{t("expiresIn", { hours: 24 })}</p>
+
+          {/* Share buttons */}
+          <ShareButtons from={inputFormat} to={convOutputFormat} />
+
           <button
             onClick={handleReset}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"

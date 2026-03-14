@@ -146,6 +146,16 @@
     "bannerTitle": "本日の無料変換をすべて使いました",
     "bannerDescription": "Plusなら月¥380で無制限に変換できます。"
   },
+  "share": {
+    "shareResult": "変換結果をシェア",
+    "shareText": "QuickConvで{from}を{to}に変換しました！",
+    "shareOnX": "Xでシェア",
+    "shareOnFacebook": "Facebookでシェア",
+    "shareOnLine": "LINEでシェア",
+    "copyLink": "リンクをコピー",
+    "nativeShare": "シェア",
+    "linkCopied": "リンクをコピーしました！"
+  },
   "guideList": {
     "title": "画像変換ガイド",
     "description": "次世代画像フォーマットについて学び、効率的に変換する方法を紹介します。"

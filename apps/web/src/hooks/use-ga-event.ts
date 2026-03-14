@@ -61,11 +61,24 @@ export function useGAEvent() {
     []
   );
 
+  const trackShare = useCallback(
+    (method: string, from: string, to: string) => {
+      sendEvent("share", {
+        method,
+        content_type: "conversion_result",
+        from,
+        to,
+      });
+    },
+    []
+  );
+
   return {
     trackFileUpload,
     trackConversionStart,
     trackConversionComplete,
     trackConversionError,
     trackFileDownload,
+    trackShare,
   };
 }
