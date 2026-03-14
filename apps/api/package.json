@@ -10,14 +10,14 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@quickconv/shared": "workspace:*",
     "hono": "^4.7.0",
-    "nanoid": "^5.0.0",
-    "@quickconv/shared": "workspace:*"
+    "nanoid": "^5.0.0"
   },
   "devDependencies": {
-    "vitest": "^4.1.0",
-    "wrangler": "^4.0.0",
     "@cloudflare/workers-types": "^4.20250109.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.0.0"
   }
 }
