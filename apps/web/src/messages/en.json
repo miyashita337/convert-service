@@ -34,6 +34,7 @@
     "rateLimitReached": "Daily limit reached. Try again tomorrow.",
     "batchLimitExceeded": "You can convert up to {limit} files at a time. Only the first file was selected.",
     "batchLimitByRemaining": "You only have {count} conversion(s) left today. Only the first file was selected.",
+    "contact": "Contact",
     "guide": "Guide",
     "guideDescription": "Learn about next-generation image formats and how to convert them",
     "readMore": "Read more",
@@ -56,7 +57,20 @@
     "guideHeicToJpgTitle": "3 Ways to Convert iPhone HEIC Photos to JPG | QuickConv",
     "guideHeicToJpgDescription": "Convert HEIC photos from iPhone to JPG easily. Compare three conversion methods: online tools, macOS Preview, and mobile apps.",
     "guideWebpVsAvifVsHeicTitle": "WebP vs AVIF vs HEIC: Next-Gen Image Format Comparison | QuickConv",
-    "guideWebpVsAvifVsHeicDescription": "Compare WebP, AVIF, and HEIC image formats. Learn the differences in compression, quality, browser support, and which format to use."
+    "guideWebpVsAvifVsHeicDescription": "Compare WebP, AVIF, and HEIC image formats. Learn the differences in compression, quality, browser support, and which format to use.",
+    "contactTitle": "Contact Us | QuickConv",
+    "contactDescription": "Get in touch with the QuickConv team. We're here to help with any questions about our free online image conversion service."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "intro": "Have a question, suggestion, or issue? We'd love to hear from you. Please reach out using the information below.",
+    "emailTitle": "Email",
+    "emailDescription": "For general inquiries, bug reports, or feature requests:",
+    "responseTitle": "Response Time",
+    "responseDescription": "We typically respond within 1-2 business days. For urgent issues, please include 'URGENT' in your subject line.",
+    "operatorTitle": "Service Operator",
+    "operatorName": "QuickConv",
+    "operatorService": "Online Image Conversion Service — quickconv.cc"
   },
   "cookieConsent": {
     "message": "This website uses cookies to provide you with a better experience. We use cookies for rate limiting and service improvement.",

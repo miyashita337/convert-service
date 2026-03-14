@@ -34,6 +34,7 @@
     "rateLimitReached": "本日の変換回数の上限に達しました。明日またお試しください。",
     "batchLimitExceeded": "一度に変換できるのは{limit}枚までです。最初のファイルのみ選択されました。",
     "batchLimitByRemaining": "本日の残り変換回数は{count}回です。最初のファイルのみ選択されました。",
+    "contact": "お問い合わせ",
     "guide": "ガイド",
     "guideDescription": "次世代画像フォーマットについて学び、効率的に変換する方法を紹介します",
     "readMore": "続きを読む",
@@ -56,7 +57,20 @@
     "guideHeicToJpgTitle": "iPhoneのHEIC写真をJPGに変換する3つの方法 | QuickConv",
     "guideHeicToJpgDescription": "iPhoneのHEIC写真をJPGに簡単変換。オンラインツール、macOSプレビュー、アプリの3つの方法を比較。",
     "guideWebpVsAvifVsHeicTitle": "WebP vs AVIF vs HEIC：次世代画像フォーマット比較 | QuickConv",
-    "guideWebpVsAvifVsHeicDescription": "WebP、AVIF、HEICの画像フォーマットを徹底比較。圧縮率、品質、ブラウザ対応、用途別の推奨フォーマットを解説。"
+    "guideWebpVsAvifVsHeicDescription": "WebP、AVIF、HEICの画像フォーマットを徹底比較。圧縮率、品質、ブラウザ対応、用途別の推奨フォーマットを解説。",
+    "contactTitle": "お問い合わせ | QuickConv",
+    "contactDescription": "QuickConvへのお問い合わせ。無料オンライン画像変換サービスに関するご質問にお答えします。"
+  },
+  "contact": {
+    "title": "お問い合わせ",
+    "intro": "ご質問、ご提案、問題のご報告がございましたら、以下の連絡先までお気軽にお問い合わせください。",
+    "emailTitle": "メール",
+    "emailDescription": "一般的なお問い合わせ、バグ報告、機能リクエストはこちら：",
+    "responseTitle": "返信目安",
+    "responseDescription": "通常1〜2営業日以内に返信いたします。お急ぎの場合は、件名に「至急」とご記載ください。",
+    "operatorTitle": "サービス運営者",
+    "operatorName": "QuickConv",
+    "operatorService": "オンライン画像変換サービス — quickconv.cc"
   },
   "cookieConsent": {
     "message": "当サイトでは、より良いサービスを提供するためにCookieを使用しています。レート制限およびサービス改善の目的で使用されます。",
