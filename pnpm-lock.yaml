@@ -91,6 +91,9 @@ importers:
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@sentry/browser':
+        specifier: ^10.43.0
+        version: 10.43.0
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -153,6 +156,9 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@22.19.15)(vite@8.0.0(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0))
 
 packages:
 
@@ -1502,6 +1508,26 @@ packages:
 
   '@schummar/icu-type-parser@1.21.5':
     resolution: {integrity: sha512-bXHSaW5jRTmke9Vd0h5P7BtWZG9Znqb8gSDxZnxaGSJnGwPLDPfS+3g0BKzeWqzgZPsIVZkM7m2tbo18cm5HBw==}
+
+  '@sentry-internal/browser-utils@10.43.0':
+    resolution: {integrity: sha512-8zYTnzhAPvNkVH1Irs62wl0J/c+0QcJ62TonKnzpSFUUD3V5qz8YDZbjIDGfxy+1EB9fO0sxtddKCzwTHF/MbQ==}
+    engines: {node: '>=18'}
+
+  '@sentry-internal/feedback@10.43.0':
+    resolution: {integrity: sha512-YoXuwluP6eOcQxTeTtaWb090++MrLyWOVsUTejzUQQ6LFL13Jwt+bDPF1kvBugMq4a7OHw/UNKQfd6//rZMn2g==}
+    engines: {node: '>=18'}
+
+  '@sentry-internal/replay-canvas@10.43.0':
+    resolution: {integrity: sha512-ZIw1UNKOFXo1LbPCJPMAx9xv7D8TMZQusLDUgb6BsPQJj0igAuwd7KRGTkjjgnrwBp2O/sxcQFRhQhknWk7QPg==}
+    engines: {node: '>=18'}
+
+  '@sentry-internal/replay@10.43.0':
+    resolution: {integrity: sha512-khCXlGrlH1IU7P5zCEAJFestMeH97zDVCekj8OsNNDtN/1BmCJ46k6Xi0EqAUzdJgrOLJeLdoYdgtiIjovZ8Sg==}
+    engines: {node: '>=18'}
+
+  '@sentry/browser@10.43.0':
+    resolution: {integrity: sha512-2V3I3sXi3SMeiZpKixd9ztokSgK27cmvsD9J5oyOyjhGLTW/6QKCwHbKnluMgQMXq20nixQk5zN4wRjRUma3sg==}
+    engines: {node: '>=18'}
 
   '@sentry/core@10.43.0':
     resolution: {integrity: sha512-l0SszQAPiQGWl/ferw8GP3ALyHXiGiRKJaOvNmhGO+PrTQyZTZ6OYyPnGijAFRg58dE1V3RCH/zw5d2xSUIiNg==}
@@ -4266,6 +4292,32 @@ snapshots:
   '@rolldown/pluginutils@1.0.0-rc.9': {}
 
   '@schummar/icu-type-parser@1.21.5': {}
+
+  '@sentry-internal/browser-utils@10.43.0':
+    dependencies:
+      '@sentry/core': 10.43.0
+
+  '@sentry-internal/feedback@10.43.0':
+    dependencies:
+      '@sentry/core': 10.43.0
+
+  '@sentry-internal/replay-canvas@10.43.0':
+    dependencies:
+      '@sentry-internal/replay': 10.43.0
+      '@sentry/core': 10.43.0
+
+  '@sentry-internal/replay@10.43.0':
+    dependencies:
+      '@sentry-internal/browser-utils': 10.43.0
+      '@sentry/core': 10.43.0
+
+  '@sentry/browser@10.43.0':
+    dependencies:
+      '@sentry-internal/browser-utils': 10.43.0
+      '@sentry-internal/feedback': 10.43.0
+      '@sentry-internal/replay': 10.43.0
+      '@sentry-internal/replay-canvas': 10.43.0
+      '@sentry/core': 10.43.0
 
   '@sentry/core@10.43.0': {}
 
