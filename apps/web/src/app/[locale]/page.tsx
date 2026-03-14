@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConversionCard } from "@/components/conversion-card";
 import { PopularConversions } from "@/components/popular-conversions";
+import { AdSlot } from "@/components/ad-slot";
 import { WebApplicationJsonLd } from "@/components/json-ld";
 import { buildPageMetadata } from "@/lib/metadata";
 import { locales, type Locale } from "@/lib/i18n/config";
@@ -49,7 +50,15 @@ export default async function HomePage({
           {t("description")}
         </p>
       </div>
+
+      {/* Ad: leaderboard below tagline */}
+      <AdSlot slot="SLOT_LEADERBOARD" placement="leaderboard" className="mb-8" />
+
       <ConversionCard />
+
+      {/* Ad: rectangle between converter and popular conversions */}
+      <AdSlot slot="SLOT_RECTANGLE" placement="rectangle" className="my-8" />
+
       <PopularConversions />
     </div>
   );

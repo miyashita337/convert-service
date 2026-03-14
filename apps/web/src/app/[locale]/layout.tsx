@@ -6,6 +6,7 @@ import { routing } from "@/lib/i18n/routing";
 import { locales } from "@/lib/i18n/config";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { AdSlot } from "@/components/ad-slot";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { CfAnalytics } from "@/components/cf-analytics";
 import { CookieConsent } from "@/components/cookie-consent";
@@ -45,6 +46,8 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main className="flex-1">{children}</main>
+          {/* Ad: leaderboard above footer (all pages) */}
+          <AdSlot slot="SLOT_FOOTER" placement="leaderboard" className="max-w-5xl mx-auto px-4 mb-4" />
           <Footer />
           <CookieConsent />
           <Toaster position="top-center" richColors />
