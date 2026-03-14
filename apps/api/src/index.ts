@@ -1,13 +1,14 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import type { Env } from "./types/env";
+import type { Env, AppVariables } from "./types/env";
+import { identificationMiddleware } from "./middleware/identification";
 import upload from "./routes/upload";
 import convert from "./routes/convert";
 import status from "./routes/status";
 import download from "./routes/download";
 import callback from "./routes/callback";
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
 // CORS
 app.use(
@@ -28,6 +29,9 @@ app.use(
     return middleware(c, next);
   }
 );
+
+// Identification — CORS の後、ルートの前に適用
+app.use("/api/*", identificationMiddleware());
 
 // Health check
 app.get("/health", (c) => c.json({ status: "ok" }));
