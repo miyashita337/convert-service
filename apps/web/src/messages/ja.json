@@ -1,6 +1,8 @@
 {
   "common": {
     "siteName": "QuickConv",
+    "login": "ログイン",
+    "logout": "ログアウト",
     "tagline": "高速・無料のオンライン画像変換",
     "description": "HEIC、WebP、AVIF、PNG、JPG形式の画像を瞬時に変換。無料、登録不要。",
     "upload": "アップロード",

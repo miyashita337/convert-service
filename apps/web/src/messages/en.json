@@ -1,6 +1,8 @@
 {
   "common": {
     "siteName": "QuickConv",
+    "login": "Sign in",
+    "logout": "Sign out",
     "tagline": "Fast, Free Online Image Converter",
     "description": "Convert images between HEIC, WebP, AVIF, PNG, JPG formats instantly. Free, no registration required.",
     "upload": "Upload",
