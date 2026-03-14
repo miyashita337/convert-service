@@ -8,6 +8,7 @@ import { FormatSelector } from "./format-selector";
 import { ProgressBar } from "./progress-bar";
 import { UpgradeModal } from "./upgrade-modal";
 import { UpgradeBanner } from "./upgrade-banner";
+import { AdSlot } from "./ad-slot";
 import { useConversion } from "@/hooks/use-conversion";
 import { useGAEvent } from "@/hooks/use-ga-event";
 import type { ImageFormat } from "@quickconv/shared";
@@ -130,6 +131,9 @@ export function ConversionCard() {
               {t("startConversion")}
             </button>
           )}
+
+          {/* Ad: Leaderboard below tool description (idle state) */}
+          <AdSlot slot="idle-leaderboard" placement="leaderboard" className="mt-6" />
         </>
       )}
 
@@ -144,13 +148,17 @@ export function ConversionCard() {
 
       {/* Step 3: Converting */}
       {step === "converting" && (
-        <div className="rounded-xl border border-border p-8 text-center space-y-4">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="font-medium">{t("processing")}</p>
-          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-            <div className="h-full rounded-full bg-primary animate-pulse w-full" />
+        <>
+          <div className="rounded-xl border border-border p-8 text-center space-y-4">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+            <p className="font-medium">{t("processing")}</p>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full bg-primary animate-pulse w-full" />
+            </div>
           </div>
-        </div>
+          {/* Ad: Leaderboard during conversion (user waits here) */}
+          <AdSlot slot="converting-leaderboard" placement="leaderboard" className="mt-4" />
+        </>
       )}
 
       {/* Step 4: Completed */}
@@ -175,6 +183,9 @@ export function ConversionCard() {
               {t("remainingCount", { remaining: remainingConversions, limit: dailyLimit })}
             </span>
           )}
+
+          {/* Ad: Rectangle above download button */}
+          <AdSlot slot="completed-rectangle" placement="rectangle" className="my-2" />
 
           <a
             href={downloadUrl}
