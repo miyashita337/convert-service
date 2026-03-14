@@ -23,8 +23,14 @@
     "termsOfService": "利用規約"
   },
   "seo": {
+    "homeTitle": "QuickConv - 無料オンライン画像変換 | WebP AVIF HEIC対応",
+    "homeDescription": "HEIC、WebP、AVIF、PNG、JPG形式の画像を瞬時に変換。無料・高速・安全。登録不要、ウォーターマークなし。",
     "titleTemplate": "{from}から{to}への変換 - 無料オンライン | QuickConv",
-    "descriptionTemplate": "{from}を{to}にオンラインで無料変換。登録不要、ウォーターマークなし。高速で安全な画像変換。"
+    "descriptionTemplate": "{from}を{to}にオンラインで無料変換。登録不要、ウォーターマークなし。高速で安全な画像変換。",
+    "privacyTitle": "プライバシーポリシー | QuickConv",
+    "privacyDescription": "QuickConvのプライバシー保護について。最小限のデータ収集、24時間以内のファイル自動削除、第三者への情報共有なし。",
+    "termsTitle": "利用規約 | QuickConv",
+    "termsDescription": "QuickConvの利用規約。無料オンライン画像変換サービスの利用条件、ファイル自動削除、公正利用ポリシー。"
   },
   "cookieConsent": {
     "message": "当サイトでは、より良いサービスを提供するためにCookieを使用しています。レート制限およびサービス改善の目的で使用されます。",

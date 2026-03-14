@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { locales } from "@/lib/i18n/config";
+import { locales, type Locale } from "@/lib/i18n/config";
+import { buildPageMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
 
 export function generateStaticParams() {
@@ -12,10 +13,14 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "privacyPolicy" });
-  return {
-    title: `${t("title")} | QuickConv`,
-  };
+  const t = await getTranslations({ locale, namespace: "seo" });
+
+  return buildPageMetadata({
+    title: t("privacyTitle"),
+    description: t("privacyDescription"),
+    locale: locale as Locale,
+    path: "/privacy",
+  });
 }
 
 export default async function PrivacyPage({

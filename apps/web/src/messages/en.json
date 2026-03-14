@@ -23,8 +23,14 @@
     "termsOfService": "Terms of Service"
   },
   "seo": {
+    "homeTitle": "QuickConv - Free Online Image Converter | WebP AVIF HEIC",
+    "homeDescription": "Convert images between HEIC, WebP, AVIF, PNG, and JPG formats instantly. Free, fast, and secure. No registration or watermark required.",
     "titleTemplate": "{from} to {to} Converter - Free Online | QuickConv",
-    "descriptionTemplate": "Convert {from} to {to} online for free. No registration, no watermark. Fast and secure image conversion."
+    "descriptionTemplate": "Convert {from} to {to} online for free. No registration, no watermark. Fast and secure image conversion.",
+    "privacyTitle": "Privacy Policy | QuickConv",
+    "privacyDescription": "Learn how QuickConv protects your privacy. We collect minimal data, auto-delete files in 24 hours, and never share your information.",
+    "termsTitle": "Terms of Service | QuickConv",
+    "termsDescription": "Read the QuickConv Terms of Service. Free online image conversion with automatic file deletion and fair usage policies."
   },
   "cookieConsent": {
     "message": "This website uses cookies to provide you with a better experience. We use cookies for rate limiting and service improvement.",

@@ -1,5 +1,4 @@
-import type { Metadata } from "next";
-import { NextIntlClientProvider, useMessages } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/lib/i18n/routing";
@@ -8,17 +7,11 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { CookieConsent } from "@/components/cookie-consent";
+import "../globals.css";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
-import "../globals.css";
-
-export const metadata: Metadata = {
-  title: "QuickConv - Fast, Free Online Image Converter",
-  description:
-    "Convert images between HEIC, WebP, AVIF, PNG, JPG formats instantly. Free, no registration required.",
-};
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
