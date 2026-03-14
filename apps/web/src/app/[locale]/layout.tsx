@@ -10,6 +10,7 @@ import { GoogleAnalytics } from "@/components/google-analytics";
 import { CfAnalytics } from "@/components/cf-analytics";
 import { CookieConsent } from "@/components/cookie-consent";
 import { OrganizationJsonLd } from "@/components/json-ld";
+import { AdSlot } from "@/components/ad-slot";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -45,6 +46,10 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main className="flex-1">{children}</main>
+          {/* Ad: Leaderboard above footer */}
+          <div className="max-w-5xl mx-auto px-4 py-4">
+            <AdSlot slot="footer-leaderboard" placement="leaderboard" />
+          </div>
           <Footer />
           <CookieConsent />
           <Toaster position="top-center" richColors />
