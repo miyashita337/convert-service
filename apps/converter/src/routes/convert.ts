@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { convertImage, generatePreviews } from "../services/image";
 import { downloadFromR2, uploadToR2 } from "../services/r2-client";
-import { captureException, checkMemoryUsage } from "../lib/sentry";
+import { addConversionBreadcrumb, captureException, checkMemoryUsage } from "../lib/sentry";
 import type { ImageFormat } from "@quickconv/shared";
 
 const convertRoute = new Hono();
@@ -25,6 +25,7 @@ convertRoute.post("/", async (c) => {
   const callbackUrl = process.env.CALLBACK_URL;
 
   try {
+    const startTime = Date.now();
     const inputBuffer = await downloadFromR2(inputKey);
     const result = await convertImage({
       inputBuffer,
@@ -32,6 +33,13 @@ convertRoute.post("/", async (c) => {
       outputFormat: outputFormat as any,
     });
     await uploadToR2(outputKey, result.buffer, result.format);
+
+    addConversionBreadcrumb({
+      conversionFormat: `${inputFormat}-to-${outputFormat}`,
+      durationMs: Date.now() - startTime,
+      fileSizeInput: inputBuffer.length,
+      fileSizeOutput: result.size,
+    });
 
     if (callbackUrl) {
       await fetch(callbackUrl, {
@@ -80,6 +88,7 @@ convertRoute.post("/direct", async (c) => {
   }
 
   try {
+    const startTime = Date.now();
     const inputBuffer = Buffer.from(await file.arrayBuffer());
     const inputFormat = file.name.split(".").pop() || "";
 
@@ -87,6 +96,13 @@ convertRoute.post("/direct", async (c) => {
       inputBuffer,
       inputFormat,
       outputFormat: outputFormat as any,
+    });
+
+    addConversionBreadcrumb({
+      conversionFormat: `${inputFormat}-to-${outputFormat}`,
+      durationMs: Date.now() - startTime,
+      fileSizeInput: inputBuffer.length,
+      fileSizeOutput: result.size,
     });
 
     checkMemoryUsage();
