@@ -38,7 +38,8 @@
     "guideDescription": "Learn about next-generation image formats and how to convert them",
     "readMore": "Read more",
     "tryConverter": "Try It Free",
-    "tableOfContents": "Table of Contents"
+    "tableOfContents": "Table of Contents",
+    "contact": "Contact"
   },
   "seo": {
     "homeTitle": "QuickConv - Free Online Image Converter | WebP AVIF HEIC",
@@ -56,7 +57,9 @@
     "guideHeicToJpgTitle": "3 Ways to Convert iPhone HEIC Photos to JPG | QuickConv",
     "guideHeicToJpgDescription": "Convert HEIC photos from iPhone to JPG easily. Compare three conversion methods: online tools, macOS Preview, and mobile apps.",
     "guideWebpVsAvifVsHeicTitle": "WebP vs AVIF vs HEIC: Next-Gen Image Format Comparison | QuickConv",
-    "guideWebpVsAvifVsHeicDescription": "Compare WebP, AVIF, and HEIC image formats. Learn the differences in compression, quality, browser support, and which format to use."
+    "guideWebpVsAvifVsHeicDescription": "Compare WebP, AVIF, and HEIC image formats. Learn the differences in compression, quality, browser support, and which format to use.",
+    "contactTitle": "Contact Us | QuickConv",
+    "contactDescription": "Get in touch with the QuickConv team. Report bugs, request features, or ask questions about our free online image converter."
   },
   "cookieConsent": {
     "message": "This website uses cookies to provide you with a better experience. We use cookies for rate limiting and service improvement.",
@@ -297,6 +300,19 @@
     "conversionText": "QuickConv supports conversion between all three next-generation formats and traditional formats like JPG and PNG. You can convert WebP to AVIF, HEIC to JPG, AVIF to PNG, and many more combinations with just a few clicks.",
     "conclusionTitle": "Conclusion",
     "conclusionText": "Each format has its place: WebP for maximum compatibility, AVIF for maximum compression and quality, and HEIC for the Apple ecosystem. For web use, AVIF with a WebP fallback is the recommended strategy in 2026. Use QuickConv to easily convert between all these formats for free."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "intro": "Have a question, found a bug, or want to suggest a feature? We would love to hear from you.",
+    "emailTitle": "Email",
+    "emailDescription": "For any inquiries, please send us an email. We will get back to you as soon as possible.",
+    "responseTimeTitle": "Response Time",
+    "responseTimeDescription": "We typically respond within 2-3 business days. Please note that QuickConv is a free service operated by a small team, so response times may vary.",
+    "topicsTitle": "What You Can Contact Us About",
+    "topicBug": "Bug reports and technical issues",
+    "topicFeature": "Feature requests and suggestions",
+    "topicPrivacy": "Privacy and data deletion requests",
+    "topicOther": "General questions about the service"
   },
   "upgrade": {
     "modalTitle": "You've used all {limit} free conversions today",
