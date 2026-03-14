@@ -3,5 +3,8 @@ export * from "./types/api";
 export * from "./types/rate-limit";
 export * from "./constants/formats";
 export * from "./constants/limits";
+export * from "./types/quality";
+export * from "./constants/quality";
 export * from "./validators/file";
+export * from "./validators/quality";
 export * from "./utils/related-conversions";
