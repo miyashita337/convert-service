@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Toaster } from "sonner";
 import { routing } from "@/lib/i18n/routing";
 import { locales } from "@/lib/i18n/config";
 import { Header } from "@/components/header";
@@ -46,6 +47,7 @@ export default async function LocaleLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <CookieConsent />
+          <Toaster position="top-center" richColors />
         </NextIntlClientProvider>
       </body>
     </html>

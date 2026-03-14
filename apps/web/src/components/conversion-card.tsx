@@ -6,6 +6,8 @@ import { Download, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { FileDropzone } from "./file-dropzone";
 import { FormatSelector } from "./format-selector";
 import { ProgressBar } from "./progress-bar";
+import { UpgradeModal } from "./upgrade-modal";
+import { UpgradeBanner } from "./upgrade-banner";
 import { useConversion } from "@/hooks/use-conversion";
 import { useGAEvent } from "@/hooks/use-ga-event";
 import type { ImageFormat } from "@quickconv/shared";
@@ -17,6 +19,7 @@ export function ConversionCard() {
   const t = useTranslations("common");
   const [file, setFile] = useState<File | null>(null);
   const [outputFormat, setOutputFormat] = useState<ImageFormat | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const {
     step,
     uploadProgress,
@@ -45,9 +48,12 @@ export function ConversionCard() {
   };
 
   const handleConvert = () => {
-    if (file && outputFormat && !isRateLimited) {
-      startConversion(file, outputFormat);
+    if (!file || !outputFormat) return;
+    if (isRateLimited) {
+      setShowUpgradeModal(true);
+      return;
     }
+    startConversion(file, outputFormat);
   };
 
   const handleReset = () => {
@@ -96,7 +102,10 @@ export function ConversionCard() {
       {/* Step 1: File Selection */}
       {step === "idle" && (
         <>
-          <FileDropzone onFileSelect={handleFileSelect} />
+          <FileDropzone
+            onFileSelect={handleFileSelect}
+            remainingConversions={remainingConversions}
+          />
 
           {file && (
             <div className="rounded-lg bg-muted p-4">
@@ -116,12 +125,7 @@ export function ConversionCard() {
           {file && outputFormat && (
             <button
               onClick={handleConvert}
-              disabled={isRateLimited}
-              className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                isRateLimited
-                  ? "bg-muted text-muted-foreground cursor-not-allowed"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90"
-              }`}
+              className="w-full py-3 rounded-lg font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {t("startConversion")}
             </button>
@@ -206,6 +210,20 @@ export function ConversionCard() {
             {t("convertAnother")}
           </button>
         </div>
+      )}
+
+      {/* Upgrade Banner: shown after completing the last free conversion */}
+      {step === "completed" && isRateLimited && (
+        <UpgradeBanner visible />
+      )}
+
+      {/* Upgrade Modal: shown when user tries to convert with 0 remaining */}
+      {dailyLimit !== null && (
+        <UpgradeModal
+          open={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          dailyLimit={dailyLimit}
+        />
       )}
     </div>
   );

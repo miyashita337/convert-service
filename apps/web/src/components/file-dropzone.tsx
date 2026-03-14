@@ -4,31 +4,65 @@ import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE_MB, MAX_FILE_SIZE_BYTES } from "@quickconv/shared";
+import {
+  ALLOWED_MIME_TYPES,
+  MAX_FILE_SIZE_MB,
+  MAX_FILE_SIZE_BYTES,
+  ANONYMOUS_MAX_BATCH_FILES,
+} from "@quickconv/shared";
 
 interface FileDropzoneProps {
   onFileSelect: (file: File) => void;
   disabled?: boolean;
+  remainingConversions?: number | null;
 }
 
-export function FileDropzone({ onFileSelect, disabled }: FileDropzoneProps) {
+export function FileDropzone({ onFileSelect, disabled, remainingConversions }: FileDropzoneProps) {
   const t = useTranslations("common");
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      if (acceptedFiles.length > 0) {
-        onFileSelect(acceptedFiles[0]);
+      if (acceptedFiles.length === 0) return;
+
+      // Calculate effective limit: min of batch limit and remaining conversions
+      const batchLimit = ANONYMOUS_MAX_BATCH_FILES;
+      const effectiveLimit =
+        remainingConversions !== null && remainingConversions !== undefined
+          ? Math.min(batchLimit, remainingConversions)
+          : batchLimit;
+
+      if (effectiveLimit <= 0) {
+        toast.warning(t("rateLimitReached"));
+        return;
       }
+
+      if (acceptedFiles.length > effectiveLimit) {
+        // Show toast with the effective limit
+        if (
+          remainingConversions !== null &&
+          remainingConversions !== undefined &&
+          remainingConversions < batchLimit
+        ) {
+          toast.warning(t("batchLimitByRemaining", { count: remainingConversions }));
+        } else {
+          toast.warning(t("batchLimitExceeded", { limit: batchLimit }));
+        }
+      }
+
+      // Take only the first file (single-file conversion for now)
+      // When batch conversion is supported, this will send up to effectiveLimit files
+      onFileSelect(acceptedFiles[0]);
     },
-    [onFileSelect]
+    [onFileSelect, remainingConversions, t]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: Object.fromEntries(ALLOWED_MIME_TYPES.map((m) => [m, []])),
     maxSize: MAX_FILE_SIZE_BYTES,
-    multiple: false,
+    multiple: true,
     disabled,
   });
 

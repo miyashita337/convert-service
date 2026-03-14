@@ -31,7 +31,9 @@
     "footerConversions": "変換ツール",
     "remainingCount": "残り {remaining}/{limit} 回",
     "remainingWarning": "本日の無料変換回数が残りわずかです。",
-    "rateLimitReached": "本日の変換回数の上限に達しました。明日またお試しください。"
+    "rateLimitReached": "本日の変換回数の上限に達しました。明日またお試しください。",
+    "batchLimitExceeded": "一度に変換できるのは{limit}枚までです。最初のファイルのみ選択されました。",
+    "batchLimitByRemaining": "本日の残り変換回数は{count}回です。最初のファイルのみ選択されました。"
   },
   "seo": {
     "homeTitle": "QuickConv - 無料オンライン画像変換 | WebP AVIF HEIC対応",
@@ -97,6 +99,23 @@
     "limitationDescription": "法律で認められる最大限の範囲において、QuickConvは本サービスの利用に起因する間接的、偶発的、特別、または結果的な損害について責任を負いません。",
     "changesTitle": "規約の変更",
     "changesDescription": "当社は、いつでも本規約を変更する権利を有します。変更後も本サービスを継続してご利用いただいた場合、更新された規約に同意したものとみなされます。"
+  },
+  "upgrade": {
+    "modalTitle": "本日の無料変換 {limit}回を使い切りました",
+    "modalDescription": "リセットまでお待ちいただくか、プランをアップグレードして無制限に変換できます。",
+    "resetsIn": "リセットまで",
+    "passTitle": "7日間パス",
+    "pass7days": "7日間",
+    "plusTitle": "Plus",
+    "perMonth": "月",
+    "featureUnlimited": "無制限の変換",
+    "featureNoAds": "広告なし",
+    "featurePriority": "優先処理",
+    "recommended": "おすすめ",
+    "comingSoon": "Coming Soon",
+    "comeBackTomorrow": "明日また来る",
+    "bannerTitle": "本日の無料変換をすべて使いました",
+    "bannerDescription": "Plusなら月¥380で無制限に変換できます。"
   },
   "jsonLd": {
     "webAppName": "QuickConv - 無料オンライン画像変換",
