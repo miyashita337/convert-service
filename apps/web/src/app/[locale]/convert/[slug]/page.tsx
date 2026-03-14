@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConversionCard } from "@/components/conversion-card";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { HowToJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
 import { RelatedConversions } from "@/components/related-conversions";
 import { CONVERSION_PAIRS, getRelatedConversions } from "@quickconv/shared";
 import { locales, type Locale } from "@/lib/i18n/config";
@@ -30,8 +31,14 @@ export async function generateMetadata({
   const [from, , to] = slug.split("-");
 
   return buildPageMetadata({
-    title: t("titleTemplate", { from: from.toUpperCase(), to: to.toUpperCase() }),
-    description: t("descriptionTemplate", { from: from.toUpperCase(), to: to.toUpperCase() }),
+    title: t("titleTemplate", {
+      from: from.toUpperCase(),
+      to: to.toUpperCase(),
+    }),
+    description: t("descriptionTemplate", {
+      from: from.toUpperCase(),
+      to: to.toUpperCase(),
+    }),
     locale: locale as Locale,
     path: `/convert/${slug}`,
   });
@@ -48,24 +55,58 @@ export default async function ConvertPage({ params }: PageProps) {
   const [from, , to] = slug.split("-");
   const t = await getTranslations("seo");
   const tCommon = await getTranslations("common");
+  const tJsonLd = await getTranslations("jsonLd");
   const relatedConversions = getRelatedConversions(slug);
+  const fromUpper = from.toUpperCase();
+  const toUpper = to.toUpperCase();
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
+      <HowToJsonLd
+        locale={locale as Locale}
+        from={fromUpper}
+        to={toUpper}
+        name={tJsonLd("howToName", { from: fromUpper, to: toUpper })}
+        description={tJsonLd("howToDescription", {
+          from: fromUpper,
+          to: toUpper,
+        })}
+        steps={[
+          {
+            name: tJsonLd("stepUploadName"),
+            text: tJsonLd("stepUploadText", { from: fromUpper }),
+          },
+          {
+            name: tJsonLd("stepConvertName"),
+            text: tJsonLd("stepConvertText", { to: toUpper }),
+          },
+          {
+            name: tJsonLd("stepDownloadName"),
+            text: tJsonLd("stepDownloadText", { to: toUpper }),
+          },
+        ]}
+      />
+      <BreadcrumbJsonLd
+        locale={locale as Locale}
+        items={[
+          { name: tCommon("imageConversion") },
+          { name: `${fromUpper} to ${toUpper}` },
+        ]}
+      />
       <Breadcrumb
         items={[
           { label: tCommon("imageConversion") },
-          { label: `${from.toUpperCase()} to ${to.toUpperCase()}` },
+          { label: `${fromUpper} to ${toUpper}` },
         ]}
       />
       <div className="text-center mb-10">
         <h1 className="text-4xl font-bold tracking-tight">
-          {from.toUpperCase()} &rarr; {to.toUpperCase()}
+          {fromUpper} &rarr; {toUpper}
         </h1>
         <p className="mt-3 text-lg text-muted-foreground">
           {t("descriptionTemplate", {
-            from: from.toUpperCase(),
-            to: to.toUpperCase(),
+            from: fromUpper,
+            to: toUpper,
           })}
         </p>
       </div>

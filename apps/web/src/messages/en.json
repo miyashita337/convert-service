@@ -97,5 +97,17 @@
     "limitationDescription": "To the fullest extent permitted by law, QuickConv shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service.",
     "changesTitle": "Changes to Terms",
     "changesDescription": "We reserve the right to modify these Terms at any time. Continued use of the Service after changes constitutes acceptance of the updated Terms."
+  },
+  "jsonLd": {
+    "webAppName": "QuickConv - Free Online Image Converter",
+    "webAppDescription": "Convert images between HEIC, WebP, AVIF, PNG, and JPG formats instantly. Free, fast, and secure.",
+    "howToName": "How to Convert {from} to {to}",
+    "howToDescription": "Convert {from} to {to} online for free using QuickConv.",
+    "stepUploadName": "Upload your file",
+    "stepUploadText": "Drag and drop your {from} file or click to select it from your device.",
+    "stepConvertName": "Convert the file",
+    "stepConvertText": "Select {to} as the output format and click Start Conversion.",
+    "stepDownloadName": "Download the result",
+    "stepDownloadText": "Once the conversion is complete, click Download to save your {to} file."
   }
 }

@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { BreadcrumbJsonLd } from "@/components/json-ld";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { buildPageMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
@@ -35,6 +36,10 @@ export default async function PrivacyPage({
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <BreadcrumbJsonLd
+        locale={locale as Locale}
+        items={[{ name: t("title") }]}
+      />
       <Breadcrumb items={[{ label: t("title") }]} />
       <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{t("lastUpdated")}</p>
