@@ -116,6 +116,40 @@ export function HowToJsonLd({
   );
 }
 
+interface ArticleJsonLdProps extends JsonLdProps {
+  title: string;
+  description: string;
+  path: string;
+}
+
+export function ArticleJsonLd({
+  locale,
+  title,
+  description,
+  path,
+}: ArticleJsonLdProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: title,
+    description,
+    url: getLocalizedUrl(locale, path),
+    publisher: {
+      "@type": "Organization",
+      name: "QuickConv",
+      url: SITE_URL,
+    },
+    inLanguage: locale === "ja" ? "ja" : "en",
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export function BreadcrumbJsonLd({ locale, items }: BreadcrumbJsonLdProps) {
   const allItems: BreadcrumbItem[] = [
     { name: locale === "ja" ? "\u30DB\u30FC\u30E0" : "Home", href: "/" },
