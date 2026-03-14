@@ -14,6 +14,8 @@
 1. Issue解析 → 2. 実装 → 3. E2Eテスト（Playwright, `apps/web/e2e/`） → 4. Push → 5. PR（`Closes #XX` 必須）
 - 並列開発: 別ブランチで作業。依存関係マップ参照
 - AC検証: 競合（Convertio/iLoveIMG/TinyPNG）と同等動作を基準
+- **着手時**: `gh issue edit <N> --add-label in-progress`（`in-progress` があれば他セッションが作業中）
+- **PR マージ時**: GitHub Actions が `in-progress` を自動除去
 
 ## ビルド・デプロイ
 詳細: [docs/deploy.md](docs/deploy.md)
