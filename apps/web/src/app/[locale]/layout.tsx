@@ -7,6 +7,7 @@ import { locales } from "@/lib/i18n/config";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { CookieConsent } from "@/components/cookie-consent";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -42,6 +43,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
+          <CookieConsent />
         </NextIntlClientProvider>
       </body>
     </html>
