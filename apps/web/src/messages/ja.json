@@ -28,7 +28,10 @@
     "popularConversions": "人気の変換",
     "popularConversionsDescription": "よく使われている画像変換ツール",
     "convertFromTo": "{from}から{to}",
-    "footerConversions": "変換ツール"
+    "footerConversions": "変換ツール",
+    "remainingCount": "残り {remaining}/{limit} 回",
+    "remainingWarning": "本日の無料変換回数が残りわずかです。",
+    "rateLimitReached": "本日の変換回数の上限に達しました。明日またお試しください。"
   },
   "seo": {
     "homeTitle": "QuickConv - 無料オンライン画像変換 | WebP AVIF HEIC対応",

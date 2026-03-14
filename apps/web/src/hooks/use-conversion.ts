@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { uploadFile, requestConversion, checkStatus, getDownloadUrl } from "@/lib/api-client";
+import type { RateLimitInfo } from "@/lib/api-client";
 import { POLLING_INTERVAL_MS } from "@quickconv/shared";
 import type { ImageFormat } from "@quickconv/shared";
 import { useGAEvent } from "./use-ga-event";
@@ -24,10 +25,17 @@ export function useConversion() {
     downloadUrl: null,
     error: null,
   });
+  const [remainingConversions, setRemainingConversions] = useState<number | null>(null);
+  const [dailyLimit, setDailyLimit] = useState<number | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
   const formatsRef = useRef<{ from: string; to: string }>({ from: "", to: "" });
   const { trackFileUpload, trackConversionStart, trackConversionComplete, trackConversionError } = useGAEvent();
+
+  const handleRateLimitUpdate = useCallback((info: RateLimitInfo) => {
+    setRemainingConversions(info.remaining);
+    setDailyLimit(info.limit);
+  }, []);
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
@@ -45,9 +53,13 @@ export function useConversion() {
 
       try {
         // Step 1: Upload
-        const uploaded = await uploadFile(file, (progress) => {
-          setState((s) => ({ ...s, uploadProgress: progress }));
-        });
+        const uploaded = await uploadFile(
+          file,
+          (progress) => {
+            setState((s) => ({ ...s, uploadProgress: progress }));
+          },
+          handleRateLimitUpdate,
+        );
 
         trackFileUpload(inputFormat, Math.round(file.size / 1024), 1);
 
@@ -56,7 +68,11 @@ export function useConversion() {
         startTimeRef.current = Date.now();
         trackConversionStart(inputFormat, outputFormat);
 
-        const { jobId } = await requestConversion(uploaded.fileId, outputFormat);
+        const { jobId } = await requestConversion(
+          uploaded.fileId,
+          outputFormat,
+          handleRateLimitUpdate,
+        );
         setState((s) => ({ ...s, jobId }));
 
         // Step 3: Poll for status
@@ -100,7 +116,7 @@ export function useConversion() {
         }));
       }
     },
-    [stopPolling, trackFileUpload, trackConversionStart, trackConversionComplete, trackConversionError]
+    [stopPolling, handleRateLimitUpdate, trackFileUpload, trackConversionStart, trackConversionComplete, trackConversionError]
   );
 
   const reset = useCallback(() => {
@@ -108,5 +124,13 @@ export function useConversion() {
     setState({ step: "idle", uploadProgress: 0, jobId: null, downloadUrl: null, error: null });
   }, [stopPolling]);
 
-  return { ...state, startConversion, reset, inputFormat: formatsRef.current.from, outputFormat: formatsRef.current.to };
+  return {
+    ...state,
+    startConversion,
+    reset,
+    inputFormat: formatsRef.current.from,
+    outputFormat: formatsRef.current.to,
+    remainingConversions,
+    dailyLimit,
+  };
 }

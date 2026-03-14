@@ -2,9 +2,26 @@ import type { UploadResponse, ConvertResponse, StatusResponse } from "@quickconv
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
 
+/** Rate limit info extracted from API response headers */
+export interface RateLimitInfo {
+  remaining: number;
+  limit: number;
+}
+
+/** Extract X-RateLimit-* headers from fetch Response */
+function extractRateLimitFromFetch(res: Response): RateLimitInfo | null {
+  const remaining = res.headers.get("X-RateLimit-Remaining");
+  const limit = res.headers.get("X-RateLimit-Limit");
+  if (remaining !== null && limit !== null) {
+    return { remaining: Number(remaining), limit: Number(limit) };
+  }
+  return null;
+}
+
 export async function uploadFile(
   file: File,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  onRateLimit?: (info: RateLimitInfo) => void,
 ): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
@@ -22,6 +39,12 @@ export async function uploadFile(
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
+        // Extract rate limit info from response headers
+        const remaining = xhr.getResponseHeader("X-RateLimit-Remaining");
+        const limit = xhr.getResponseHeader("X-RateLimit-Limit");
+        if (remaining !== null && limit !== null && onRateLimit) {
+          onRateLimit({ remaining: Number(remaining), limit: Number(limit) });
+        }
         resolve(JSON.parse(xhr.responseText));
       } else {
         reject(new Error(JSON.parse(xhr.responseText).message || "Upload failed"));
@@ -35,7 +58,8 @@ export async function uploadFile(
 
 export async function requestConversion(
   fileId: string,
-  outputFormat: string
+  outputFormat: string,
+  onRateLimit?: (info: RateLimitInfo) => void,
 ): Promise<ConvertResponse> {
   const res = await fetch(`${API_URL}/api/convert`, {
     method: "POST",
@@ -48,7 +72,19 @@ export async function requestConversion(
     throw new Error(error.message || "Conversion request failed");
   }
 
-  return res.json();
+  const data = await res.json();
+
+  // Extract rate limit from headers first, fall back to response body
+  if (onRateLimit) {
+    const headerRateLimit = extractRateLimitFromFetch(res);
+    if (headerRateLimit) {
+      onRateLimit(headerRateLimit);
+    } else if (data.remainingConversions !== undefined && data.dailyLimit !== undefined) {
+      onRateLimit({ remaining: data.remainingConversions, limit: data.dailyLimit });
+    }
+  }
+
+  return data;
 }
 
 export async function checkStatus(jobId: string): Promise<StatusResponse> {
