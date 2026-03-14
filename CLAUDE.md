@@ -2,12 +2,13 @@
 
 ## プロジェクト概要
 オンライン画像変換サービス（quickconv.cc）。次世代画像フォーマット（WebP/AVIF/HEIC）特化。
+ビジネス戦略・収益モデル・KPI・集客戦略は [グランドデザイン](docs/GRAND_DESIGN.md) を参照。
 
 ## 技術スタック
 - Frontend: Next.js (App Router, 静的エクスポート) + Tailwind + shadcn/ui on Cloudflare Pages
 - API: Hono on Cloudflare Workers
 - Converter: Sharp on GCP Cloud Run (us-central1)
-- Storage: Cloudflare R2
+- Storage: Cloudflare R2（24h自動削除設定済み）
 - DB: Cloudflare D1
 - i18n: next-intl（日本語・英語）
 
@@ -21,7 +22,7 @@
 ### 並列開発
 - 依存関係のないIssueはエージェントを並列起動してチーム開発する
 - 各エージェントは別ブランチで作業（コンフリクト回避）
-- 依存関係マップ: `docs/DEPENDENCY_MAP.md`
+- 依存関係マップ: [docs/DEPENDENCY_MAP.md](docs/DEPENDENCY_MAP.md)
 
 ### 開発フロー（1 Issue あたり）
 1. Issue解析: AC・依存関係を確認
@@ -34,7 +35,6 @@
 ### 優先順位
 - 依存度が高い順 × 重要度が高い順
 - ロードマップ: https://github.com/users/miyashita337/projects/2
-- グランドデザイン: `docs/GRAND_DESIGN.md`
 
 ### AC検証・E2Eテスト
 - 各Issue実装完了時に、ACに基づいた **Playwright E2Eテスト** を作成・実行
@@ -44,9 +44,7 @@
 
 ### PRルール
 - PR の body に `Closes #XX` を必ず含める
-- PR マージ時に GitHub Actions が自動で:
-  - 対応 Issue の Target date をセット
-  - ステータスを Done に変更
+- PR マージ時に GitHub Actions が自動で Target date セット + Done に変更
 
 ## ビルド・デプロイ
 
@@ -55,17 +53,19 @@
 pnpm dev
 
 # ビルド
-pnpm build          # 全パッケージ
-npx turbo build --filter=@quickconv/web   # フロントのみ
-npx turbo build --filter=@quickconv/api   # APIのみ
+pnpm build                                    # 全パッケージ
+npx turbo build --filter=@quickconv/web       # フロントのみ
+npx turbo build --filter=@quickconv/api       # APIのみ
 
 # デプロイ
-npx wrangler deploy --config apps/api/wrangler.toml           # API Workers
-npx wrangler pages deploy apps/web/out --project-name quickconv-web  # Frontend Pages
-gcloud builds submit --config=cloudbuild.yaml .                # Converter Cloud Run
+npx wrangler deploy --config apps/api/wrangler.toml                    # API Workers
+npx wrangler pages deploy apps/web/out --project-name quickconv-web    # Frontend Pages
+gcloud builds submit --config=cloudbuild.yaml .                        # Converter Cloud Run
 ```
 
-## エピック一覧
+## エピック・ロードマップ
+詳細は [グランドデザイン](docs/GRAND_DESIGN.md) および [依存関係マップ](docs/DEPENDENCY_MAP.md) を参照。
+
 | 優先度 | エピック | Issue |
 |---|---|---|
 | 1 | E1: フリーミアム制限 | #8 (#14-#21) |
