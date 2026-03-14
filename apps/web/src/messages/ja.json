@@ -20,7 +20,15 @@
     "language": "言語",
     "privacy": "ファイルは24時間後に自動削除されます",
     "privacyPolicy": "プライバシーポリシー",
-    "termsOfService": "利用規約"
+    "termsOfService": "利用規約",
+    "home": "ホーム",
+    "imageConversion": "画像変換",
+    "relatedConversions": "関連する変換ツール",
+    "relatedConversionsDescription": "こちらの変換ツールもお試しください",
+    "popularConversions": "人気の変換",
+    "popularConversionsDescription": "よく使われている画像変換ツール",
+    "convertFromTo": "{from}から{to}",
+    "footerConversions": "変換ツール"
   },
   "seo": {
     "homeTitle": "QuickConv - 無料オンライン画像変換 | WebP AVIF HEIC対応",
