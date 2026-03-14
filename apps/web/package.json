@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
-    "build": "next build",
+    "build": "next build && tsx scripts/generate-sitemap.ts",
     "start": "next start",
     "lint": "next lint"
   },
@@ -26,6 +26,7 @@
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^4.0.0",
     "@tailwindcss/postcss": "^4.0.0",
-    "postcss": "^8.4.0"
+    "postcss": "^8.4.0",
+    "tsx": "^4.21.0"
   }
 }
