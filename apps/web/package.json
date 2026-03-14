@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "sentry:sourcemaps": "sentry-cli releases files \"$RELEASE\" upload-sourcemaps .next/static --url-prefix '~/_next/static'"
   },
   "dependencies": {
     "@quickconv/shared": "workspace:*",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@sentry/cli": "^2.46.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
