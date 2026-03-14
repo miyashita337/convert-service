@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Env, AppVariables } from "./types/env";
+import { sentryMiddleware } from "./middleware/sentry";
 import { identificationMiddleware } from "./middleware/identification";
 import {
   rateLimitMiddleware,
@@ -15,6 +16,9 @@ import download from "./routes/download";
 import callback from "./routes/callback";
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
+
+// Sentry — must be first to capture all errors
+app.use("/api/*", sentryMiddleware());
 
 // CORS
 app.use(

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { convertImage, generatePreviews } from "../services/image";
 import { downloadFromR2, uploadToR2 } from "../services/r2-client";
+import { captureException, checkMemoryUsage } from "../lib/sentry";
 import type { ImageFormat } from "@quickconv/shared";
 
 const convertRoute = new Hono();
@@ -43,8 +44,10 @@ convertRoute.post("/", async (c) => {
       });
     }
 
+    checkMemoryUsage();
     return c.json({ outputKey, fileSize: result.size });
   } catch (error) {
+    captureException(error, { jobId, inputKey, inputFormat, outputFormat });
     const errorMessage = (error as Error).message;
     if (callbackUrl) {
       await fetch(callbackUrl, {
@@ -86,6 +89,7 @@ convertRoute.post("/direct", async (c) => {
       outputFormat: outputFormat as any,
     });
 
+    checkMemoryUsage();
     return new Response(new Uint8Array(result.buffer), {
       headers: {
         "Content-Type": "application/octet-stream",
@@ -94,6 +98,7 @@ convertRoute.post("/direct", async (c) => {
       },
     });
   } catch (error) {
+    captureException(error, { jobId, outputFormat });
     return c.json({ error: (error as Error).message }, 500);
   }
 });
@@ -152,8 +157,10 @@ convertRoute.post("/preview", async (c) => {
       qualities,
     );
 
+    checkMemoryUsage();
     return c.json({ previews });
   } catch (error) {
+    captureException(error, { outputFormat, qualities });
     return c.json({ error: (error as Error).message }, 500);
   }
 });

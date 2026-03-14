@@ -4,6 +4,7 @@ export interface Env {
   CORS_ORIGIN: string;
   CONVERTER_URL: string;
   CONVERTER_API_KEY: string;
+  SENTRY_DSN?: string;
 }
 
 export interface AppVariables {

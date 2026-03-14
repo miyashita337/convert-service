@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
+import { initSentry } from "./lib/sentry";
 import convertRoute from "./routes/convert";
+
+initSentry();
 
 const app = new Hono();
 
