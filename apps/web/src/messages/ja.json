@@ -176,6 +176,19 @@
     "topicPrivacy": "プライバシー・データ削除のご依頼",
     "topicOther": "サービスに関する一般的なご質問"
   },
+  "purchase": {
+    "successTitle": "購入完了 | QuickConv",
+    "successDescription": "購入が完了しました。新しいプランで画像変換を始めましょう。",
+    "successHeading": "購入が完了しました！",
+    "successMessage": "ご購入ありがとうございます。プランが有効化され、アップグレードされた機能で画像変換をご利用いただけます。",
+    "startConverting": "変換を始める",
+    "cancelTitle": "購入キャンセル | QuickConv",
+    "cancelDescription": "購入がキャンセルされました。料金ページから再度お試しいただけます。",
+    "cancelHeading": "購入がキャンセルされました",
+    "cancelMessage": "購入は完了していません。課金は発生していません。再度お試しいただくか、無料プランをご利用ください。",
+    "viewPlans": "料金プランを見る",
+    "backToHome": "トップに戻る"
+  },
   "upgrade": {
     "modalTitle": "本日の無料変換 {limit}回を使い切りました",
     "modalDescription": "リセットまでお待ちいただくか、プランをアップグレードして無制限に変換できます。",

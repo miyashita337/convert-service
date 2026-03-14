@@ -361,6 +361,19 @@
     "topicPrivacy": "Privacy and data deletion requests",
     "topicOther": "General questions about the service"
   },
+  "purchase": {
+    "successTitle": "Purchase Complete | QuickConv",
+    "successDescription": "Your purchase was successful. Start converting images with your new plan.",
+    "successHeading": "Purchase Complete!",
+    "successMessage": "Thank you for your purchase. Your plan is now active and you can start converting images with upgraded features.",
+    "startConverting": "Start Converting",
+    "cancelTitle": "Purchase Cancelled | QuickConv",
+    "cancelDescription": "Your purchase was cancelled. You can return to the pricing page to try again.",
+    "cancelHeading": "Purchase Cancelled",
+    "cancelMessage": "Your purchase was not completed. No charges were made. You can try again or continue using the free plan.",
+    "viewPlans": "View Plans",
+    "backToHome": "Back to Home"
+  },
   "upgrade": {
     "modalTitle": "You've used all {limit} free conversions today",
     "modalDescription": "Wait for the daily reset or upgrade your plan for unlimited conversions.",
