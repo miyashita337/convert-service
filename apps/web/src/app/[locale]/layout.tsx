@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { CfAnalytics } from "@/components/cf-analytics";
 import { CookieConsent } from "@/components/cookie-consent";
+import { OrganizationJsonLd } from "@/components/json-ld";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -19,7 +20,10 @@ interface LocaleLayoutProps {
   params: Promise<{ locale: string }>;
 }
 
-export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+export default async function LocaleLayout({
+  children,
+  params,
+}: LocaleLayoutProps) {
   const { locale } = await params;
 
   if (!routing.locales.includes(locale as any)) {
@@ -31,6 +35,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   return (
     <html lang={locale}>
+      <head>
+        <OrganizationJsonLd />
+      </head>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
         <GoogleAnalytics />
         <CfAnalytics />

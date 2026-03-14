@@ -94,5 +94,17 @@
     "limitationDescription": "法律で認められる最大限の範囲において、QuickConvは本サービスの利用に起因する間接的、偶発的、特別、または結果的な損害について責任を負いません。",
     "changesTitle": "規約の変更",
     "changesDescription": "当社は、いつでも本規約を変更する権利を有します。変更後も本サービスを継続してご利用いただいた場合、更新された規約に同意したものとみなされます。"
+  },
+  "jsonLd": {
+    "webAppName": "QuickConv - 無料オンライン画像変換",
+    "webAppDescription": "HEIC、WebP、AVIF、PNG、JPG形式の画像を瞬時に変換。無料・高速・安全。",
+    "howToName": "{from}を{to}に変換する方法",
+    "howToDescription": "QuickConvを使って{from}を{to}にオンラインで無料変換。",
+    "stepUploadName": "ファイルをアップロード",
+    "stepUploadText": "{from}ファイルをドラッグ＆ドロップするか、クリックしてデバイスから選択します。",
+    "stepConvertName": "ファイルを変換",
+    "stepConvertText": "出力形式として{to}を選択し、「変換開始」をクリックします。",
+    "stepDownloadName": "結果をダウンロード",
+    "stepDownloadText": "変換が完了したら、「ダウンロード」をクリックして{to}ファイルを保存します。"
   }
 }
