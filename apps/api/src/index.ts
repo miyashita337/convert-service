@@ -9,6 +9,7 @@ import {
 } from "./middleware/rate-limit";
 import upload from "./routes/upload";
 import convert from "./routes/convert";
+import preview from "./routes/preview";
 import status from "./routes/status";
 import download from "./routes/download";
 import callback from "./routes/callback";
@@ -49,6 +50,7 @@ app.get("/health", (c) => c.json({ status: "ok" }));
 // Routes
 app.route("/api/upload", upload);
 app.route("/api/convert", convert);
+app.route("/api/preview", preview);
 app.route("/api/status", status);
 app.route("/api/download", download);
 app.route("/api/callback", callback);
