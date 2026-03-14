@@ -28,7 +28,10 @@
     "popularConversions": "Popular Conversions",
     "popularConversionsDescription": "Most used image conversion tools",
     "convertFromTo": "{from} to {to}",
-    "footerConversions": "Conversions"
+    "footerConversions": "Conversions",
+    "remainingCount": "{remaining}/{limit} left today",
+    "remainingWarning": "Running low on free conversions today.",
+    "rateLimitReached": "Daily limit reached. Try again tomorrow."
   },
   "seo": {
     "homeTitle": "QuickConv - Free Online Image Converter | WebP AVIF HEIC",

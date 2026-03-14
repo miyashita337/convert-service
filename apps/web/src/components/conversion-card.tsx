@@ -10,12 +10,33 @@ import { useConversion } from "@/hooks/use-conversion";
 import { useGAEvent } from "@/hooks/use-ga-event";
 import type { ImageFormat } from "@quickconv/shared";
 
+/** Warning threshold: show warning when remaining <= this value */
+const REMAINING_WARNING_THRESHOLD = 3;
+
 export function ConversionCard() {
   const t = useTranslations("common");
   const [file, setFile] = useState<File | null>(null);
   const [outputFormat, setOutputFormat] = useState<ImageFormat | null>(null);
-  const { step, uploadProgress, downloadUrl, error, startConversion, reset, inputFormat, outputFormat: convOutputFormat } = useConversion();
+  const {
+    step,
+    uploadProgress,
+    downloadUrl,
+    error,
+    startConversion,
+    reset,
+    inputFormat,
+    outputFormat: convOutputFormat,
+    remainingConversions,
+    dailyLimit,
+  } = useConversion();
   const { trackFileDownload } = useGAEvent();
+
+  const isRateLimited = remainingConversions !== null && remainingConversions <= 0;
+  const isLowRemaining =
+    remainingConversions !== null &&
+    remainingConversions > 0 &&
+    remainingConversions <= REMAINING_WARNING_THRESHOLD;
+  const hasRateLimitInfo = remainingConversions !== null && dailyLimit !== null;
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
@@ -24,7 +45,7 @@ export function ConversionCard() {
   };
 
   const handleConvert = () => {
-    if (file && outputFormat) {
+    if (file && outputFormat && !isRateLimited) {
       startConversion(file, outputFormat);
     }
   };
@@ -37,6 +58,41 @@ export function ConversionCard() {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
+      {/* Rate Limit Badge */}
+      {hasRateLimitInfo && step === "idle" && (
+        <div className="flex justify-end">
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+              isRateLimited
+                ? "bg-destructive/10 text-destructive"
+                : isLowRemaining
+                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200"
+                  : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {t("remainingCount", { remaining: remainingConversions, limit: dailyLimit })}
+          </span>
+        </div>
+      )}
+
+      {/* Rate Limit Warning */}
+      {step === "idle" && isLowRemaining && (
+        <div className="rounded-lg border border-yellow-300 bg-yellow-50 dark:border-yellow-700 dark:bg-yellow-900/20 p-3 text-center">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            {t("remainingWarning")}
+          </p>
+        </div>
+      )}
+
+      {/* Rate Limit Reached */}
+      {step === "idle" && isRateLimited && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 text-center">
+          <p className="text-sm text-destructive">
+            {t("rateLimitReached")}
+          </p>
+        </div>
+      )}
+
       {/* Step 1: File Selection */}
       {step === "idle" && (
         <>
@@ -60,7 +116,12 @@ export function ConversionCard() {
           {file && outputFormat && (
             <button
               onClick={handleConvert}
-              className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              disabled={isRateLimited}
+              className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                isRateLimited
+                  ? "bg-muted text-muted-foreground cursor-not-allowed"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
             >
               {t("startConversion")}
             </button>
@@ -95,6 +156,22 @@ export function ConversionCard() {
             <Download className="h-6 w-6 text-green-600" />
           </div>
           <p className="font-medium text-green-600">{t("completed")}</p>
+
+          {/* Show remaining count after conversion */}
+          {hasRateLimitInfo && (
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                isRateLimited
+                  ? "bg-destructive/10 text-destructive"
+                  : isLowRemaining
+                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200"
+                    : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {t("remainingCount", { remaining: remainingConversions, limit: dailyLimit })}
+            </span>
+          )}
+
           <a
             href={downloadUrl}
             download
