@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
+import { useSubscription } from "@/hooks/use-subscription";
 
 /** Global flag to enable/disable all ads (for maintenance or AdSense review). */
 const ADS_ENABLED = process.env.NEXT_PUBLIC_ADS_ENABLED !== "false";
@@ -62,9 +63,20 @@ export function AdBanner({
   const [adLoaded, setAdLoaded] = useState(false);
   const [adError, setAdError] = useState(false);
   const pushed = useRef(false);
+  const { isPaid, isLoading: subscriptionLoading } = useSubscription();
 
   // Don't render if ads are disabled or client ID is missing
   if (!ADS_ENABLED || !ADSENSE_CLIENT_ID) {
+    return null;
+  }
+
+  // Hide ads for paid users (pass or subscription)
+  if (isPaid) {
+    return null;
+  }
+
+  // Don't render while checking subscription to prevent ad flash
+  if (subscriptionLoading) {
     return null;
   }
 
