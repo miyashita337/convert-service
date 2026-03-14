@@ -6,3 +6,4 @@ export * from "./constants/formats";
 export * from "./constants/limits";
 export * from "./validators/file";
 export * from "./utils/related-conversions";
+export * from "./config/sentry";
