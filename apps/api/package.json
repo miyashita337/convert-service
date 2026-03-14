@@ -12,7 +12,8 @@
   "dependencies": {
     "@quickconv/shared": "workspace:*",
     "hono": "^4.7.0",
-    "nanoid": "^5.0.0"
+    "nanoid": "^5.0.0",
+    "toucan-js": "^4.1.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
