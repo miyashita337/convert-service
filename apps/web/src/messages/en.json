@@ -341,6 +341,27 @@
     "nativeShare": "Share",
     "linkCopied": "Link copied to clipboard!"
   },
+  "preview": {
+    "compareQuality": "Compare Quality",
+    "freeTeaser": "Compare quality presets before converting (2 patterns free)",
+    "generatingPreviews": "Generating quality previews...",
+    "backToConversion": "Back",
+    "originalSize": "Original",
+    "selectQuality": "Select quality preset",
+    "compareTitle": "Side-by-side comparison",
+    "original": "Original",
+    "converted": "Converted",
+    "convertWithQuality": "Convert with this quality",
+    "recommended": "Recommended",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "lossless": "Lossless",
+    "upgradePlus": "Upgrade to Plus",
+    "selectPattern": "Select {preset} quality",
+    "lockedPattern": "{preset} quality (locked)",
+    "previewAlt": "{preset} quality preview"
+  },
   "jsonLd": {
     "webAppName": "QuickConv - Free Online Image Converter",
     "webAppDescription": "Convert images between HEIC, WebP, AVIF, PNG, and JPG formats instantly. Free, fast, and secure.",

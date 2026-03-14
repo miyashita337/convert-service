@@ -73,6 +73,20 @@ export function useGAEvent() {
     []
   );
 
+  const trackPreviewStart = useCallback(
+    (from: string, to: string) => {
+      sendEvent("preview_start", { from, to });
+    },
+    []
+  );
+
+  const trackPreviewSelectQuality = useCallback(
+    (from: string, to: string, quality: number) => {
+      sendEvent("preview_select_quality", { from, to, quality });
+    },
+    []
+  );
+
   return {
     trackFileUpload,
     trackConversionStart,
@@ -80,5 +94,7 @@ export function useGAEvent() {
     trackConversionError,
     trackFileDownload,
     trackShare,
+    trackPreviewStart,
+    trackPreviewSelectQuality,
   };
 }

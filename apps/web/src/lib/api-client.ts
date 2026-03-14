@@ -101,3 +101,43 @@ export async function checkStatus(jobId: string): Promise<StatusResponse> {
 export function getDownloadUrl(jobId: string): string {
   return `${API_URL}/api/download/${jobId}`;
 }
+
+/** Preview item returned from the preview endpoint */
+export interface PreviewItem {
+  quality: number;
+  size: number;
+  compressionRatio: number;
+  data: string; // base64 data URL
+}
+
+export interface PreviewResponse {
+  previews: PreviewItem[];
+  requestedCount: number;
+  returnedCount: number;
+  plan: string;
+}
+
+export async function requestPreview(
+  file: File,
+  outputFormat: string,
+  qualities: number[],
+  plan: string,
+): Promise<PreviewResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("outputFormat", outputFormat);
+  formData.append("qualities", JSON.stringify(qualities));
+  formData.append("plan", plan);
+
+  const res = await fetch(`${API_URL}/api/preview`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Preview request failed");
+  }
+
+  return res.json();
+}

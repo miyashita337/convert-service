@@ -341,6 +341,27 @@
     "conclusionTitle": "まとめ",
     "conclusionText": "各フォーマットにはそれぞれの役割があります：最大の互換性ならWebP、最高の圧縮率と品質ならAVIF、Appleエコシステム内ならHEIC。2026年のWeb利用では、AVIFをメインにWebPのフォールバックを用意するのが推奨戦略です。QuickConvを使えば、これらすべてのフォーマット間を無料で簡単に変換できます。"
   },
+  "preview": {
+    "compareQuality": "品質を比較",
+    "freeTeaser": "変換前に品質プリセットを比較できます（無料で2パターン）",
+    "generatingPreviews": "プレビューを生成中...",
+    "backToConversion": "戻る",
+    "originalSize": "元のサイズ",
+    "selectQuality": "品質プリセットを選択",
+    "compareTitle": "左右比較",
+    "original": "元画像",
+    "converted": "変換後",
+    "convertWithQuality": "この品質で変換",
+    "recommended": "おすすめ",
+    "low": "低品質",
+    "medium": "中品質",
+    "high": "高品質",
+    "lossless": "ロスレス",
+    "upgradePlus": "Plusにアップグレード",
+    "selectPattern": "{preset}品質を選択",
+    "lockedPattern": "{preset}品質（ロック中）",
+    "previewAlt": "{preset}品質のプレビュー"
+  },
   "jsonLd": {
     "webAppName": "QuickConv - 無料オンライン画像変換",
     "webAppDescription": "HEIC、WebP、AVIF、PNG、JPG形式の画像を瞬時に変換。無料・高速・安全。",
