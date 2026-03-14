@@ -5,3 +5,7 @@ export interface Env {
   CONVERTER_URL: string;
   CONVERTER_API_KEY: string;
 }
+
+export interface AppVariables {
+  clientHash: string;
+}
