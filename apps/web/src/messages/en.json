@@ -18,10 +18,67 @@
     "convertAnother": "Convert Another",
     "expiresIn": "File expires in {hours} hours",
     "language": "Language",
-    "privacy": "Files are automatically deleted after 24 hours"
+    "privacy": "Files are automatically deleted after 24 hours",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
   },
   "seo": {
     "titleTemplate": "{from} to {to} Converter - Free Online | QuickConv",
     "descriptionTemplate": "Convert {from} to {to} online for free. No registration, no watermark. Fast and secure image conversion."
+  },
+  "cookieConsent": {
+    "message": "This website uses cookies to provide you with a better experience. We use cookies for rate limiting and service improvement.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "learnMore": "Learn more in our {privacyPolicy}."
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: March 15, 2026",
+    "intro": "QuickConv (\"we\", \"us\", \"our\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our service.",
+    "dataCollectionTitle": "Data We Collect",
+    "dataCollectionDescription": "We collect the following data to operate our service:",
+    "dataIpHash": "IP address hash (anonymized, not your actual IP address)",
+    "dataCookieId": "Cookie ID (for session management)",
+    "dataUserAgent": "User-Agent (browser and device information)",
+    "purposeTitle": "Purpose of Data Collection",
+    "purposeDescription": "We use the collected data solely for the following purposes:",
+    "purposeRateLimit": "Rate limiting to ensure fair usage of the service",
+    "purposeServiceImprovement": "Service improvement and abuse prevention",
+    "retentionTitle": "Data Retention",
+    "retentionDescription": "All collected data is automatically deleted after 30 days. Uploaded files are automatically deleted within 24 hours of conversion.",
+    "thirdPartyTitle": "Third-Party Sharing",
+    "thirdPartyDescription": "We do not share, sell, or transfer your personal data to any third parties.",
+    "cookiesTitle": "Cookies",
+    "cookiesDescription": "We use essential cookies for rate limiting and session management. If you reject cookies through our cookie consent banner, no cookies will be issued by our service.",
+    "rightsTitle": "Your Rights",
+    "rightsDescription": "You have the right to:",
+    "rightsAccess": "Request access to your data",
+    "rightsDelete": "Request deletion of your data",
+    "rightsRestrict": "Restrict processing of your data",
+    "rightsContact": "To exercise these rights, please contact us at privacy@quickconv.io.",
+    "changesTitle": "Changes to This Policy",
+    "changesDescription": "We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated revision date."
+  },
+  "termsOfService": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: March 15, 2026",
+    "intro": "By using QuickConv (\"the Service\"), you agree to these Terms of Service. Please read them carefully.",
+    "serviceTitle": "Service Description",
+    "serviceDescription": "QuickConv provides free online file conversion services. We convert files between various formats including images (HEIC, WebP, AVIF, PNG, JPG, GIF, SVG).",
+    "usageTitle": "Acceptable Use",
+    "usageDescription": "By using our Service, you agree to:",
+    "usageLegal": "Only upload files you have the legal right to convert",
+    "usageNoMalicious": "Not upload malicious files (viruses, malware, etc.)",
+    "usageNoAbuse": "Not abuse or attempt to disrupt the Service",
+    "usageComply": "Comply with all applicable laws and regulations",
+    "filesTitle": "File Handling",
+    "filesDescription": "Uploaded files are processed on our servers and automatically deleted within 24 hours. We do not store, review, or share your files beyond what is necessary for conversion.",
+    "disclaimerTitle": "Disclaimer of Warranties",
+    "disclaimerDescription": "The Service is provided \"as is\" without any warranties, express or implied. We do not guarantee that the Service will be uninterrupted, error-free, or that converted files will meet your specific requirements.",
+    "limitationTitle": "Limitation of Liability",
+    "limitationDescription": "To the fullest extent permitted by law, QuickConv shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service.",
+    "changesTitle": "Changes to Terms",
+    "changesDescription": "We reserve the right to modify these Terms at any time. Continued use of the Service after changes constitutes acceptance of the updated Terms."
   }
 }

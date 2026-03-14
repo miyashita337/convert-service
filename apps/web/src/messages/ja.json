@@ -18,10 +18,67 @@
     "convertAnother": "別のファイルを変換",
     "expiresIn": "ファイルは{hours}時間後に自動削除されます",
     "language": "言語",
-    "privacy": "ファイルは24時間後に自動削除されます"
+    "privacy": "ファイルは24時間後に自動削除されます",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約"
   },
   "seo": {
     "titleTemplate": "{from}から{to}への変換 - 無料オンライン | QuickConv",
     "descriptionTemplate": "{from}を{to}にオンラインで無料変換。登録不要、ウォーターマークなし。高速で安全な画像変換。"
+  },
+  "cookieConsent": {
+    "message": "当サイトでは、より良いサービスを提供するためにCookieを使用しています。レート制限およびサービス改善の目的で使用されます。",
+    "accept": "同意する",
+    "reject": "拒否する",
+    "learnMore": "詳細は{privacyPolicy}をご覧ください。"
+  },
+  "privacyPolicy": {
+    "title": "プライバシーポリシー",
+    "lastUpdated": "最終更新日: 2026年3月15日",
+    "intro": "QuickConv（以下「当サービス」）は、お客様のプライバシーの保護に努めています。本プライバシーポリシーは、当サービスの利用に際して収集、使用、保護する情報について説明します。",
+    "dataCollectionTitle": "収集するデータ",
+    "dataCollectionDescription": "当サービスの運営のため、以下のデータを収集します:",
+    "dataIpHash": "IPアドレスのハッシュ（匿名化されており、実際のIPアドレスではありません）",
+    "dataCookieId": "Cookie ID（セッション管理のため）",
+    "dataUserAgent": "User-Agent（ブラウザおよびデバイス情報）",
+    "purposeTitle": "データ収集の目的",
+    "purposeDescription": "収集したデータは、以下の目的でのみ使用します:",
+    "purposeRateLimit": "サービスの公平な利用を確保するためのレート制限",
+    "purposeServiceImprovement": "サービスの改善および不正利用の防止",
+    "retentionTitle": "データの保持期間",
+    "retentionDescription": "収集したすべてのデータは、30日後に自動的に削除されます。アップロードされたファイルは、変換後24時間以内に自動削除されます。",
+    "thirdPartyTitle": "第三者への提供",
+    "thirdPartyDescription": "お客様の個人データを第三者と共有、販売、または移転することはありません。",
+    "cookiesTitle": "Cookie について",
+    "cookiesDescription": "当サービスでは、レート制限およびセッション管理のために必要最小限のCookieを使用します。Cookie同意バナーでCookieを拒否した場合、当サービスからCookieは発行されません。",
+    "rightsTitle": "お客様の権利",
+    "rightsDescription": "お客様には以下の権利があります:",
+    "rightsAccess": "データへのアクセスの要求",
+    "rightsDelete": "データの削除の要求",
+    "rightsRestrict": "データ処理の制限の要求",
+    "rightsContact": "これらの権利を行使するには、privacy@quickconv.io までご連絡ください。",
+    "changesTitle": "ポリシーの変更",
+    "changesDescription": "本プライバシーポリシーは随時更新される場合があります。変更がある場合は、改訂日を更新のうえ本ページに掲載します。"
+  },
+  "termsOfService": {
+    "title": "利用規約",
+    "lastUpdated": "最終更新日: 2026年3月15日",
+    "intro": "QuickConv（以下「本サービス」）をご利用いただくにあたり、以下の利用規約に同意いただくものとします。",
+    "serviceTitle": "サービスの概要",
+    "serviceDescription": "QuickConvは、無料のオンラインファイル変換サービスを提供します。画像（HEIC、WebP、AVIF、PNG、JPG、GIF、SVG）を含む様々なフォーマット間でファイルを変換できます。",
+    "usageTitle": "利用にあたっての注意事項",
+    "usageDescription": "本サービスの利用にあたり、以下の事項に同意いただくものとします:",
+    "usageLegal": "変換する法的権利を有するファイルのみアップロードすること",
+    "usageNoMalicious": "悪意のあるファイル（ウイルス、マルウェア等）をアップロードしないこと",
+    "usageNoAbuse": "本サービスの不正利用や妨害を試みないこと",
+    "usageComply": "適用されるすべての法令を遵守すること",
+    "filesTitle": "ファイルの取り扱い",
+    "filesDescription": "アップロードされたファイルはサーバー上で処理され、24時間以内に自動削除されます。変換に必要な範囲を超えてファイルを保存、閲覧、共有することはありません。",
+    "disclaimerTitle": "免責事項",
+    "disclaimerDescription": "本サービスは「現状のまま」提供され、明示または黙示を問わずいかなる保証も行いません。サービスの中断がないこと、エラーがないこと、変換されたファイルがお客様の特定の要件を満たすことを保証するものではありません。",
+    "limitationTitle": "責任の制限",
+    "limitationDescription": "法律で認められる最大限の範囲において、QuickConvは本サービスの利用に起因する間接的、偶発的、特別、または結果的な損害について責任を負いません。",
+    "changesTitle": "規約の変更",
+    "changesDescription": "当社は、いつでも本規約を変更する権利を有します。変更後も本サービスを継続してご利用いただいた場合、更新された規約に同意したものとみなされます。"
   }
 }
