@@ -6,6 +6,7 @@ import { locales } from "@/lib/i18n/config";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { CfAnalytics } from "@/components/cf-analytics";
 import { CookieConsent } from "@/components/cookie-consent";
 import "../globals.css";
 
@@ -32,6 +33,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
     <html lang={locale}>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
         <GoogleAnalytics />
+        <CfAnalytics />
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main className="flex-1">{children}</main>
