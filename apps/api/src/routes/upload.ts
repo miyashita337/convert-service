@@ -1,10 +1,15 @@
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
-import { MIME_TO_FORMAT, ALLOWED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from "@quickconv/shared";
-import type { Env } from "../types/env";
+import {
+  MIME_TO_FORMAT,
+  ALLOWED_MIME_TYPES,
+  MAX_FILE_SIZE_BYTES,
+  ANONYMOUS_MAX_FILE_SIZE_BYTES,
+} from "@quickconv/shared";
+import type { Env, AppVariables } from "../types/env";
 import { uploadToR2 } from "../services/r2";
 
-const upload = new Hono<{ Bindings: Env }>();
+const upload = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
 upload.post("/", async (c) => {
   const body = await c.req.parseBody();
@@ -12,6 +17,18 @@ upload.post("/", async (c) => {
 
   if (!file || !(file instanceof File)) {
     return c.json({ error: "validation", message: "No file provided" }, 400);
+  }
+
+  // 匿名ユーザーの10MB制限（ボディパース後の実サイズチェック）
+  if (file.size > ANONYMOUS_MAX_FILE_SIZE_BYTES) {
+    return c.json(
+      {
+        error: "file_too_large",
+        message: `File size exceeds ${ANONYMOUS_MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB limit`,
+        maxSizeBytes: ANONYMOUS_MAX_FILE_SIZE_BYTES,
+      },
+      413,
+    );
   }
 
   if (file.size > MAX_FILE_SIZE_BYTES) {

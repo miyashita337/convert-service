@@ -2,6 +2,11 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Env, AppVariables } from "./types/env";
 import { identificationMiddleware } from "./middleware/identification";
+import {
+  rateLimitMiddleware,
+  fileSizeLimitMiddleware,
+  uploadRateLimitMiddleware,
+} from "./middleware/rate-limit";
 import upload from "./routes/upload";
 import convert from "./routes/convert";
 import status from "./routes/status";
@@ -32,6 +37,11 @@ app.use(
 
 // Identification — CORS の後、ルートの前に適用
 app.use("/api/*", identificationMiddleware());
+
+// Rate limiting — upload にはサイズ制限 + 読み取り専用チェック、convert にはカウント消費
+app.use("/api/upload", fileSizeLimitMiddleware());
+app.use("/api/upload", uploadRateLimitMiddleware());
+app.use("/api/convert", rateLimitMiddleware());
 
 // Health check
 app.get("/health", (c) => c.json({ status: "ok" }));

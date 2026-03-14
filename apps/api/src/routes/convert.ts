@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
 import { convertSchema, CONVERSION_PAIRS, FILE_EXPIRY_HOURS, FORMAT_TO_MIME } from "@quickconv/shared";
-import type { Env } from "../types/env";
+import type { Env, AppVariables } from "../types/env";
 import { createJob, updateJobStatus } from "../services/d1";
 import { requestDirectConversion } from "../services/converter";
 import { uploadToR2 } from "../services/r2";
 
-const convert = new Hono<{ Bindings: Env }>();
+const convert = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
 convert.post("/", async (c) => {
   const body = await c.req.json();
@@ -77,7 +77,12 @@ convert.post("/", async (c) => {
     fileSize: result.fileSize,
   });
 
-  return c.json({ jobId, status: "completed" });
+  return c.json({
+    jobId,
+    status: "completed",
+    remainingConversions: c.get("rateLimitRemaining"),
+    dailyLimit: c.get("rateLimitLimit"),
+  });
 });
 
 export default convert;
