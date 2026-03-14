@@ -9,7 +9,7 @@ on:
     types: [edited]
 
 permissions:
-  issues: read
+  issues: write
   pull-requests: read
   repository-projects: write
 
@@ -166,4 +166,8 @@ jobs:
             ' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f optionId="$DONE_OPTION_ID"
 
             echo "Set status to Done for issue #$ISSUE_NUM"
+
+            # Remove in-progress label
+            gh issue edit "$ISSUE_NUM" --remove-label "in-progress" -R "$REPO" 2>/dev/null || true
+            echo "Removed in-progress label from issue #$ISSUE_NUM"
           done
