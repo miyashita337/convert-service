@@ -8,4 +8,6 @@ export interface Env {
 
 export interface AppVariables {
   clientHash: string;
+  rateLimitRemaining: number;
+  rateLimitLimit: number;
 }
