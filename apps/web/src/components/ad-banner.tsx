@@ -1,8 +1,9 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSubscription } from "@/hooks/use-subscription";
+import { AD_LAYOUT } from "@/lib/ad-layout";
 
 /** Global flag to enable/disable all ads (for maintenance or AdSense review). */
 const ADS_ENABLED = process.env.NEXT_PUBLIC_ADS_ENABLED !== "false";
@@ -40,6 +41,26 @@ declare global {
   interface Window {
     adsbygoogle?: Record<string, unknown>[];
   }
+}
+
+/** Send a GA4 custom event for ad performance measurement. */
+function sendAdEvent(
+  eventName: "ad_impression" | "ad_click",
+  slot: string,
+  format: AdFormat,
+): void {
+  if (typeof window === "undefined") return;
+  if (typeof window.gtag !== "function") return;
+  try {
+    if (localStorage.getItem("qc_cookie_consent") !== "accepted") return;
+  } catch {
+    return;
+  }
+  window.gtag("event", eventName, {
+    ad_slot: slot,
+    ad_format: format,
+    ad_layout: AD_LAYOUT,
+  });
 }
 
 function AdSkeleton({ format }: { format: AdFormat }) {
@@ -126,6 +147,33 @@ export function AdBanner({
     return () => clearTimeout(timer);
   }, [adLoaded]);
 
+  // GA4: Track ad_impression when the ad enters the viewport (50%+ visible)
+  const impressionFired = useRef(false);
+  useEffect(() => {
+    if (!adLoaded || impressionFired.current) return;
+    const el = adRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !impressionFired.current) {
+          impressionFired.current = true;
+          sendAdEvent("ad_impression", slot, format);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [adLoaded, slot, format]);
+
+  // GA4: Track ad_click when the ad container is clicked
+  const handleAdClick = useCallback(() => {
+    sendAdEvent("ad_click", slot, format);
+  }, [slot, format]);
+
   // Ad blocked or errored: render empty space to prevent CLS
   if (adError) {
     return (
@@ -138,7 +186,8 @@ export function AdBanner({
   }
 
   return (
-    <div className={className}>
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+    <div className={className} onClick={handleAdClick}>
       {/* AdSense script (loaded once globally via next/script) */}
       <Script
         id="adsense-script"
