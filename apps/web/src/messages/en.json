@@ -20,7 +20,15 @@
     "language": "Language",
     "privacy": "Files are automatically deleted after 24 hours",
     "privacyPolicy": "Privacy Policy",
-    "termsOfService": "Terms of Service"
+    "termsOfService": "Terms of Service",
+    "home": "Home",
+    "imageConversion": "Image Conversion",
+    "relatedConversions": "Related Conversions",
+    "relatedConversionsDescription": "Try these similar conversion tools",
+    "popularConversions": "Popular Conversions",
+    "popularConversionsDescription": "Most used image conversion tools",
+    "convertFromTo": "{from} to {to}",
+    "footerConversions": "Conversions"
   },
   "seo": {
     "homeTitle": "QuickConv - Free Online Image Converter | WebP AVIF HEIC",

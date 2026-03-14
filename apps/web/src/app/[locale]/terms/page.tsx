@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { buildPageMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
@@ -34,6 +35,7 @@ export default async function TermsPage({
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <Breadcrumb items={[{ label: t("title") }]} />
       <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{t("lastUpdated")}</p>
       <p className="mt-6 text-muted-foreground">{t("intro")}</p>
