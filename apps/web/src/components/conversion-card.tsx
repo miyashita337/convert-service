@@ -7,13 +7,15 @@ import { FileDropzone } from "./file-dropzone";
 import { FormatSelector } from "./format-selector";
 import { ProgressBar } from "./progress-bar";
 import { useConversion } from "@/hooks/use-conversion";
+import { useGAEvent } from "@/hooks/use-ga-event";
 import type { ImageFormat } from "@quickconv/shared";
 
 export function ConversionCard() {
   const t = useTranslations("common");
   const [file, setFile] = useState<File | null>(null);
   const [outputFormat, setOutputFormat] = useState<ImageFormat | null>(null);
-  const { step, uploadProgress, downloadUrl, error, startConversion, reset } = useConversion();
+  const { step, uploadProgress, downloadUrl, error, startConversion, reset, inputFormat, outputFormat: convOutputFormat } = useConversion();
+  const { trackFileDownload } = useGAEvent();
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
@@ -96,6 +98,7 @@ export function ConversionCard() {
           <a
             href={downloadUrl}
             download
+            onClick={() => trackFileDownload(inputFormat, convOutputFormat)}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
           >
             <Download className="h-4 w-4" />
