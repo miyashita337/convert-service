@@ -32,6 +32,40 @@ export function captureException(error: unknown, context?: Record<string, unknow
   });
 }
 
+export interface ConversionMetrics {
+  conversionFormat: string;
+  durationMs: number;
+  fileSizeInput: number;
+  fileSizeOutput: number;
+}
+
+export function addConversionBreadcrumb(metrics: ConversionMetrics): void {
+  if (!initialized) return;
+
+  Sentry.addBreadcrumb({
+    category: "conversion",
+    message: `Converted ${metrics.conversionFormat} in ${metrics.durationMs}ms`,
+    level: "info",
+    data: {
+      conversion_format: metrics.conversionFormat,
+      conversion_duration_ms: metrics.durationMs,
+      file_size_input: metrics.fileSizeInput,
+      file_size_output: metrics.fileSizeOutput,
+    },
+  });
+
+  Sentry.withScope((scope) => {
+    scope.setTags({
+      conversion_format: metrics.conversionFormat,
+    });
+    scope.setExtras({
+      conversion_duration_ms: metrics.durationMs,
+      file_size_input: metrics.fileSizeInput,
+      file_size_output: metrics.fileSizeOutput,
+    });
+  });
+}
+
 export function checkMemoryUsage(): void {
   if (!initialized) return;
 

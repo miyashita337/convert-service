@@ -22,10 +22,13 @@ export function sentryMiddleware() {
       });
 
       sentry.setTag("service", "quickconv-api");
+      sentry.setTag("endpoint", c.req.path);
 
       await next();
 
       const status = c.res.status;
+      sentry.setTag("rate_limited", String(status === 429));
+
       if (status >= 500) {
         sentry.setExtras({
           url: c.req.url,
