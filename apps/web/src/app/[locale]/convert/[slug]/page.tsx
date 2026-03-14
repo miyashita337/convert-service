@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConversionCard } from "@/components/conversion-card";
 import { CONVERSION_PAIRS } from "@quickconv/shared";
-import { locales } from "@/lib/i18n/config";
+import { locales, type Locale } from "@/lib/i18n/config";
+import { buildPageMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
 
 const VALID_SLUGS = Object.entries(CONVERSION_PAIRS).flatMap(([from, tos]) =>
@@ -24,10 +25,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const t = await getTranslations({ locale, namespace: "seo" });
   const [from, , to] = slug.split("-");
 
-  return {
+  return buildPageMetadata({
     title: t("titleTemplate", { from: from.toUpperCase(), to: to.toUpperCase() }),
     description: t("descriptionTemplate", { from: from.toUpperCase(), to: to.toUpperCase() }),
-  };
+    locale: locale as Locale,
+    path: `/convert/${slug}`,
+  });
 }
 
 export default async function ConvertPage({ params }: PageProps) {

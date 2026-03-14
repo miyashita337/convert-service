@@ -1,5 +1,28 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConversionCard } from "@/components/conversion-card";
+import { buildPageMetadata } from "@/lib/metadata";
+import { locales, type Locale } from "@/lib/i18n/config";
+import type { Metadata } from "next";
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "seo" });
+
+  return buildPageMetadata({
+    title: t("homeTitle"),
+    description: t("homeDescription"),
+    locale: locale as Locale,
+    path: "/",
+  });
+}
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
