@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Env, AppVariables } from "./types/env";
+import { sentryMiddleware } from "./middleware/sentry";
 import { identificationMiddleware } from "./middleware/identification";
 import {
   rateLimitMiddleware,
@@ -10,12 +11,16 @@ import {
 import { optionalAuthMiddleware } from "./middleware/auth";
 import upload from "./routes/upload";
 import convert from "./routes/convert";
+import preview from "./routes/preview";
 import status from "./routes/status";
 import download from "./routes/download";
 import callback from "./routes/callback";
 import auth from "./routes/auth";
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
+
+// Sentry — must be first to capture all errors
+app.use("/api/*", sentryMiddleware());
 
 // CORS
 app.use(
@@ -54,6 +59,7 @@ app.get("/health", (c) => c.json({ status: "ok" }));
 // Routes
 app.route("/api/upload", upload);
 app.route("/api/convert", convert);
+app.route("/api/preview", preview);
 app.route("/api/status", status);
 app.route("/api/download", download);
 app.route("/api/callback", callback);

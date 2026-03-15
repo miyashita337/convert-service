@@ -2,14 +2,27 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Download, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Download,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  Eye,
+} from "lucide-react";
 import { FileDropzone } from "./file-dropzone";
 import { FormatSelector } from "./format-selector";
 import { ProgressBar } from "./progress-bar";
 import { UpgradeModal } from "./upgrade-modal";
 import { UpgradeBanner } from "./upgrade-banner";
+import { ShareButtons } from "./share-buttons";
+import { AdSlot } from "./ad-slot";
+import { QualityPatternGrid } from "./quality-pattern-grid";
+import { ImageCompareSlider } from "./image-compare-slider";
 import { useConversion } from "@/hooks/use-conversion";
+import { useSubscription } from "@/hooks/use-subscription";
 import { useGAEvent } from "@/hooks/use-ga-event";
+import { FREE_PREVIEW_LIMIT } from "@quickconv/shared";
 import type { ImageFormat } from "@quickconv/shared";
 
 /** Warning threshold: show warning when remaining <= this value */
@@ -17,20 +30,29 @@ const REMAINING_WARNING_THRESHOLD = 3;
 
 export function ConversionCard() {
   const t = useTranslations("common");
+  const tp = useTranslations("preview");
   const [file, setFile] = useState<File | null>(null);
   const [outputFormat, setOutputFormat] = useState<ImageFormat | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { plan, isPaid } = useSubscription();
   const {
     step,
     uploadProgress,
     downloadUrl,
     error,
     startConversion,
+    startPreview,
+    selectPreviewPattern,
+    cancelPreview,
+    convertWithSelectedQuality,
     reset,
     inputFormat,
     outputFormat: convOutputFormat,
     remainingConversions,
     dailyLimit,
+    previews,
+    selectedPreviewIndex,
+    originalSize,
   } = useConversion();
   const { trackFileDownload } = useGAEvent();
 
@@ -40,6 +62,8 @@ export function ConversionCard() {
     remainingConversions > 0 &&
     remainingConversions <= REMAINING_WARNING_THRESHOLD;
   const hasRateLimitInfo = remainingConversions !== null && dailyLimit !== null;
+
+  const accessibleCount = isPaid ? Infinity : FREE_PREVIEW_LIMIT;
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
@@ -56,11 +80,31 @@ export function ConversionCard() {
     startConversion(file, outputFormat);
   };
 
+  const handleCompareQuality = () => {
+    if (!file || !outputFormat) return;
+    startPreview(file, outputFormat, plan);
+  };
+
+  const handleConvertWithQuality = () => {
+    if (isRateLimited) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    convertWithSelectedQuality();
+  };
+
+  const handleBackFromPreview = () => {
+    cancelPreview();
+  };
+
   const handleReset = () => {
     setFile(null);
     setOutputFormat(null);
     reset();
   };
+
+  // Selected preview item for the slider
+  const selectedPreview = previews[selectedPreviewIndex];
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
@@ -123,14 +167,103 @@ export function ConversionCard() {
           />
 
           {file && outputFormat && (
-            <button
-              onClick={handleConvert}
-              className="w-full py-3 rounded-lg font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {t("startConversion")}
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleConvert}
+                className="w-full py-3 rounded-lg font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {t("startConversion")}
+              </button>
+
+              {/* Compare Quality button */}
+              <button
+                onClick={handleCompareQuality}
+                className="w-full py-2.5 rounded-lg font-medium transition-colors border border-border text-foreground hover:bg-muted flex items-center justify-center gap-2"
+              >
+                <Eye className="h-4 w-4" />
+                {tp("compareQuality")}
+              </button>
+
+              {/* Teaser for free users */}
+              {!isPaid && (
+                <p className="text-xs text-muted-foreground text-center">
+                  {tp("freeTeaser")}
+                </p>
+              )}
+            </div>
           )}
+
+          {/* Ad: Leaderboard below tool description (idle state) */}
+          <AdSlot slot="idle-leaderboard" placement="leaderboard" className="mt-6" />
         </>
+      )}
+
+      {/* Previewing: loading state */}
+      {step === "previewing" && (
+        <div className="rounded-xl border border-border p-8 text-center space-y-4">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="font-medium">{tp("generatingPreviews")}</p>
+        </div>
+      )}
+
+      {/* Preview Ready: show quality grid + compare slider */}
+      {step === "preview-ready" && previews.length > 0 && (
+        <div className="space-y-6">
+          {/* Back button */}
+          <button
+            onClick={handleBackFromPreview}
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {tp("backToConversion")}
+          </button>
+
+          {/* File info */}
+          {file && (
+            <div className="rounded-lg bg-muted p-3">
+              <p className="text-sm font-medium">{file.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {tp("originalSize")}: {(file.size / 1024).toFixed(1)} KB
+              </p>
+            </div>
+          )}
+
+          {/* Quality Pattern Grid */}
+          <div>
+            <h3 className="text-sm font-medium mb-3">{tp("selectQuality")}</h3>
+            <QualityPatternGrid
+              previews={previews}
+              originalSize={originalSize}
+              selectedIndex={selectedPreviewIndex}
+              onSelect={selectPreviewPattern}
+              isPaid={isPaid}
+              accessibleCount={accessibleCount}
+            />
+          </div>
+
+          {/* Image Compare Slider */}
+          {selectedPreview && file && (
+            <div>
+              <h3 className="text-sm font-medium mb-3">{tp("compareTitle")}</h3>
+              <ImageCompareSlider
+                beforeSrc={URL.createObjectURL(file)}
+                afterSrc={selectedPreview.data}
+                beforeSize={originalSize}
+                afterSize={selectedPreview.size}
+                beforeLabel={tp("original")}
+                afterLabel={tp("converted")}
+              />
+            </div>
+          )}
+
+          {/* Convert with selected quality button */}
+          <button
+            onClick={handleConvertWithQuality}
+            className="w-full py-3 rounded-lg font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {tp("convertWithQuality")}
+          </button>
+        </div>
       )}
 
       {/* Step 2: Uploading */}
@@ -144,13 +277,17 @@ export function ConversionCard() {
 
       {/* Step 3: Converting */}
       {step === "converting" && (
-        <div className="rounded-xl border border-border p-8 text-center space-y-4">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="font-medium">{t("processing")}</p>
-          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-            <div className="h-full rounded-full bg-primary animate-pulse w-full" />
+        <>
+          <div className="rounded-xl border border-border p-8 text-center space-y-4">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+            <p className="font-medium">{t("processing")}</p>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full bg-primary animate-pulse w-full" />
+            </div>
           </div>
-        </div>
+          {/* Ad: Leaderboard during conversion (user waits here) */}
+          <AdSlot slot="converting-leaderboard" placement="leaderboard" className="mt-4" />
+        </>
       )}
 
       {/* Step 4: Completed */}
@@ -176,6 +313,9 @@ export function ConversionCard() {
             </span>
           )}
 
+          {/* Ad: Rectangle above download button */}
+          <AdSlot slot="completed-rectangle" placement="rectangle" className="my-2" />
+
           <a
             href={downloadUrl}
             download
@@ -186,6 +326,10 @@ export function ConversionCard() {
             {t("downloadFile")}
           </a>
           <p className="text-xs text-muted-foreground">{t("expiresIn", { hours: 24 })}</p>
+
+          {/* Share buttons */}
+          <ShareButtons from={inputFormat} to={convOutputFormat} />
+
           <button
             onClick={handleReset}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"

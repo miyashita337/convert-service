@@ -72,6 +72,27 @@ jobs:
 
           echo "Set Start Date to $TODAY for item $ITEM_ID"
 
+          # Add in-progress label to the issue
+          ITEM_CONTENT=$(gh api graphql -f query='
+            query($itemId: ID!) {
+              node(id: $itemId) {
+                ... on ProjectV2Item {
+                  content {
+                    ... on Issue { number repository { nameWithOwner } }
+                  }
+                }
+              }
+            }
+          ' -f itemId="$ITEM_ID" --jq '.data.node.content' 2>/dev/null || true)
+
+          ISSUE_NUM=$(echo "$ITEM_CONTENT" | jq -r '.number // empty' 2>/dev/null || true)
+          ISSUE_REPO=$(echo "$ITEM_CONTENT" | jq -r '.repository.nameWithOwner // empty' 2>/dev/null || true)
+
+          if [ -n "$ISSUE_NUM" ] && [ -n "$ISSUE_REPO" ]; then
+            gh issue edit "$ISSUE_NUM" --add-label "in-progress" -R "$ISSUE_REPO" 2>/dev/null || true
+            echo "Added in-progress label to issue #$ISSUE_NUM"
+          fi
+
   # PR がマージ → 紐づく Issue の Target date をセット
   set-end-date:
     runs-on: ubuntu-latest

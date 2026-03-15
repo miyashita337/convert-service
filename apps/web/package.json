@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "sentry:sourcemaps": "sentry-cli releases files \"$RELEASE\" upload-sourcemaps .next/static --url-prefix '~/_next/static'"
   },
   "dependencies": {
     "@quickconv/shared": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@sentry/browser": "^10.43.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "lucide-react": "^0.474.0",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@sentry/cli": "^2.46.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

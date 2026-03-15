@@ -1,6 +1,8 @@
 import { Hono } from "hono";
-import { convertImage } from "../services/image";
+import { convertImage, generatePreviews } from "../services/image";
 import { downloadFromR2, uploadToR2 } from "../services/r2-client";
+import { addConversionBreadcrumb, captureException, checkMemoryUsage } from "../lib/sentry";
+import type { ImageFormat } from "@quickconv/shared";
 
 const convertRoute = new Hono();
 
@@ -23,6 +25,7 @@ convertRoute.post("/", async (c) => {
   const callbackUrl = process.env.CALLBACK_URL;
 
   try {
+    const startTime = Date.now();
     const inputBuffer = await downloadFromR2(inputKey);
     const result = await convertImage({
       inputBuffer,
@@ -30,6 +33,13 @@ convertRoute.post("/", async (c) => {
       outputFormat: outputFormat as any,
     });
     await uploadToR2(outputKey, result.buffer, result.format);
+
+    addConversionBreadcrumb({
+      conversionFormat: `${inputFormat}-to-${outputFormat}`,
+      durationMs: Date.now() - startTime,
+      fileSizeInput: inputBuffer.length,
+      fileSizeOutput: result.size,
+    });
 
     if (callbackUrl) {
       await fetch(callbackUrl, {
@@ -42,8 +52,10 @@ convertRoute.post("/", async (c) => {
       });
     }
 
+    checkMemoryUsage();
     return c.json({ outputKey, fileSize: result.size });
   } catch (error) {
+    captureException(error, { jobId, inputKey, inputFormat, outputFormat });
     const errorMessage = (error as Error).message;
     if (callbackUrl) {
       await fetch(callbackUrl, {
@@ -76,6 +88,7 @@ convertRoute.post("/direct", async (c) => {
   }
 
   try {
+    const startTime = Date.now();
     const inputBuffer = Buffer.from(await file.arrayBuffer());
     const inputFormat = file.name.split(".").pop() || "";
 
@@ -85,6 +98,14 @@ convertRoute.post("/direct", async (c) => {
       outputFormat: outputFormat as any,
     });
 
+    addConversionBreadcrumb({
+      conversionFormat: `${inputFormat}-to-${outputFormat}`,
+      durationMs: Date.now() - startTime,
+      fileSizeInput: inputBuffer.length,
+      fileSizeOutput: result.size,
+    });
+
+    checkMemoryUsage();
     return new Response(new Uint8Array(result.buffer), {
       headers: {
         "Content-Type": "application/octet-stream",
@@ -93,6 +114,69 @@ convertRoute.post("/direct", async (c) => {
       },
     });
   } catch (error) {
+    captureException(error, { jobId, outputFormat });
+    return c.json({ error: (error as Error).message }, 500);
+  }
+});
+
+// Preview: generate multiple quality variants for comparison
+convertRoute.post("/preview", async (c) => {
+  const apiKey = c.req.header("Authorization")?.replace("Bearer ", "");
+  if (apiKey !== process.env.API_KEY) {
+    return c.json({ error: "unauthorized" }, 401);
+  }
+
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  const outputFormat = body["outputFormat"] as string;
+  const qualitiesRaw = body["qualities"] as string;
+
+  if (!file || !(file instanceof File)) {
+    return c.json({ error: "No file provided" }, 400);
+  }
+
+  if (!outputFormat) {
+    return c.json({ error: "outputFormat is required" }, 400);
+  }
+
+  if (!qualitiesRaw) {
+    return c.json({ error: "qualities is required" }, 400);
+  }
+
+  let qualities: number[];
+  try {
+    qualities = JSON.parse(qualitiesRaw);
+    if (!Array.isArray(qualities) || qualities.length === 0) {
+      throw new Error("qualities must be a non-empty array");
+    }
+    for (const q of qualities) {
+      if (typeof q !== "number" || q < 1 || q > 100) {
+        throw new Error("Each quality must be a number between 1 and 100");
+      }
+    }
+  } catch (error) {
+    return c.json({ error: (error as Error).message }, 400);
+  }
+
+  if (qualities.length > 10) {
+    return c.json({ error: "Maximum 10 quality variants allowed" }, 400);
+  }
+
+  try {
+    const inputBuffer = Buffer.from(await file.arrayBuffer());
+    const inputFormat = file.name.split(".").pop() || "";
+
+    const previews = await generatePreviews(
+      inputBuffer,
+      inputFormat,
+      outputFormat as ImageFormat,
+      qualities,
+    );
+
+    checkMemoryUsage();
+    return c.json({ previews });
+  } catch (error) {
+    captureException(error, { outputFormat, qualities });
     return c.json({ error: (error as Error).message }, 500);
   }
 });

@@ -26,6 +26,45 @@ jobs:
         run: pnpm run format:check
         continue-on-error: true
 
+  # ──────────────────────────────────────────────────────────────────
+  # Sentry Source Map Upload
+  # ──────────────────────────────────────────────────────────────────
+  # Uncomment this job when deploying to production.
+  #
+  # Required GitHub Secrets:
+  #   SENTRY_AUTH_TOKEN  - Create at https://sentry.io/settings/auth-tokens/
+  #                        Scopes needed: project:releases, org:read
+  #   SENTRY_ORG        - Your Sentry organization slug
+  #   SENTRY_PROJECT    - Your Sentry project slug (e.g. "quickconv-web")
+  #
+  # sentry-source-maps:
+  #   runs-on: ubuntu-latest
+  #   needs: lint-and-build
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 22
+  #         cache: "pnpm"
+  #     - run: pnpm install --frozen-lockfile
+  #     - name: Build with source maps
+  #       run: cd apps/web && pnpm build
+  #     - name: Upload source maps to Sentry
+  #       env:
+  #         SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  #         SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+  #         SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+  #       run: |
+  #         cd apps/web
+  #         RELEASE="quickconv-web@$(node -p "require('./package.json').version")-$(git rev-parse --short HEAD)"
+  #         npx @sentry/cli releases new "$RELEASE"
+  #         npx @sentry/cli releases files "$RELEASE" upload-sourcemaps .next/static --url-prefix "~/_next/static"
+  #         npx @sentry/cli releases finalize "$RELEASE"
+  #     - name: Remove source maps from deploy artifacts
+  #       run: find apps/web/.next -name "*.map" -delete
+
   test:
     runs-on: ubuntu-latest
     needs: lint-and-build

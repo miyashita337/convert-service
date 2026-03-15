@@ -10,8 +10,18 @@ interface SitemapEntry {
   path: string;
 }
 
+const GUIDE_SLUGS = [
+  "what-is-avif",
+  "heic-to-jpg-guide",
+  "webp-vs-avif-vs-heic",
+];
+
 function getStaticPages(): SitemapEntry[] {
-  return [{ path: "" }, { path: "/privacy" }, { path: "/terms" }];
+  return [{ path: "" }, { path: "/privacy" }, { path: "/terms" }, { path: "/guide" }];
+}
+
+function getGuidePages(): SitemapEntry[] {
+  return GUIDE_SLUGS.map((slug) => ({ path: `/guide/${slug}` }));
 }
 
 function getConversionPages(): SitemapEntry[] {
@@ -40,7 +50,7 @@ ${buildHreflangLinks(path)}
 }
 
 function generateSitemap(): string {
-  const pages = [...getStaticPages(), ...getConversionPages()];
+  const pages = [...getStaticPages(), ...getGuidePages(), ...getConversionPages()];
 
   const urls = pages.flatMap((page) =>
     LOCALES.map((locale) => buildUrlEntry(locale, page.path))

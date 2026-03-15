@@ -61,11 +61,40 @@ export function useGAEvent() {
     []
   );
 
+  const trackShare = useCallback(
+    (method: string, from: string, to: string) => {
+      sendEvent("share", {
+        method,
+        content_type: "conversion_result",
+        from,
+        to,
+      });
+    },
+    []
+  );
+
+  const trackPreviewStart = useCallback(
+    (from: string, to: string) => {
+      sendEvent("preview_start", { from, to });
+    },
+    []
+  );
+
+  const trackPreviewSelectQuality = useCallback(
+    (from: string, to: string, quality: number) => {
+      sendEvent("preview_select_quality", { from, to, quality });
+    },
+    []
+  );
+
   return {
     trackFileUpload,
     trackConversionStart,
     trackConversionComplete,
     trackConversionError,
     trackFileDownload,
+    trackShare,
+    trackPreviewStart,
+    trackPreviewSelectQuality,
   };
 }

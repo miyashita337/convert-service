@@ -8,6 +8,7 @@ export interface Env {
   GOOGLE_CLIENT_SECRET: string;
   JWT_SECRET: string;
   APP_URL: string;
+  SENTRY_DSN?: string;
 }
 
 export interface AuthUser {

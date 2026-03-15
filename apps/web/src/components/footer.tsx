@@ -36,7 +36,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Legal & Guide */}
           <div>
             <h3 className="font-semibold mb-3">Legal</h3>
             <ul className="space-y-1.5">
@@ -54,6 +54,22 @@ export function Footer() {
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {t("termsOfService")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {t("contact")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/guide"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {t("guide")}
                 </Link>
               </li>
             </ul>
