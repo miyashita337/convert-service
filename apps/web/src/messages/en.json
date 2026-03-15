@@ -376,6 +376,18 @@
     "viewPlans": "View Plans",
     "backToHome": "Back to Home"
   },
+  "account": {
+    "title": "My Account",
+    "profile": "Profile",
+    "plan": "Plan",
+    "expiresAt": "Expires",
+    "upgrade": "Upgrade Plan",
+    "manageSubscription": "Manage Subscription",
+    "logout": "Sign out",
+    "loginRequired": "Sign in Required",
+    "loginRequiredDescription": "Please sign in to view your account.",
+    "signIn": "Sign in with Google"
+  },
   "upgrade": {
     "modalTitle": "You've used all {limit} free conversions today",
     "modalDescription": "Wait for the daily reset or upgrade your plan for unlimited conversions.",
