@@ -191,6 +191,18 @@
     "viewPlans": "料金プランを見る",
     "backToHome": "トップに戻る"
   },
+  "account": {
+    "title": "マイアカウント",
+    "profile": "プロフィール",
+    "plan": "プラン",
+    "expiresAt": "有効期限",
+    "upgrade": "プランをアップグレード",
+    "manageSubscription": "サブスクリプション管理",
+    "logout": "ログアウト",
+    "loginRequired": "ログインが必要です",
+    "loginRequiredDescription": "アカウントを表示するにはログインしてください。",
+    "signIn": "Googleでログイン"
+  },
   "upgrade": {
     "modalTitle": "本日の無料変換 {limit}回を使い切りました",
     "modalDescription": "リセットまでお待ちいただくか、プランをアップグレードして無制限に変換できます。",
