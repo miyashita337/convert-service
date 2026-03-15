@@ -7,6 +7,7 @@ const DEFAULT_QUALITY: Record<string, number> = {
   jpeg: 85,
   webp: 80,
   avif: 65,
+  tiff: 80,
 };
 
 interface ConvertOptions {
@@ -30,7 +31,9 @@ export interface PreviewResult {
   data: string;
 }
 
-export async function convertImage(options: ConvertOptions): Promise<ConvertResult> {
+export async function convertImage(
+  options: ConvertOptions,
+): Promise<ConvertResult> {
   const { inputBuffer, outputFormat, quality, maxDimension } = options;
 
   let pipeline = sharp(inputBuffer);
@@ -59,6 +62,21 @@ export async function convertImage(options: ConvertOptions): Promise<ConvertResu
       break;
     case "avif":
       pipeline = pipeline.avif({ quality: q ?? 65 });
+      break;
+    case "tiff":
+      pipeline = pipeline.tiff({ compression: "lzw", quality: q ?? 80 });
+      break;
+    case "ico":
+      // ICO is not natively supported by Sharp as output.
+      // Produce a 256x256 PNG buffer; the caller sets Content-Type to image/x-icon.
+      pipeline = pipeline
+        .resize({
+          width: 256,
+          height: 256,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .png({ compressionLevel: 9 });
       break;
     default:
       throw new Error(`Unsupported output format: ${outputFormat}`);
@@ -96,7 +114,9 @@ export async function generatePreviews(
       return {
         quality,
         size: result.size,
-        compressionRatio: parseFloat((1 - result.size / originalSize).toFixed(4)),
+        compressionRatio: parseFloat(
+          (1 - result.size / originalSize).toFixed(4),
+        ),
         data: result.buffer.toString("base64"),
       };
     }),

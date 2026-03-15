@@ -7,6 +7,9 @@ export const MIME_TO_FORMAT: Record<string, string> = {
   "image/heif": "heic",
   "image/gif": "gif",
   "image/svg+xml": "svg",
+  "image/tiff": "tiff",
+  "image/x-icon": "ico",
+  "image/vnd.microsoft.icon": "ico",
 };
 
 export const FORMAT_TO_MIME: Record<string, string> = {
@@ -18,6 +21,8 @@ export const FORMAT_TO_MIME: Record<string, string> = {
   heic: "image/heic",
   gif: "image/gif",
   svg: "image/svg+xml",
+  tiff: "image/tiff",
+  ico: "image/x-icon",
 };
 
 export const ALLOWED_MIME_TYPES = Object.keys(MIME_TO_FORMAT);
