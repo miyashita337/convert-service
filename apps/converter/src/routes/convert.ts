@@ -1,8 +1,31 @@
 import { Hono } from "hono";
 import { convertImage, generatePreviews } from "../services/image";
+import { convertVideoToGif } from "../services/video";
 import { downloadFromR2, uploadToR2 } from "../services/r2-client";
 import { addConversionBreadcrumb, captureException, checkMemoryUsage } from "../lib/sentry";
 import type { ImageFormat } from "@quickconv/shared";
+import { VIDEO_FORMATS, type VideoFormat } from "@quickconv/shared";
+
+/** 入力フォーマットが動画かどうか判定 */
+function isVideoFormat(format: string): format is VideoFormat {
+  return (VIDEO_FORMATS as readonly string[]).includes(format);
+}
+
+/** フォーマットに応じた変換処理を実行 */
+async function convertFile(
+  inputBuffer: Buffer,
+  inputFormat: string,
+  outputFormat: string,
+): Promise<{ buffer: Buffer; size: number; format: string }> {
+  if (isVideoFormat(inputFormat)) {
+    return convertVideoToGif({ inputBuffer });
+  }
+  return convertImage({
+    inputBuffer,
+    inputFormat,
+    outputFormat: outputFormat as ImageFormat,
+  });
+}
 
 const convertRoute = new Hono();
 
@@ -27,11 +50,7 @@ convertRoute.post("/", async (c) => {
   try {
     const startTime = Date.now();
     const inputBuffer = await downloadFromR2(inputKey);
-    const result = await convertImage({
-      inputBuffer,
-      inputFormat,
-      outputFormat: outputFormat as any,
-    });
+    const result = await convertFile(inputBuffer, inputFormat, outputFormat);
     await uploadToR2(outputKey, result.buffer, result.format);
 
     addConversionBreadcrumb({
@@ -92,11 +111,7 @@ convertRoute.post("/direct", async (c) => {
     const inputBuffer = Buffer.from(await file.arrayBuffer());
     const inputFormat = file.name.split(".").pop() || "";
 
-    const result = await convertImage({
-      inputBuffer,
-      inputFormat,
-      outputFormat: outputFormat as any,
-    });
+    const result = await convertFile(inputBuffer, inputFormat, outputFormat);
 
     addConversionBreadcrumb({
       conversionFormat: `${inputFormat}-to-${outputFormat}`,
