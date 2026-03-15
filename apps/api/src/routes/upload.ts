@@ -5,7 +5,9 @@ import {
   ALLOWED_MIME_TYPES,
   MAX_FILE_SIZE_BYTES,
   ANONYMOUS_MAX_FILE_SIZE_BYTES,
+  ANONYMOUS_MAX_VIDEO_FILE_SIZE_BYTES,
   ANONYMOUS_MAX_BATCH_FILES,
+  isVideoMimeType,
 } from "@quickconv/shared";
 import type { Env, AppVariables } from "../types/env";
 import { uploadToR2 } from "../services/r2";
@@ -37,13 +39,17 @@ upload.post("/", async (c) => {
     return c.json({ error: "validation", message: "No file provided" }, 400);
   }
 
-  // 匿名ユーザーの10MB制限（ボディパース後の実サイズチェック）
-  if (file.size > ANONYMOUS_MAX_FILE_SIZE_BYTES) {
+  // 匿名ユーザーのサイズ制限（動画: 5MB, 画像: 10MB）
+  const maxSizeForAnonymous = isVideoMimeType(file.type)
+    ? ANONYMOUS_MAX_VIDEO_FILE_SIZE_BYTES
+    : ANONYMOUS_MAX_FILE_SIZE_BYTES;
+
+  if (file.size > maxSizeForAnonymous) {
     return c.json(
       {
         error: "file_too_large",
-        message: `File size exceeds ${ANONYMOUS_MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB limit`,
-        maxSizeBytes: ANONYMOUS_MAX_FILE_SIZE_BYTES,
+        message: `File size exceeds ${maxSizeForAnonymous / (1024 * 1024)}MB limit`,
+        maxSizeBytes: maxSizeForAnonymous,
       },
       413,
     );

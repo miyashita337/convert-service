@@ -13,7 +13,7 @@
     "failed": "Conversion failed",
     "dragDrop": "Drag & drop files here, or click to select",
     "maxSize": "Max file size: {size}MB",
-    "supportedFormats": "Supported: JPG, PNG, WebP, AVIF, HEIC, GIF, SVG",
+    "supportedFormats": "Supported: JPG, PNG, WebP, AVIF, HEIC, GIF, SVG, MP4",
     "selectFormat": "Convert to",
     "startConversion": "Start Conversion",
     "downloadFile": "Download",

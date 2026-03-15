@@ -13,7 +13,7 @@
     "failed": "変換に失敗しました",
     "dragDrop": "ファイルをドラッグ＆ドロップ、またはクリックして選択",
     "maxSize": "最大ファイルサイズ: {size}MB",
-    "supportedFormats": "対応形式: JPG, PNG, WebP, AVIF, HEIC, GIF, SVG",
+    "supportedFormats": "対応形式: JPG, PNG, WebP, AVIF, HEIC, GIF, SVG, MP4",
     "selectFormat": "変換先",
     "startConversion": "変換開始",
     "downloadFile": "ダウンロード",
