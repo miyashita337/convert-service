@@ -6,6 +6,18 @@ import { higherPlan, type UserPlan } from "@quickconv/shared";
 
 const webhook = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
+/** planId (e.g. "pro_monthly") → UserPlan tier */
+function planTierFromId(planId: string): UserPlan {
+  if (planId.startsWith("pro")) return "pro";
+  if (planId.startsWith("plus")) return "plus";
+  return "pass";
+}
+
+/** Stripe unix timestamp → ISO 8601 string */
+function toISOFromUnix(ts: number | undefined | null): string | null {
+  return ts ? new Date(ts * 1000).toISOString() : null;
+}
+
 webhook.post("/stripe", async (c) => {
   const stripe = createStripeClient(c.env);
   const body = await c.req.text();
@@ -50,8 +62,7 @@ webhook.post("/stripe", async (c) => {
          VALUES (?, ?, ?, ?, ?, ?, ?)`
       ).bind(crypto.randomUUID(), stripeCustomerId || "", planId, purchaseType, paymentIntentId, subscriptionId, expiresAt).run();
 
-      // Determine plan tier from planId
-      const planName: UserPlan = planId.startsWith("pro") ? "pro" : planId.startsWith("plus") ? "plus" : "pass";
+      const planName = planTierFromId(planId);
 
       if (stripeCustomerId) {
         // For subscriptions, create subscription record
@@ -61,12 +72,12 @@ webhook.post("/stripe", async (c) => {
             stripeCustomerId,
             planType: planId,
             status: "active",
-            currentPeriodEnd: null, // Will be updated by subscription.updated event
+            currentPeriodEnd: null,
             cancelAtPeriodEnd: false,
           });
         }
 
-        // Apply higher-tier precedence: keep whichever plan is higher
+        // Apply higher-tier precedence
         const currentUser = await db.prepare("SELECT plan FROM users WHERE stripe_customer_id = ?").bind(stripeCustomerId).first();
         const currentPlan = (currentUser?.plan as UserPlan) || "free";
         const effectivePlan = higherPlan(planName, currentPlan);
@@ -77,45 +88,75 @@ webhook.post("/stripe", async (c) => {
       break;
     }
 
-    case "customer.subscription.updated": {
+    case "customer.subscription.created": {
+      // AC-1: Create subscription record on initial creation
       const sub = event.data.object;
-      const status = sub.status;
-      const subId = sub.id;
-      const cancelAtPeriodEnd = sub.cancel_at_period_end === true;
-      const currentPeriodEnd = sub.current_period_end
-        ? new Date(sub.current_period_end * 1000).toISOString()
-        : null;
+      const planId = sub.metadata?.planId || "";
+      const customerId = sub.customer as string;
 
-      // Update subscriptions table
       await upsertSubscription(db, {
-        stripeSubscriptionId: subId,
-        stripeCustomerId: sub.customer as string,
-        planType: sub.metadata?.planId || "",
-        status,
-        currentPeriodEnd,
-        cancelAtPeriodEnd,
+        stripeSubscriptionId: sub.id,
+        stripeCustomerId: customerId,
+        planType: planId,
+        status: sub.status,
+        currentPeriodEnd: toISOFromUnix(sub.current_period_end),
+        cancelAtPeriodEnd: sub.cancel_at_period_end === true,
       });
 
-      if (status === "active" || status === "trialing") {
-        // Determine plan from metadata or subscription items
-        const planId = sub.metadata?.planId || "";
-        const planName: UserPlan = planId.startsWith("pro") ? "pro" : "plus";
-        await db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE stripe_subscription_id = ?")
-          .bind(planName, subId).run();
-      } else if (status === "past_due" || status === "unpaid") {
-        // Keep plan but log — downgrade handled by subscription.deleted
-        console.warn(`Subscription ${subId} status changed to ${status}`);
+      // AC-6: Upgrade takes effect immediately
+      if (sub.status === "active" || sub.status === "trialing") {
+        const planName = planTierFromId(planId);
+        const currentUser = await db.prepare("SELECT plan FROM users WHERE stripe_customer_id = ?").bind(customerId).first();
+        const currentPlan = (currentUser?.plan as UserPlan) || "free";
+        const effectivePlan = higherPlan(planName, currentPlan);
+
+        await db.prepare("UPDATE users SET plan = ?, stripe_subscription_id = ?, updated_at = datetime('now') WHERE stripe_customer_id = ?")
+          .bind(effectivePlan, sub.id, customerId).run();
       }
       break;
     }
 
-    case "customer.subscription.deleted": {
+    case "customer.subscription.updated": {
+      // AC-2: Plan change & status change reflected
       const sub = event.data.object;
+      const status = sub.status;
+      const subId = sub.id;
+      const cancelAtPeriodEnd = sub.cancel_at_period_end === true;
+      const planId = sub.metadata?.planId || "";
+      const customerId = sub.customer as string;
 
-      // Mark subscription as canceled
+      // Update subscriptions table (idempotent UPSERT)
+      await upsertSubscription(db, {
+        stripeSubscriptionId: subId,
+        stripeCustomerId: customerId,
+        planType: planId,
+        status,
+        currentPeriodEnd: toISOFromUnix(sub.current_period_end),
+        cancelAtPeriodEnd,
+      });
+
+      if (status === "active" || status === "trialing") {
+        // AC-6: Upgrade is immediate
+        const planName = planTierFromId(planId);
+        await db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE stripe_subscription_id = ?")
+          .bind(planName, subId).run();
+      } else if (status === "past_due" || status === "unpaid") {
+        // AC-4/AC-5: Downgrade to free on payment issues
+        await db.prepare("UPDATE users SET plan = 'free', updated_at = datetime('now') WHERE stripe_subscription_id = ?")
+          .bind(subId).run();
+        console.warn(`Subscription ${subId} status changed to ${status} — user downgraded to free`);
+      }
+
+      // AC-7: Downgrade at period end — when cancel_at_period_end is true,
+      // we keep the current plan. Actual downgrade happens via subscription.deleted.
+      break;
+    }
+
+    case "customer.subscription.deleted": {
+      // AC-3: Mark subscription as canceled
+      const sub = event.data.object;
       await updateSubscriptionStatus(db, sub.id, "canceled");
 
-      // Downgrade user to free (unless they have another active subscription or valid pass)
       const customerId = sub.customer as string;
       if (customerId) {
         // Check for other active subscriptions
@@ -126,13 +167,11 @@ webhook.post("/stripe", async (c) => {
         ).bind(customerId, sub.id).first();
 
         if (otherActive) {
-          // Has another active subscription — set plan to that
-          const otherPlanId = otherActive.plan_type as string;
-          const otherPlan: UserPlan = otherPlanId.startsWith("pro") ? "pro" : "plus";
+          const otherPlan = planTierFromId(otherActive.plan_type as string);
           await db.prepare("UPDATE users SET plan = ?, stripe_subscription_id = NULL, updated_at = datetime('now') WHERE stripe_customer_id = ?")
             .bind(otherPlan, customerId).run();
         } else {
-          // Check for valid pass
+          // Fallback to valid pass or free
           const validPass = await db.prepare(
             `SELECT plan FROM purchases
              WHERE stripe_customer_id = ? AND type = 'pass' AND expires_at > datetime('now')
@@ -148,8 +187,33 @@ webhook.post("/stripe", async (c) => {
     }
 
     case "invoice.payment_failed": {
-      // Log for monitoring — plan downgrade handled by subscription.deleted
-      console.warn("Payment failed for invoice:", event.data.object.id);
+      // AC-4: Update subscription to past_due
+      const invoice = event.data.object;
+      const subId = typeof invoice.subscription === "string" ? invoice.subscription : null;
+      if (subId) {
+        await updateSubscriptionStatus(db, subId, "past_due");
+        // AC-5: Downgrade user to free
+        await db.prepare("UPDATE users SET plan = 'free', updated_at = datetime('now') WHERE stripe_subscription_id = ?")
+          .bind(subId).run();
+        console.warn(`Payment failed for subscription ${subId} — user downgraded to free`);
+      }
+      break;
+    }
+
+    case "invoice.payment_succeeded": {
+      // Restore plan after successful payment (recovery from past_due)
+      const invoice = event.data.object;
+      const subId = typeof invoice.subscription === "string" ? invoice.subscription : null;
+      if (subId) {
+        const sub = await db.prepare("SELECT plan_type, stripe_customer_id FROM subscriptions WHERE stripe_subscription_id = ?")
+          .bind(subId).first();
+        if (sub) {
+          const planName = planTierFromId(sub.plan_type as string);
+          await updateSubscriptionStatus(db, subId, "active");
+          await db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE stripe_subscription_id = ?")
+            .bind(planName, subId).run();
+        }
+      }
       break;
     }
   }
