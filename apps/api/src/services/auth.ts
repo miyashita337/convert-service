@@ -132,7 +132,7 @@ export async function verifyJwt(
   const valid = await crypto.subtle.verify(
     "HMAC",
     key,
-    signatureBytes,
+    signatureBytes.buffer as ArrayBuffer,
     encoder.encode(signingInput)
   );
 
