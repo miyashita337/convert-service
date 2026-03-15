@@ -8,12 +8,14 @@ import {
   fileSizeLimitMiddleware,
   uploadRateLimitMiddleware,
 } from "./middleware/rate-limit";
+import { optionalAuthMiddleware } from "./middleware/auth";
 import upload from "./routes/upload";
 import convert from "./routes/convert";
 import preview from "./routes/preview";
 import status from "./routes/status";
 import download from "./routes/download";
 import callback from "./routes/callback";
+import auth from "./routes/auth";
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -43,6 +45,9 @@ app.use(
 // Identification — CORS の後、ルートの前に適用
 app.use("/api/*", identificationMiddleware());
 
+// Optional auth — JWT cookie からユーザー情報を抽出（未認証でもブロックしない）
+app.use("/api/*", optionalAuthMiddleware());
+
 // Rate limiting — upload にはサイズ制限 + 読み取り専用チェック、convert にはカウント消費
 app.use("/api/upload", fileSizeLimitMiddleware());
 app.use("/api/upload", uploadRateLimitMiddleware());
@@ -58,5 +63,6 @@ app.route("/api/preview", preview);
 app.route("/api/status", status);
 app.route("/api/download", download);
 app.route("/api/callback", callback);
+app.route("/api/auth", auth);
 
 export default app;
