@@ -9,6 +9,8 @@ export interface Env {
   JWT_SECRET: string;
   APP_URL: string;
   SENTRY_DSN?: string;
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET?: string;
 }
 
 export interface AuthUser {
