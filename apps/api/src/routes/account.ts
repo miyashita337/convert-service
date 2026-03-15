@@ -1,23 +1,29 @@
 import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
 import { createStripeClient } from "../services/stripe";
+import { getActiveSubscription } from "../repositories/subscription-repository";
 
 const account = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
-// GET /api/account — get current user account info with active purchase
+// GET /api/account — get current user account info with active purchase & subscription
 account.get("/", async (c) => {
   const user = c.get("user");
   if (!user) {
     return c.json({ error: "authentication_required" }, 401);
   }
 
-  // Get active purchase
+  const customerId = user.stripeCustomerId || "";
+
+  // Get active purchase (pass)
   const purchase = await c.env.DB.prepare(
     `SELECT plan, type, expires_at, created_at FROM purchases
      WHERE stripe_customer_id = ?
      AND (expires_at IS NULL OR expires_at > datetime('now'))
      ORDER BY created_at DESC LIMIT 1`
-  ).bind(user.stripeCustomerId || "").first();
+  ).bind(customerId).first();
+
+  // Get active subscription
+  const subscription = await getActiveSubscription(c.env.DB, customerId);
 
   return c.json({
     email: user.email,
@@ -26,6 +32,12 @@ account.get("/", async (c) => {
       plan: purchase.plan as string,
       type: purchase.type as string,
       expiresAt: purchase.expires_at as string | null,
+    } : null,
+    subscription: subscription ? {
+      planType: subscription.planType,
+      status: subscription.status,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
     } : null,
   });
 });

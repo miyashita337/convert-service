@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
 import { createStripeClient } from "../services/stripe";
+import { upsertSubscription, updateSubscriptionStatus } from "../repositories/subscription-repository";
+import { higherPlan, type UserPlan } from "@quickconv/shared";
 
 const webhook = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -48,11 +50,29 @@ webhook.post("/stripe", async (c) => {
          VALUES (?, ?, ?, ?, ?, ?, ?)`
       ).bind(crypto.randomUUID(), stripeCustomerId || "", planId, purchaseType, paymentIntentId, subscriptionId, expiresAt).run();
 
-      // Update user plan
+      // Determine plan tier from planId
+      const planName: UserPlan = planId.startsWith("pro") ? "pro" : planId.startsWith("plus") ? "plus" : "pass";
+
       if (stripeCustomerId) {
-        const planName = planId.startsWith("pro") ? "pro" : planId.startsWith("plus") ? "plus" : "pass";
+        // For subscriptions, create subscription record
+        if (subscriptionId) {
+          await upsertSubscription(db, {
+            stripeSubscriptionId: subscriptionId,
+            stripeCustomerId,
+            planType: planId,
+            status: "active",
+            currentPeriodEnd: null, // Will be updated by subscription.updated event
+            cancelAtPeriodEnd: false,
+          });
+        }
+
+        // Apply higher-tier precedence: keep whichever plan is higher
+        const currentUser = await db.prepare("SELECT plan FROM users WHERE stripe_customer_id = ?").bind(stripeCustomerId).first();
+        const currentPlan = (currentUser?.plan as UserPlan) || "free";
+        const effectivePlan = higherPlan(planName, currentPlan);
+
         await db.prepare("UPDATE users SET plan = ?, stripe_subscription_id = ?, updated_at = datetime('now') WHERE stripe_customer_id = ?")
-          .bind(planName, subscriptionId, stripeCustomerId).run();
+          .bind(effectivePlan, subscriptionId, stripeCustomerId).run();
       }
       break;
     }
@@ -61,18 +81,69 @@ webhook.post("/stripe", async (c) => {
       const sub = event.data.object;
       const status = sub.status;
       const subId = sub.id;
+      const cancelAtPeriodEnd = sub.cancel_at_period_end === true;
+      const currentPeriodEnd = sub.current_period_end
+        ? new Date(sub.current_period_end * 1000).toISOString()
+        : null;
+
+      // Update subscriptions table
+      await upsertSubscription(db, {
+        stripeSubscriptionId: subId,
+        stripeCustomerId: sub.customer as string,
+        planType: sub.metadata?.planId || "",
+        status,
+        currentPeriodEnd,
+        cancelAtPeriodEnd,
+      });
+
       if (status === "active" || status === "trialing") {
-        await db.prepare("UPDATE users SET plan = 'plus', updated_at = datetime('now') WHERE stripe_subscription_id = ?").bind(subId).run();
+        // Determine plan from metadata or subscription items
+        const planId = sub.metadata?.planId || "";
+        const planName: UserPlan = planId.startsWith("pro") ? "pro" : "plus";
+        await db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE stripe_subscription_id = ?")
+          .bind(planName, subId).run();
       } else if (status === "past_due" || status === "unpaid") {
-        // Keep plan but flag — could add a column later
+        // Keep plan but log — downgrade handled by subscription.deleted
+        console.warn(`Subscription ${subId} status changed to ${status}`);
       }
       break;
     }
 
     case "customer.subscription.deleted": {
       const sub = event.data.object;
-      await db.prepare("UPDATE users SET plan = 'free', stripe_subscription_id = NULL, updated_at = datetime('now') WHERE stripe_subscription_id = ?")
-        .bind(sub.id).run();
+
+      // Mark subscription as canceled
+      await updateSubscriptionStatus(db, sub.id, "canceled");
+
+      // Downgrade user to free (unless they have another active subscription or valid pass)
+      const customerId = sub.customer as string;
+      if (customerId) {
+        // Check for other active subscriptions
+        const otherActive = await db.prepare(
+          `SELECT plan_type FROM subscriptions
+           WHERE stripe_customer_id = ? AND status IN ('active', 'trialing') AND stripe_subscription_id != ?
+           LIMIT 1`
+        ).bind(customerId, sub.id).first();
+
+        if (otherActive) {
+          // Has another active subscription — set plan to that
+          const otherPlanId = otherActive.plan_type as string;
+          const otherPlan: UserPlan = otherPlanId.startsWith("pro") ? "pro" : "plus";
+          await db.prepare("UPDATE users SET plan = ?, stripe_subscription_id = NULL, updated_at = datetime('now') WHERE stripe_customer_id = ?")
+            .bind(otherPlan, customerId).run();
+        } else {
+          // Check for valid pass
+          const validPass = await db.prepare(
+            `SELECT plan FROM purchases
+             WHERE stripe_customer_id = ? AND type = 'pass' AND expires_at > datetime('now')
+             ORDER BY created_at DESC LIMIT 1`
+          ).bind(customerId).first();
+
+          const fallbackPlan: UserPlan = validPass ? "pass" : "free";
+          await db.prepare("UPDATE users SET plan = ?, stripe_subscription_id = NULL, updated_at = datetime('now') WHERE stripe_customer_id = ?")
+            .bind(fallbackPlan, customerId).run();
+        }
+      }
       break;
     }
 
