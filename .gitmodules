@@ -1,0 +1,3 @@
+[submodule "tools/team_salary"]
+	path = tools/team_salary
+	url = git@github.com:miyashita337/team_salary.git

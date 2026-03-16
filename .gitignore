@@ -19,3 +19,7 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# team_salary credentials
+tools/team_salary/.env
+tools/team_salary/.sessions/
