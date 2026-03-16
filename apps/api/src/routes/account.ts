@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
 import { createStripeClient } from "../services/stripe";
 import { getActiveSubscription } from "../repositories/subscription-repository";
+import { checkRateLimit } from "../services/rate-limit";
 
 const account = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -25,6 +26,17 @@ account.get("/", async (c) => {
   // Get active subscription
   const subscription = await getActiveSubscription(c.env.DB, customerId);
 
+  // Get usage stats
+  const clientHash = c.get("clientHash");
+  let usage = null;
+  if (clientHash) {
+    const rateLimit = await checkRateLimit(c.env.DB, clientHash);
+    usage = {
+      remaining: rateLimit.remaining,
+      limit: rateLimit.limit,
+    };
+  }
+
   return c.json({
     email: user.email,
     plan: user.plan,
@@ -39,6 +51,7 @@ account.get("/", async (c) => {
       currentPeriodEnd: subscription.currentPeriodEnd,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
     } : null,
+    usage,
   });
 });
 
