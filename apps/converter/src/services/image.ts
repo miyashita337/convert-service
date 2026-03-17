@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import type { ImageFormat } from "@quickconv/shared";
+import { FORMAT_TO_MIME } from "@quickconv/shared";
 
 /** Default quality per format (used when no quality is specified) */
 const DEFAULT_QUALITY: Record<string, number> = {
@@ -117,7 +118,7 @@ export async function generatePreviews(
         compressionRatio: parseFloat(
           (1 - result.size / originalSize).toFixed(4),
         ),
-        data: result.buffer.toString("base64"),
+        data: `data:${FORMAT_TO_MIME[outputFormat] || "image/png"};base64,${result.buffer.toString("base64")}`,
       };
     }),
   );
