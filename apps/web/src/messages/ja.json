@@ -120,7 +120,7 @@
     "message": "当サイトでは、より良いサービスを提供するためにCookieを使用しています。レート制限およびサービス改善の目的で使用されます。",
     "accept": "同意する",
     "reject": "拒否する",
-    "learnMore": "詳細は{privacyPolicy}をご覧ください。"
+    "learnMore": "詳細は<privacyPolicy>プライバシーポリシー</privacyPolicy>をご覧ください。"
   },
   "privacyPolicy": {
     "title": "プライバシーポリシー",

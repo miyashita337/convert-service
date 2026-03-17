@@ -139,7 +139,7 @@ export function QualityPatternGrid({
             )}
 
             {/* Fallback: static recommended badge when no recommendations computed */}
-            {!recommendations && index === 1 && !isLocked && (
+            {(!recommendations || recommendations.length === 0) && index === 1 && !isLocked && (
               <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 whitespace-nowrap">
                 {t("recommended")}
               </span>

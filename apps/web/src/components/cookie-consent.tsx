@@ -42,7 +42,7 @@ export function CookieConsent() {
                   href="/privacy"
                   className="underline hover:text-foreground"
                 >
-                  {tCommon("privacyPolicy")}
+                  {chunks}
                 </Link>
               ),
             })}

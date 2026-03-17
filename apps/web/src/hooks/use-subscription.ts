@@ -13,12 +13,18 @@ interface SubscriptionState {
   expiresAt: Date | null;
 }
 
+/** Dev override: set NEXT_PUBLIC_DEV_FORCE_PLAN=pro in .env.local */
+const DEV_FORCE_PLAN = process.env.NEXT_PUBLIC_DEV_FORCE_PLAN as Plan | undefined;
+
 export function useSubscription(): SubscriptionState {
-  const [plan, setPlan] = useState<Plan>("free");
+  const [plan, setPlan] = useState<Plan>(DEV_FORCE_PLAN || "free");
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!DEV_FORCE_PLAN);
 
   const fetchSubscription = useCallback(async () => {
+    // Skip API call when dev override is active
+    if (DEV_FORCE_PLAN) return;
+
     try {
       const res = await fetch(`${API_URL}/api/account`, {
         credentials: "include",

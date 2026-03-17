@@ -120,7 +120,7 @@
     "message": "This website uses cookies to provide you with a better experience. We use cookies for rate limiting and service improvement.",
     "accept": "Accept",
     "reject": "Reject",
-    "learnMore": "Learn more in our {privacyPolicy}."
+    "learnMore": "Learn more in our <privacyPolicy>Privacy Policy</privacyPolicy>."
   },
   "privacyPolicy": {
     "title": "Privacy Policy",
