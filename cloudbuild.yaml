@@ -7,5 +7,15 @@ steps:
       - '-f'
       - 'apps/converter/Dockerfile'
       - '.'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'quickconv-converter'
+      - '--image=us-central1-docker.pkg.dev/quickconv-489717/quickconv/converter'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
 images:
   - 'us-central1-docker.pkg.dev/quickconv-489717/quickconv/converter'
