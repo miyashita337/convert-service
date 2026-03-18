@@ -54,6 +54,8 @@ export function ConversionCard() {
     previews,
     selectedPreviewIndex,
     originalSize,
+    recommendations,
+    recommendationComputing,
   } = useConversion();
   const { trackFileDownload } = useGAEvent();
 
@@ -246,7 +248,10 @@ export function ConversionCard() {
               selectedIndex={selectedPreviewIndex}
               onSelect={selectPreviewPattern}
               isPaid={isPaid}
+              plan={plan}
               accessibleCount={accessibleCount}
+              recommendations={recommendations}
+              recommendationComputing={recommendationComputing}
             />
           </div>
 
