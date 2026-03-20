@@ -1,14 +1,25 @@
 import { Hono } from "hono";
 import { convertImage, generatePreviews } from "../services/image";
 import { convertVideoToGif } from "../services/video";
+import { convertAudio, extractAudio } from "../services/audio";
 import { downloadFromR2, uploadToR2 } from "../services/r2-client";
 import { addConversionBreadcrumb, captureException, checkMemoryUsage } from "../lib/sentry";
-import type { ImageFormat } from "@quickconv/shared";
-import { VIDEO_FORMATS, type VideoFormat } from "@quickconv/shared";
+import type { ImageFormat, AudioFormat } from "@quickconv/shared";
+import { VIDEO_FORMATS, AUDIO_FORMATS, type VideoFormat } from "@quickconv/shared";
 
 /** 入力フォーマットが動画かどうか判定 */
 function isVideoFormat(format: string): format is VideoFormat {
   return (VIDEO_FORMATS as readonly string[]).includes(format);
+}
+
+/** 出力フォーマットがオーディオかどうか判定 */
+function isAudioOutputFormat(format: string): format is AudioFormat {
+  return (AUDIO_FORMATS as readonly string[]).includes(format);
+}
+
+/** 入力フォーマットがオーディオかどうか判定 */
+function isAudioInputFormat(format: string): boolean {
+  return (AUDIO_FORMATS as readonly string[]).includes(format);
 }
 
 /** フォーマットに応じた変換処理を実行 */
@@ -17,9 +28,30 @@ async function convertFile(
   inputFormat: string,
   outputFormat: string,
 ): Promise<{ buffer: Buffer; size: number; format: string }> {
+  // Audio → Audio 変換
+  if (isAudioInputFormat(inputFormat) && isAudioOutputFormat(outputFormat)) {
+    return convertAudio({
+      inputBuffer,
+      inputFormat,
+      outputFormat,
+    });
+  }
+
+  // Video → Audio 抽出
+  if (isVideoFormat(inputFormat) && isAudioOutputFormat(outputFormat)) {
+    return extractAudio({
+      inputBuffer,
+      inputFormat,
+      outputFormat,
+    });
+  }
+
+  // Video → GIF
   if (isVideoFormat(inputFormat)) {
     return convertVideoToGif({ inputBuffer });
   }
+
+  // Image 変換
   return convertImage({
     inputBuffer,
     inputFormat,
