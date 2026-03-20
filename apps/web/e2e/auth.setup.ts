@@ -5,9 +5,8 @@ import fs from "node:fs";
 const authDir = path.resolve(__dirname, ".auth");
 const authFile = path.join(authDir, "user.json");
 
-setup.use({ timeout: 60_000 });
-
 setup("authenticate with Google", async ({ page }) => {
+  setup.setTimeout(60_000);
   const email = process.env.E2E_GOOGLE_EMAIL;
   const password = process.env.E2E_GOOGLE_PASSWORD;
   const apiUrl = process.env.E2E_API_URL ?? "https://api.quickconv.cc";
