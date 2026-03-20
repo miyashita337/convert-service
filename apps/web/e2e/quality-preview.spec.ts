@@ -112,14 +112,14 @@ test.describe("Quality comparison preview", () => {
   }) => {
     await setupPreview(page, testFilePath);
 
-    const compareBtn = page.getByText(/Compare Quality|品質を比較/i);
+    const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
     await expect(compareBtn).toBeVisible({ timeout: 5_000 });
   });
 
   test("clicking compare quality shows preview grid", async ({ page }) => {
     await setupPreview(page, testFilePath);
 
-    const compareBtn = page.getByText(/Compare Quality|品質を比較/i);
+    const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
     await compareBtn.click();
 
     // Should show preview grid or loading
@@ -130,7 +130,7 @@ test.describe("Quality comparison preview", () => {
   test("preview grid shows quality preset labels", async ({ page }) => {
     await setupPreview(page, testFilePath);
 
-    const compareBtn = page.getByText(/Compare Quality|品質を比較/i);
+    const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
     await compareBtn.click();
 
     // Wait for grid to load
@@ -154,7 +154,7 @@ test.describe("Quality comparison preview", () => {
   test("back button returns to conversion view", async ({ page }) => {
     await setupPreview(page, testFilePath);
 
-    const compareBtn = page.getByText(/Compare Quality|品質を比較/i);
+    const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
     await compareBtn.click();
 
     // Wait for preview
@@ -166,7 +166,7 @@ test.describe("Quality comparison preview", () => {
       await backBtn.click();
       // Compare button should be visible again
       await expect(
-        page.getByText(/Compare Quality|品質を比較/i)
+        page.getByRole("button", { name: /Compare Quality|品質を比較/i })
       ).toBeVisible({ timeout: 5_000 });
     }
   });
@@ -174,7 +174,7 @@ test.describe("Quality comparison preview", () => {
   test("convert with quality button is functional", async ({ page }) => {
     await setupPreview(page, testFilePath);
 
-    const compareBtn = page.getByText(/Compare Quality|品質を比較/i);
+    const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
     await compareBtn.click();
 
     // Wait for preview
@@ -216,7 +216,7 @@ test.describe("Pro auto-recommendation", () => {
 
     await setupPreview(page, testFilePath);
 
-    const compareBtn = page.getByText(/Compare Quality|品質を比較/i);
+    const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
     await compareBtn.click();
 
     // Wait for grid to appear
@@ -242,7 +242,7 @@ test.describe("Pro auto-recommendation", () => {
   test("SSIM score visible for Pro users", async ({ page }) => {
     await setupPreview(page, testFilePath);
 
-    const compareBtn = page.getByText(/Compare Quality|品質を比較/i);
+    const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
     await compareBtn.click();
 
     // Wait for SSIM computation
