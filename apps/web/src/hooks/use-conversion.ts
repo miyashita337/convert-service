@@ -10,7 +10,7 @@ import {
 } from "@/lib/api-client";
 import type { RateLimitInfo, PreviewItem } from "@/lib/api-client";
 import { POLLING_INTERVAL_MS } from "@quickconv/shared";
-import type { ImageFormat } from "@quickconv/shared";
+import type { OutputFormat } from "@quickconv/shared";
 import { useGAEvent } from "./use-ga-event";
 import { useQualityRecommend, type QualityResult } from "./use-quality-recommend";
 import { decodeBase64ToImageData, decodeFileToImageData } from "@/lib/decode-image";
@@ -59,7 +59,7 @@ export function useConversion() {
   const startTimeRef = useRef<number>(0);
   const formatsRef = useRef<{ from: string; to: string }>({ from: "", to: "" });
   const fileRef = useRef<File | null>(null);
-  const outputFormatRef = useRef<ImageFormat | null>(null);
+  const outputFormatRef = useRef<OutputFormat | null>(null);
   const {
     trackFileUpload,
     trackConversionStart,
@@ -83,7 +83,7 @@ export function useConversion() {
 
   /** Start preview: fetch quality pattern previews from the API */
   const startPreview = useCallback(
-    async (file: File, outputFormat: ImageFormat, plan: string) => {
+    async (file: File, outputFormat: OutputFormat, plan: string) => {
       setState({
         step: "previewing",
         uploadProgress: 0,
@@ -170,7 +170,7 @@ export function useConversion() {
   }, []);
 
   const startConversion = useCallback(
-    async (file: File, outputFormat: ImageFormat) => {
+    async (file: File, outputFormat: OutputFormat) => {
       setState({ step: "uploading", uploadProgress: 0, jobId: null, downloadUrl: null, error: null });
 
       const inputFormat = file.name.split(".").pop()?.toLowerCase() || "unknown";

@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { ALLOWED_MIME_TYPES } from "../constants/formats";
 import { MAX_FILE_SIZE_BYTES } from "../constants/limits";
-import { IMAGE_FORMATS } from "../types/conversion";
+import { IMAGE_FORMATS, AUDIO_FORMATS } from "../types/conversion";
+
+const OUTPUT_FORMATS = [...IMAGE_FORMATS, ...AUDIO_FORMATS] as const;
 
 export const uploadSchema = z.object({
   fileName: z.string().min(1),
@@ -11,5 +13,5 @@ export const uploadSchema = z.object({
 
 export const convertSchema = z.object({
   fileId: z.string().min(1),
-  outputFormat: z.enum(IMAGE_FORMATS),
+  outputFormat: z.enum(OUTPUT_FORMATS),
 });

@@ -1,4 +1,4 @@
-import type { ConversionJob, JobStatus, ImageFormat } from "@quickconv/shared";
+import type { ConversionJob, JobStatus, OutputFormat } from "@quickconv/shared";
 
 export async function createJob(
   db: D1Database,
@@ -53,7 +53,7 @@ function mapRow(row: Record<string, unknown>): ConversionJob {
     id: row.id as string,
     inputFileKey: row.input_file_key as string,
     inputFormat: row.input_format as string,
-    outputFormat: row.output_format as ImageFormat,
+    outputFormat: row.output_format as OutputFormat,
     outputFileKey: (row.output_file_key as string) ?? null,
     status: row.status as JobStatus,
     fileSize: (row.file_size as number) ?? null,
