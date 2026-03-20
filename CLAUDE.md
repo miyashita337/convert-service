@@ -19,6 +19,7 @@
 - **PR マージ時**: GitHub Actions が `in-progress` を自動除去
 - **デプロイ前**: `E2E_TARGET=production npx playwright test --project=production` を実行して本番チェック
 - **D1マイグレーション**: 本番デプロイ時は `npx wrangler d1 migrations apply quickconv-db --remote` を忘れずに実行
+- **並列エージェント活用**: 時間がかかるタスクや独立した作業は、マルチエージェント（Agent tool）で並列実行する。待機時間を最小化すること
 
 ## ビルド・デプロイ
 詳細: [docs/deploy.md](docs/deploy.md)
