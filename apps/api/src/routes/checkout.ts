@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
-import { createStripeClient, PLAN_CONFIGS, isValidPlanId } from "../services/stripe";
+import { createStripeClient, PLAN_CONFIGS, isValidPlanId, resolveStripePriceId, type SupportedCurrency } from "../services/stripe";
 
 const checkout = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -10,29 +10,29 @@ checkout.post("/", async (c) => {
     return c.json({ error: "authentication_required", message: "Please log in to purchase." }, 401);
   }
 
-  const body = await c.req.json<{ planId: string }>().catch(() => null);
+  const body = await c.req.json<{ planId: string; currency?: string }>().catch(() => null);
   if (!body?.planId || !isValidPlanId(body.planId)) {
     return c.json({ error: "invalid_plan", message: "Invalid plan ID." }, 400);
   }
 
+  const currency: SupportedCurrency = body.currency === "usd" ? "usd" : "jpy";
   const plan = PLAN_CONFIGS[body.planId];
   const stripe = createStripeClient(c.env);
   const frontendUrl = c.env.APP_URL.replace("api.", "");
+
+  let stripePriceId: string;
+  try {
+    stripePriceId = resolveStripePriceId(body.planId, currency);
+  } catch {
+    return c.json({ error: "invalid_plan", message: "Invalid plan ID." }, 400);
+  }
 
   try {
     if (plan.mode === "subscription") {
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],
-        line_items: [{
-          price_data: {
-            currency: plan.currency,
-            product_data: { name: plan.name },
-            unit_amount: plan.amount,
-            recurring: { interval: plan.interval! },
-          },
-          quantity: 1,
-        }],
+        line_items: [{ price: stripePriceId, quantity: 1 }],
         metadata: { planId: body.planId, userEmail: user.email, stripeCustomerId: user.stripeCustomerId || "" },
         customer_email: user.email,
         success_url: `${frontendUrl}/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -45,14 +45,7 @@ checkout.post("/", async (c) => {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      line_items: [{
-        price_data: {
-          currency: plan.currency,
-          product_data: { name: plan.name },
-          unit_amount: plan.amount,
-        },
-        quantity: 1,
-      }],
+      line_items: [{ price: stripePriceId, quantity: 1 }],
       metadata: {
         planId: body.planId,
         userEmail: user.email,

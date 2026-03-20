@@ -9,6 +9,38 @@ export const ANONYMOUS_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 /** 匿名ユーザーの1バッチあたり最大ファイル数 */
 export const ANONYMOUS_MAX_BATCH_FILES = 3;
 
+/** プランごとの制限値 */
+export const PLAN_LIMITS = {
+  free: {
+    dailyLimit: 10,
+    maxFileSizeBytes: 10 * 1024 * 1024, // 10MB
+    maxBatchFiles: 3,
+    adsEnabled: true,
+    ssimAnalysis: false,
+  },
+  pass: {
+    dailyLimit: Infinity,
+    maxFileSizeBytes: 20 * 1024 * 1024, // 20MB
+    maxBatchFiles: 10,
+    adsEnabled: false,
+    ssimAnalysis: false,
+  },
+  plus: {
+    dailyLimit: 50,
+    maxFileSizeBytes: 20 * 1024 * 1024, // 20MB
+    maxBatchFiles: 10,
+    adsEnabled: false,
+    ssimAnalysis: false,
+  },
+  pro: {
+    dailyLimit: Infinity,
+    maxFileSizeBytes: 50 * 1024 * 1024, // 50MB
+    maxBatchFiles: 20,
+    adsEnabled: false,
+    ssimAnalysis: true,
+  },
+} as const;
+
 /** レート制限チェック結果 */
 export interface RateLimitResult {
   allowed: boolean;

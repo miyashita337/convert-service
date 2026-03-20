@@ -229,7 +229,7 @@ describe("webhook /stripe", () => {
 
     it("falls back to pass when valid pass exists", async () => {
       db.first.mockResolvedValueOnce(null); // no other active subscription
-      db.first.mockResolvedValueOnce({ plan: "pass_30d" }); // valid pass
+      db.first.mockResolvedValueOnce({ plan: "pass_7d" }); // valid pass
 
       const res = await postWebhook(app, db, "customer.subscription.deleted", {
         id: "sub_123",

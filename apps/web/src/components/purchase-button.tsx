@@ -8,11 +8,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
 interface PurchaseButtonProps {
   planId: string;
   label: string;
+  currency?: "jpy" | "usd";
   highlighted?: boolean;
   disabled?: boolean;
 }
 
-export function PurchaseButton({ planId, label, highlighted, disabled }: PurchaseButtonProps) {
+export function PurchaseButton({ planId, label, currency = "jpy", highlighted, disabled }: PurchaseButtonProps) {
   const { user, login } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,7 @@ export function PurchaseButton({ planId, label, highlighted, disabled }: Purchas
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ planId, currency }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
