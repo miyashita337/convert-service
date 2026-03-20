@@ -94,6 +94,20 @@ export async function convertImage(
 
 const PREVIEW_MAX_DIMENSION = 800;
 
+/** Generate an SVG watermark overlay for the given image dimensions */
+function createWatermarkSvg(width: number, height: number): Buffer {
+  const fontSize = Math.max(16, Math.round(Math.min(width, height) * 0.08));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+    <defs>
+      <pattern id="wm" patternUnits="userSpaceOnUse" width="${fontSize * 12}" height="${fontSize * 6}" patternTransform="rotate(-30)">
+        <text x="${fontSize * 2}" y="${fontSize * 2}" font-family="sans-serif" font-size="${fontSize}" fill="white" opacity="0.25">QuickConv</text>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#wm)"/>
+  </svg>`;
+  return Buffer.from(svg);
+}
+
 export async function generatePreviews(
   inputBuffer: Buffer,
   inputFormat: string,
@@ -112,13 +126,21 @@ export async function generatePreviews(
         maxDimension: PREVIEW_MAX_DIMENSION,
       });
 
+      // Add watermark overlay to preview
+      const metadata = await sharp(result.buffer).metadata();
+      const w = metadata.width || 400;
+      const h = metadata.height || 400;
+      const watermarked = await sharp(result.buffer)
+        .composite([{ input: createWatermarkSvg(w, h), top: 0, left: 0 }])
+        .toBuffer();
+
       return {
         quality,
         size: result.size,
         compressionRatio: parseFloat(
           (1 - result.size / originalSize).toFixed(4),
         ),
-        data: `data:${FORMAT_TO_MIME[outputFormat] || "image/png"};base64,${result.buffer.toString("base64")}`,
+        data: `data:${FORMAT_TO_MIME[outputFormat] || "image/png"};base64,${watermarked.toString("base64")}`,
       };
     }),
   );
