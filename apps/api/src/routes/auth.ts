@@ -20,7 +20,7 @@ auth.get("/google", (c) => {
 auth.get("/google/callback", async (c) => {
   const code = c.req.query("code");
   const error = c.req.query("error");
-  const frontendUrl = c.env.APP_URL || "https://quickconv.cc";
+  const frontendUrl = c.env.FRONTEND_URL || "https://quickconv.cc";
 
   if (error || !code) {
     return c.redirect(`${frontendUrl}?auth_error=cancelled`);
@@ -64,8 +64,9 @@ auth.get("/google/callback", async (c) => {
       },
     });
   } catch (err) {
-    console.error("OAuth callback error:", err);
-    return c.redirect(`${frontendUrl}?auth_error=failed`);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("OAuth callback error:", message);
+    return c.redirect(`${frontendUrl}?auth_error=failed&detail=${encodeURIComponent(message)}`);
   }
 });
 

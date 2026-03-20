@@ -8,6 +8,7 @@ export interface Env {
   GOOGLE_CLIENT_SECRET: string;
   JWT_SECRET: string;
   APP_URL: string;
+  FRONTEND_URL?: string;
   SENTRY_DSN?: string;
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET?: string;
