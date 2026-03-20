@@ -5,6 +5,8 @@ import fs from "node:fs";
 const authDir = path.resolve(__dirname, ".auth");
 const authFile = path.join(authDir, "user.json");
 
+setup.use({ timeout: 60_000 });
+
 setup("authenticate with Google", async ({ page }) => {
   const email = process.env.E2E_GOOGLE_EMAIL;
   const password = process.env.E2E_GOOGLE_PASSWORD;
@@ -35,26 +37,30 @@ setup("authenticate with Google", async ({ page }) => {
   // 4. Click "Next"
   await page.locator("#identifierNext, button:has-text('Next'), button:has-text('次へ')").first().click();
 
-  // 5. Wait for password field
-  const passwordInput = page.locator('input[type="password"]');
+  // 5. Wait for password field (Google has a hidden + visible password input)
+  const passwordInput = page.locator('input[name="Passwd"]');
   await passwordInput.waitFor({ state: "visible", timeout: 10_000 });
   await passwordInput.fill(password);
 
   // 6. Click "Next" for password
   await page.locator("#passwordNext, button:has-text('Next'), button:has-text('次へ')").first().click();
 
-  // 7. Handle consent screen if it appears
+  // 7. Handle consent/confirmation screen if it appears
+  //    Google shows different buttons: "次へ", "Allow", "許可", "Continue", "続行"
   try {
-    const consentButton = page.locator(
-      'button:has-text("Allow"), button:has-text("許可"), button:has-text("Continue"), button:has-text("続行")'
-    );
-    await consentButton.first().click({ timeout: 5_000 });
+    await page.waitForURL(/quickconv\.cc/, { timeout: 5_000 });
+    // Already redirected — no consent screen
   } catch {
-    // No consent screen — already authorized
+    // Still on Google — click through consent/confirmation
+    for (const label of ["次へ", "Allow", "許可", "Continue", "続行", "Next"]) {
+      const btn = page.locator(`button:has-text("${label}")`).first();
+      if (await btn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+        await btn.click();
+        break;
+      }
+    }
+    await page.waitForURL(/quickconv\.cc/, { timeout: 30_000 });
   }
-
-  // 8. Wait for redirect back to quickconv.cc
-  await page.waitForURL(/quickconv\.cc/, { timeout: 30_000 });
 
   // 9. Verify authentication succeeded
   await expect(page).toHaveURL(/quickconv\.cc/);
