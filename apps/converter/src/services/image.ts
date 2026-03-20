@@ -96,11 +96,13 @@ const PREVIEW_MAX_DIMENSION = 800;
 
 /** Generate an SVG watermark overlay for the given image dimensions */
 function createWatermarkSvg(width: number, height: number): Buffer {
-  const fontSize = Math.max(16, Math.round(Math.min(width, height) * 0.08));
+  const fontSize = Math.max(20, Math.round(Math.min(width, height) * 0.1));
+  const pw = fontSize * 10;
+  const ph = fontSize * 5;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
     <defs>
-      <pattern id="wm" patternUnits="userSpaceOnUse" width="${fontSize * 12}" height="${fontSize * 6}" patternTransform="rotate(-30)">
-        <text x="${fontSize * 2}" y="${fontSize * 2}" font-family="sans-serif" font-size="${fontSize}" fill="white" opacity="0.25">QuickConv</text>
+      <pattern id="wm" patternUnits="userSpaceOnUse" width="${pw}" height="${ph}" patternTransform="rotate(-30)">
+        <text x="${pw / 2}" y="${ph / 2}" font-family="sans-serif" font-weight="bold" font-size="${fontSize}" text-anchor="middle" dominant-baseline="middle" stroke="black" stroke-width="2" stroke-opacity="0.3" fill="white" fill-opacity="0.5">QuickConv</text>
       </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#wm)"/>
