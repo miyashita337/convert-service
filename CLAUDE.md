@@ -17,7 +17,8 @@
 - AC検証: 競合（Convertio/iLoveIMG/TinyPNG）と同等動作を基準
 - **着手時**: `gh issue edit <N> --add-label in-progress`（`in-progress` があれば他セッションが作業中）
 - **PR マージ時**: GitHub Actions が `in-progress` を自動除去
-- **デプロイ前**: `E2E_TARGET=production npx playwright test --project=production` を実行して本番チェック
+- **マージ前E2E必須**: どの実装でもマージ前に `E2E_TARGET=production npx playwright test --project=production` を実行し全PASS確認すること。これは受け入れ基準の一部である
+- **デプロイ前**: 上記E2Eテストに加え、本番デプロイ後もCIで自動実行される
 - **D1マイグレーション**: 本番デプロイ時は `npx wrangler d1 migrations apply quickconv-db --remote` を忘れずに実行
 - **並列エージェント活用**: 時間がかかるタスクや独立した作業は、マルチエージェント（Agent tool）で並列実行する。待機時間を最小化すること
 
