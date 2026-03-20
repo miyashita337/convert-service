@@ -1,23 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Check } from "lucide-react";
 import { PurchaseButton } from "./purchase-button";
-
-interface PlanConfig {
-  name: string;
-  monthlyPrice: string;
-  yearlyPrice: string;
-  yearlyEquivalent: string;
-  period: string;
-  features: string[];
-  monthlyPlanId: string;
-  yearlyPlanId: string;
-  highlighted?: boolean;
-  badge?: string;
-  savingsPercent?: string;
-}
 
 function PlanCard({
   name,
@@ -37,6 +23,8 @@ function PlanCard({
   badge?: string;
 }) {
   const t = useTranslations("pricing");
+  const locale = useLocale();
+  const currency = locale === "ja" ? "jpy" : "usd";
 
   return (
     <div
@@ -68,6 +56,7 @@ function PlanCard({
       </ul>
       <PurchaseButton
         planId={planId}
+        currency={currency}
         label={t("subscribe")}
         highlighted={highlighted}
       />
@@ -77,6 +66,9 @@ function PlanCard({
 
 export function PricingPlans() {
   const t = useTranslations("pricing");
+  const locale = useLocale();
+  const isJPY = locale === "ja";
+  const currency = isJPY ? "jpy" : "usd";
   const [isYearly, setIsYearly] = useState(true); // AC-5: Default to yearly
 
   return (
@@ -151,7 +143,7 @@ export function PricingPlans() {
             </span>
           </div>
           <ul className="mt-6 space-y-3 flex-1">
-            {[t("passFeature1"), t("passFeature2"), t("passFeature3")].map(
+            {[t("passFeature1"), t("passFeature2"), t("passFeature3"), t("passFeature4")].map(
               (feature, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
                   <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -162,6 +154,7 @@ export function PricingPlans() {
           </ul>
           <PurchaseButton
             planId="pass_7d"
+            currency={currency}
             label={t("passCta")}
           />
         </div>

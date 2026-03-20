@@ -38,7 +38,8 @@ app.use(
         return allowedOrigins.includes(origin) ? origin : "";
       },
       allowMethods: ["GET", "POST", "OPTIONS"],
-      allowHeaders: ["Content-Type"],
+      allowHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
       maxAge: 86400,
     });
     return middleware(c, next);

@@ -327,7 +327,7 @@ test.describe("Quality preview i18n", () => {
       await formatButtons.first().click();
     }
 
-    const compareBtn = page.getByText(/Compare Quality/i);
+    const compareBtn = page.getByRole("button", { name: /Compare Quality/i });
     await expect(compareBtn).toBeVisible({ timeout: 5_000 });
   });
 });
