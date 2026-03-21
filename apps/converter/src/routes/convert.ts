@@ -2,10 +2,11 @@ import { Hono } from "hono";
 import { convertImage, generatePreviews } from "../services/image";
 import { convertVideoToGif } from "../services/video";
 import { convertAudio, extractAudio } from "../services/audio";
+import { imagesToPdf, pdfToImages } from "../services/pdf";
 import { downloadFromR2, uploadToR2 } from "../services/r2-client";
 import { addConversionBreadcrumb, captureException, checkMemoryUsage } from "../lib/sentry";
 import type { ImageFormat, AudioFormat } from "@quickconv/shared";
-import { VIDEO_FORMATS, AUDIO_FORMATS, type VideoFormat } from "@quickconv/shared";
+import { VIDEO_FORMATS, AUDIO_FORMATS, DOCUMENT_FORMATS, type VideoFormat, type DocumentFormat } from "@quickconv/shared";
 
 /** 入力フォーマットが動画かどうか判定 */
 function isVideoFormat(format: string): format is VideoFormat {
@@ -22,12 +23,27 @@ function isAudioInputFormat(format: string): boolean {
   return (AUDIO_FORMATS as readonly string[]).includes(format);
 }
 
+/** フォーマットがPDFかどうか判定 */
+function isPdfFormat(format: string): format is DocumentFormat {
+  return (DOCUMENT_FORMATS as readonly string[]).includes(format);
+}
+
 /** フォーマットに応じた変換処理を実行 */
 async function convertFile(
   inputBuffer: Buffer,
   inputFormat: string,
   outputFormat: string,
 ): Promise<{ buffer: Buffer; size: number; format: string }> {
+  // Image → PDF 変換
+  if (!isPdfFormat(inputFormat) && isPdfFormat(outputFormat)) {
+    return imagesToPdf([inputBuffer], inputFormat);
+  }
+
+  // PDF → Image 変換
+  if (isPdfFormat(inputFormat) && !isPdfFormat(outputFormat)) {
+    return pdfToImages(inputBuffer, outputFormat);
+  }
+
   // Audio → Audio 変換
   if (isAudioInputFormat(inputFormat) && isAudioOutputFormat(outputFormat)) {
     return convertAudio({

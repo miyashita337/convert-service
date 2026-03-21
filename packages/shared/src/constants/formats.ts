@@ -20,6 +20,7 @@ export const MIME_TO_FORMAT: Record<string, string> = {
   "audio/aac": "aac",
   "audio/flac": "flac",
   "audio/ogg": "ogg",
+  "application/pdf": "pdf",
 };
 
 export const FORMAT_TO_MIME: Record<string, string> = {
@@ -42,6 +43,7 @@ export const FORMAT_TO_MIME: Record<string, string> = {
   aac: "audio/aac",
   flac: "audio/flac",
   ogg: "audio/ogg",
+  pdf: "application/pdf",
 };
 
 export const ALLOWED_MIME_TYPES = Object.keys(MIME_TO_FORMAT);
