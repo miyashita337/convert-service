@@ -17,5 +17,6 @@ steps:
       - '--region=us-central1'
       - '--platform=managed'
       - '--allow-unauthenticated'
+      - '--timeout=500'
 images:
   - 'us-central1-docker.pkg.dev/quickconv-489717/quickconv/converter'

@@ -5,6 +5,7 @@ import type { Env, AppVariables } from "../types/env";
 import { createJob, updateJobStatus } from "../services/d1";
 import { requestDirectConversion } from "../services/converter";
 import { uploadToR2 } from "../services/r2";
+import { consumeVideoRateLimit } from "../services/rate-limit";
 
 const convert = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -49,8 +50,21 @@ convert.post("/", async (c) => {
     category,
   });
 
-  // Video: async flow (return immediately, process in background)
+  // Video: check monthly rate limit + async flow
   if (category === "video") {
+    const clientHash = c.get("clientHash");
+    if (clientHash) {
+      const videoRateLimit = await consumeVideoRateLimit(c.env.DB, clientHash);
+      if (!videoRateLimit.allowed) {
+        return c.json({
+          error: "video_rate_limit",
+          message: `Monthly video conversion limit reached (${videoRateLimit.limit}/month)`,
+          remaining: 0,
+          resetDate: videoRateLimit.resetDate,
+        }, 429);
+      }
+    }
+
     await updateJobStatus(c.env.DB, jobId, "processing");
 
     c.executionCtx.waitUntil(

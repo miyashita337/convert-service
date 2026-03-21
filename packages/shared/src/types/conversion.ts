@@ -15,13 +15,13 @@ export type ImageFormat = (typeof IMAGE_FORMATS)[number];
 export const AUDIO_FORMATS = ["mp3", "wav", "aac", "flac", "ogg"] as const;
 export type AudioFormat = (typeof AUDIO_FORMATS)[number];
 
-export const VIDEO_FORMATS = ["mp4", "mov", "avi", "mkv"] as const;
+export const VIDEO_FORMATS = ["mp4", "mov", "avi", "mkv", "webm"] as const;
 export type VideoFormat = (typeof VIDEO_FORMATS)[number];
 
 export const DOCUMENT_FORMATS = ["pdf"] as const;
 export type DocumentFormat = (typeof DOCUMENT_FORMATS)[number];
 
-export type OutputFormat = ImageFormat | AudioFormat | DocumentFormat;
+export type OutputFormat = ImageFormat | AudioFormat | VideoFormat | DocumentFormat;
 export const ALL_FORMATS = [...IMAGE_FORMATS, ...AUDIO_FORMATS, ...VIDEO_FORMATS, ...DOCUMENT_FORMATS] as const;
 export type AllFormat = (typeof ALL_FORMATS)[number];
 
@@ -37,12 +37,12 @@ export const CONVERSION_PAIRS: Record<string, OutputFormat[]> = {
   svg: ["png", "jpg", "webp"],
   tiff: ["jpg", "png", "webp"],
   ico: ["png", "jpg"],
-  // Video → Image
-  mp4: ["gif", "mp3"],
-  // Video → Audio extraction
-  mov: ["mp3"],
-  avi: ["mp3"],
-  mkv: ["mp3"],
+  // Video conversions (video-to-video + video-to-image/audio)
+  mp4: ["mov", "avi", "mkv", "webm", "gif", "mp3"],
+  mov: ["mp4", "avi", "mkv", "webm", "mp3"],
+  avi: ["mp4", "mov", "mkv", "webm", "mp3"],
+  mkv: ["mp4", "mov", "avi", "webm", "mp3"],
+  webm: ["mp4", "mov", "avi", "mkv", "mp3"],
   // PDF → Image
   pdf: ["jpg", "png"],
   // Audio conversions

@@ -39,7 +39,7 @@ upload.post("/", async (c) => {
     return c.json({ error: "validation", message: "No file provided" }, 400);
   }
 
-  // 匿名ユーザーのサイズ制限（動画: 5MB, 画像: 10MB）
+  // 匿名ユーザーのサイズ制限（動画: 50MB, 画像: 10MB）
   const maxSizeForAnonymous = isVideoMimeType(file.type)
     ? ANONYMOUS_MAX_VIDEO_FILE_SIZE_BYTES
     : ANONYMOUS_MAX_FILE_SIZE_BYTES;
