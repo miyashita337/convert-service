@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { convertImage, generatePreviews } from "../services/image";
-import { convertVideoToGif } from "../services/video";
+import { convertVideoToGif, convertVideo } from "../services/video";
 import { convertAudio, extractAudio } from "../services/audio";
 import { imagesToPdf, pdfToImages } from "../services/pdf";
 import { downloadFromR2, uploadToR2 } from "../services/r2-client";
@@ -28,11 +28,28 @@ function isPdfFormat(format: string): format is DocumentFormat {
   return (DOCUMENT_FORMATS as readonly string[]).includes(format);
 }
 
+/** 進捗をコールバックURLに送信する */
+async function reportProgress(callbackUrl: string, jobId: string, progress: number): Promise<void> {
+  try {
+    await fetch(callbackUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.API_KEY}`,
+      },
+      body: JSON.stringify({ jobId, progress }),
+    });
+  } catch {
+    // 進捗報告の失敗は変換を止めない
+  }
+}
+
 /** フォーマットに応じた変換処理を実行 */
 async function convertFile(
   inputBuffer: Buffer,
   inputFormat: string,
   outputFormat: string,
+  options?: { callbackUrl?: string; jobId?: string },
 ): Promise<{ buffer: Buffer; size: number; format: string }> {
   // Image → PDF 変換
   if (!isPdfFormat(inputFormat) && isPdfFormat(outputFormat)) {
@@ -62,8 +79,21 @@ async function convertFile(
     });
   }
 
+  // Video → Video (format conversion)
+  if (isVideoFormat(inputFormat) && isVideoFormat(outputFormat)) {
+    const onProgress = options?.callbackUrl && options?.jobId
+      ? (percent: number) => { reportProgress(options.callbackUrl!, options.jobId!, percent); }
+      : undefined;
+    return convertVideo({
+      inputBuffer,
+      inputFormat,
+      outputFormat,
+      onProgress,
+    });
+  }
+
   // Video → GIF
-  if (isVideoFormat(inputFormat)) {
+  if (isVideoFormat(inputFormat) && outputFormat === "gif") {
     return convertVideoToGif({ inputBuffer });
   }
 
@@ -98,7 +128,10 @@ convertRoute.post("/", async (c) => {
   try {
     const startTime = Date.now();
     const inputBuffer = await downloadFromR2(inputKey);
-    const result = await convertFile(inputBuffer, inputFormat, outputFormat);
+    const result = await convertFile(inputBuffer, inputFormat, outputFormat, {
+      callbackUrl: callbackUrl || undefined,
+      jobId,
+    });
     await uploadToR2(outputKey, result.buffer, result.format);
 
     addConversionBreadcrumb({

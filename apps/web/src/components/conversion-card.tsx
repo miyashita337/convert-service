@@ -57,6 +57,7 @@ export function ConversionCard() {
     originalSize,
     recommendations,
     recommendationComputing,
+    conversionProgress,
   } = useConversion();
   const { trackFileDownload } = useGAEvent();
 
@@ -299,9 +300,21 @@ export function ConversionCard() {
           <div className="rounded-xl border border-border p-8 text-center space-y-4">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
             <p className="font-medium">{t("processing")}</p>
-            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full bg-primary animate-pulse w-full" />
-            </div>
+            {conversionProgress > 0 && conversionProgress < 100 ? (
+              <div className="space-y-1">
+                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    style={{ width: `${conversionProgress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">{conversionProgress}%</p>
+              </div>
+            ) : (
+              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full bg-primary animate-pulse w-full" />
+              </div>
+            )}
           </div>
           {/* Ad: Leaderboard during conversion (user waits here) */}
           <AdSlot slot="converting-leaderboard" placement="leaderboard" className="mt-4" />
