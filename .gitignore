@@ -20,6 +20,13 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Claude Code
+.claude/progress.json
+.claude/worktrees/
+
+# Sessions
+tools/.sessions/
+
 # team_salary credentials
 tools/team_salary/.env
 tools/team_salary/.sessions/
