@@ -45,5 +45,5 @@ bucket_name = "quickconv-files"
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "quickconv-db-staging"
-database_id = "STAGING_DB_ID_HERE"
+database_id = "dd4292b1-6432-47ab-a63f-6069610cd72e"
 migrations_dir = "src/db/migrations"
