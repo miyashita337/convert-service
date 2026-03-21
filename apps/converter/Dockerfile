@@ -26,6 +26,8 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libvips-dev \
+    ffmpeg \
+    ghostscript \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/apps/converter/dist ./dist

@@ -10,8 +10,10 @@ import {
 } from "@/lib/api-client";
 import type { RateLimitInfo, PreviewItem } from "@/lib/api-client";
 import { POLLING_INTERVAL_MS } from "@quickconv/shared";
-import type { ImageFormat } from "@quickconv/shared";
+import type { OutputFormat } from "@quickconv/shared";
 import { useGAEvent } from "./use-ga-event";
+import { useQualityRecommend, type QualityResult } from "./use-quality-recommend";
+import { decodeBase64ToImageData, decodeFileToImageData } from "@/lib/decode-image";
 
 type Step =
   | "idle"
@@ -37,6 +39,8 @@ interface PreviewState {
 }
 
 export function useConversion() {
+  const { results: recommendations, computing: recommendationComputing, computeRecommendations } = useQualityRecommend();
+
   const [state, setState] = useState<ConversionState>({
     step: "idle",
     uploadProgress: 0,
@@ -55,7 +59,7 @@ export function useConversion() {
   const startTimeRef = useRef<number>(0);
   const formatsRef = useRef<{ from: string; to: string }>({ from: "", to: "" });
   const fileRef = useRef<File | null>(null);
-  const outputFormatRef = useRef<ImageFormat | null>(null);
+  const outputFormatRef = useRef<OutputFormat | null>(null);
   const {
     trackFileUpload,
     trackConversionStart,
@@ -79,7 +83,7 @@ export function useConversion() {
 
   /** Start preview: fetch quality pattern previews from the API */
   const startPreview = useCallback(
-    async (file: File, outputFormat: ImageFormat, plan: string) => {
+    async (file: File, outputFormat: OutputFormat, plan: string) => {
       setState({
         step: "previewing",
         uploadProgress: 0,
@@ -103,11 +107,29 @@ export function useConversion() {
 
         setPreviewState({
           previews: result.previews,
-          selectedIndex: 1, // default to medium (recommended)
+          selectedIndex: 1, // default to medium
           originalSize: file.size,
         });
 
         setState((s) => ({ ...s, step: "preview-ready" }));
+
+        // Compute SSIM-based recommendations for Pro users
+        if (plan === "pro" && result.previews.length > 0) {
+          try {
+            const originalImageData = await decodeFileToImageData(file, 1024);
+            const previewsWithImageData = await Promise.all(
+              result.previews.map(async (p, i) => ({
+                preset: ["low", "medium", "high", "lossless"][i] || `q${p.quality}`,
+                quality: p.quality,
+                fileSize: p.size,
+                imageData: await decodeBase64ToImageData(p.data, 1024),
+              }))
+            );
+            computeRecommendations(originalImageData, previewsWithImageData, outputFormat);
+          } catch (err) {
+            console.warn("SSIM computation failed:", err);
+          }
+        }
       } catch (error) {
         setState((s) => ({
           ...s,
@@ -116,7 +138,7 @@ export function useConversion() {
         }));
       }
     },
-    [trackPreviewStart],
+    [trackPreviewStart, computeRecommendations],
   );
 
   /** Select a quality pattern from the preview grid */
@@ -148,7 +170,7 @@ export function useConversion() {
   }, []);
 
   const startConversion = useCallback(
-    async (file: File, outputFormat: ImageFormat) => {
+    async (file: File, outputFormat: OutputFormat) => {
       setState({ step: "uploading", uploadProgress: 0, jobId: null, downloadUrl: null, error: null });
 
       const inputFormat = file.name.split(".").pop()?.toLowerCase() || "unknown";
@@ -256,5 +278,7 @@ export function useConversion() {
     previews: previewState.previews,
     selectedPreviewIndex: previewState.selectedIndex,
     originalSize: previewState.originalSize,
+    recommendations,
+    recommendationComputing,
   };
 }

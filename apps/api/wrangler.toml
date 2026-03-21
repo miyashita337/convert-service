@@ -11,6 +11,7 @@ routes = [
 CORS_ORIGIN = "https://quickconv.cc,https://www.quickconv.cc,https://quickconv-web.pages.dev"
 CONVERTER_URL = "https://quickconv-converter-896908237738.us-central1.run.app"
 APP_URL = "https://api.quickconv.cc"
+FRONTEND_URL = "https://quickconv.cc"
 # SENTRY_DSN = "" # Set via `wrangler secret put SENTRY_DSN` for production
 
 [[r2_buckets]]
@@ -21,4 +22,28 @@ bucket_name = "quickconv-files"
 binding = "DB"
 database_name = "quickconv-db"
 database_id = "d3782b06-5151-44b0-9255-49982c2e2a2f"
+migrations_dir = "src/db/migrations"
+
+# ─── Staging Environment ───
+[env.staging]
+name = "quickconv-api-staging"
+workers_dev = true
+routes = [
+  { pattern = "api-staging.quickconv.cc", custom_domain = true }
+]
+
+[env.staging.vars]
+CORS_ORIGIN = "https://quickconv.cc,https://www.quickconv.cc,https://quickconv-web.pages.dev,https://*.quickconv-web.pages.dev"
+CONVERTER_URL = "https://quickconv-converter-896908237738.us-central1.run.app"
+APP_URL = "https://api-staging.quickconv.cc"
+FRONTEND_URL = "https://quickconv-web.pages.dev"
+
+[[env.staging.r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "quickconv-files"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "quickconv-db-staging"
+database_id = "STAGING_DB_ID_HERE"
 migrations_dir = "src/db/migrations"

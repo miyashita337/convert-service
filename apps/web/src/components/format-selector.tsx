@@ -2,12 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { CONVERSION_PAIRS, MIME_TO_FORMAT } from "@quickconv/shared";
-import type { ImageFormat } from "@quickconv/shared";
+import type { OutputFormat } from "@quickconv/shared";
 
 interface FormatSelectorProps {
   file: File | null;
-  selectedFormat: ImageFormat | null;
-  onSelectFormat: (format: ImageFormat) => void;
+  selectedFormat: OutputFormat | null;
+  onSelectFormat: (format: OutputFormat) => void;
 }
 
 export function FormatSelector({ file, selectedFormat, onSelectFormat }: FormatSelectorProps) {

@@ -20,11 +20,17 @@ export function CookieConsent() {
 
   const handleAccept = () => {
     localStorage.setItem(STORAGE_KEY, "accepted");
+    window.dispatchEvent(
+      new CustomEvent("cookie-consent-change", { detail: "accepted" }),
+    );
     setVisible(false);
   };
 
   const handleReject = () => {
     localStorage.setItem(STORAGE_KEY, "rejected");
+    window.dispatchEvent(
+      new CustomEvent("cookie-consent-change", { detail: "rejected" }),
+    );
     setVisible(false);
   };
 
@@ -42,7 +48,7 @@ export function CookieConsent() {
                   href="/privacy"
                   className="underline hover:text-foreground"
                 >
-                  {tCommon("privacyPolicy")}
+                  {chunks}
                 </Link>
               ),
             })}

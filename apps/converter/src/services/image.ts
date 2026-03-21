@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import type { ImageFormat } from "@quickconv/shared";
+import { FORMAT_TO_MIME } from "@quickconv/shared";
 
 /** Default quality per format (used when no quality is specified) */
 const DEFAULT_QUALITY: Record<string, number> = {
@@ -93,6 +94,27 @@ export async function convertImage(
 
 const PREVIEW_MAX_DIMENSION = 800;
 
+/** Generate an SVG watermark overlay for the given image dimensions */
+function createWatermarkSvg(width: number, height: number): Buffer {
+  const fontSize = Math.max(20, Math.round(Math.min(width, height) * 0.12));
+  const pw = fontSize * 10;
+  const ph = fontSize * 5;
+  const cx = pw / 2;
+  const cy = ph / 2;
+  const dx = 3;
+  const dy = 3;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+    <defs>
+      <pattern id="wm" patternUnits="userSpaceOnUse" width="${pw}" height="${ph}" patternTransform="rotate(-30)">
+        <text x="${cx}" y="${cy}" font-family="sans-serif" font-weight="bold" font-size="${fontSize}" text-anchor="middle" dominant-baseline="middle" fill="#cc0000" fill-opacity="0.5">QuickConv</text>
+        <text x="${cx + dx}" y="${cy + dy}" font-family="sans-serif" font-weight="bold" font-size="${fontSize}" text-anchor="middle" dominant-baseline="middle" fill="white" fill-opacity="0.5">QuickConv</text>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#wm)"/>
+  </svg>`;
+  return Buffer.from(svg);
+}
+
 export async function generatePreviews(
   inputBuffer: Buffer,
   inputFormat: string,
@@ -111,13 +133,21 @@ export async function generatePreviews(
         maxDimension: PREVIEW_MAX_DIMENSION,
       });
 
+      // Add watermark overlay to preview
+      const metadata = await sharp(result.buffer).metadata();
+      const w = metadata.width || 400;
+      const h = metadata.height || 400;
+      const watermarked = await sharp(result.buffer)
+        .composite([{ input: createWatermarkSvg(w, h), top: 0, left: 0 }])
+        .toBuffer();
+
       return {
         quality,
         size: result.size,
         compressionRatio: parseFloat(
           (1 - result.size / originalSize).toFixed(4),
         ),
-        data: result.buffer.toString("base64"),
+        data: `data:${FORMAT_TO_MIME[outputFormat] || "image/png"};base64,${watermarked.toString("base64")}`,
       };
     }),
   );

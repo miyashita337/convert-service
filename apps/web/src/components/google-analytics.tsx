@@ -19,18 +19,32 @@ export function GoogleAnalytics() {
   const pathname = usePathname();
   const [consentGiven, setConsentGiven] = useState(false);
 
-  // Check consent on mount and listen for storage changes
+  // Check consent on mount and listen for consent changes
   useEffect(() => {
     setConsentGiven(hasConsentAccepted());
 
+    // Same-tab consent changes via custom event
+    const handleConsentChange = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      setConsentGiven(detail === "accepted");
+    };
+
+    // Cross-tab consent changes via storage event
     const handleStorage = (e: StorageEvent) => {
       if (e.key === "qc_cookie_consent") {
         setConsentGiven(e.newValue === "accepted");
       }
     };
 
+    window.addEventListener("cookie-consent-change", handleConsentChange);
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(
+        "cookie-consent-change",
+        handleConsentChange,
+      );
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   // Send pageview on SPA navigation

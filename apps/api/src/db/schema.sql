@@ -56,3 +56,17 @@ CREATE TABLE IF NOT EXISTS purchases (
 CREATE INDEX IF NOT EXISTS idx_purchases_customer ON purchases(stripe_customer_id);
 CREATE INDEX IF NOT EXISTS idx_purchases_expires ON purchases(expires_at);
 CREATE INDEX IF NOT EXISTS idx_purchases_stripe_pi ON purchases(stripe_payment_intent_id);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  stripe_subscription_id TEXT PRIMARY KEY,
+  stripe_customer_id TEXT NOT NULL REFERENCES users(stripe_customer_id),
+  plan_type TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  current_period_end TEXT,
+  cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_customer ON subscriptions(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);

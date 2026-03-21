@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Clock, Star, Zap } from "lucide-react";
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useCountdown } from "@/hooks/use-countdown";
+import { PurchaseButton } from "./purchase-button";
 
 interface UpgradeModalProps {
   open: boolean;
@@ -20,6 +21,8 @@ interface UpgradeModalProps {
 export function UpgradeModal({ open, onClose, dailyLimit }: UpgradeModalProps) {
   const t = useTranslations("upgrade");
   const { formatted } = useCountdown();
+  const locale = useLocale();
+  const currency = locale === "ja" ? "jpy" : "usd";
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -49,7 +52,7 @@ export function UpgradeModal({ open, onClose, dailyLimit }: UpgradeModalProps) {
               <h3 className="font-semibold text-sm">{t("passTitle")}</h3>
             </div>
             <p className="text-2xl font-bold">
-              ¥450
+              {t("passPrice")}
               <span className="text-xs font-normal text-muted-foreground ml-1">
                 / {t("pass7days")}
               </span>
@@ -58,12 +61,11 @@ export function UpgradeModal({ open, onClose, dailyLimit }: UpgradeModalProps) {
               <li>- {t("featureUnlimited")}</li>
               <li>- {t("featureNoAds")}</li>
             </ul>
-            <button
-              disabled
-              className="w-full mt-2 rounded-lg bg-muted py-2 text-sm font-medium text-muted-foreground cursor-not-allowed"
-            >
-              {t("comingSoon")}
-            </button>
+            <PurchaseButton
+              planId="pass_7d"
+              currency={currency}
+              label={t("comingSoon")}
+            />
           </div>
 
           {/* Plus monthly */}
@@ -77,7 +79,7 @@ export function UpgradeModal({ open, onClose, dailyLimit }: UpgradeModalProps) {
               <h3 className="font-semibold text-sm">{t("plusTitle")}</h3>
             </div>
             <p className="text-2xl font-bold">
-              ¥380
+              {t("plusPrice")}
               <span className="text-xs font-normal text-muted-foreground ml-1">
                 / {t("perMonth")}
               </span>
@@ -87,12 +89,11 @@ export function UpgradeModal({ open, onClose, dailyLimit }: UpgradeModalProps) {
               <li>- {t("featureNoAds")}</li>
               <li>- {t("featurePriority")}</li>
             </ul>
-            <button
-              disabled
-              className="w-full mt-2 rounded-lg bg-primary/20 py-2 text-sm font-medium text-primary cursor-not-allowed"
-            >
-              {t("comingSoon")}
-            </button>
+            <PurchaseButton
+              planId="plus_monthly"
+              currency={currency}
+              label={t("comingSoon")}
+            />
           </div>
         </div>
 

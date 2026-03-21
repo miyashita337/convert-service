@@ -9,6 +9,8 @@ import {
   Loader2,
   ArrowLeft,
   Eye,
+  FileVideo,
+  FileAudio,
 } from "lucide-react";
 import { FileDropzone } from "./file-dropzone";
 import { FormatSelector } from "./format-selector";
@@ -22,8 +24,8 @@ import { ImageCompareSlider } from "./image-compare-slider";
 import { useConversion } from "@/hooks/use-conversion";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useGAEvent } from "@/hooks/use-ga-event";
-import { FREE_PREVIEW_LIMIT } from "@quickconv/shared";
-import type { ImageFormat } from "@quickconv/shared";
+import { FREE_PREVIEW_LIMIT, isVideoMimeType, isAudioMimeType } from "@quickconv/shared";
+import type { OutputFormat } from "@quickconv/shared";
 
 /** Warning threshold: show warning when remaining <= this value */
 const REMAINING_WARNING_THRESHOLD = 3;
@@ -32,7 +34,7 @@ export function ConversionCard() {
   const t = useTranslations("common");
   const tp = useTranslations("preview");
   const [file, setFile] = useState<File | null>(null);
-  const [outputFormat, setOutputFormat] = useState<ImageFormat | null>(null);
+  const [outputFormat, setOutputFormat] = useState<OutputFormat | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { plan, isPaid } = useSubscription();
   const {
@@ -53,9 +55,14 @@ export function ConversionCard() {
     previews,
     selectedPreviewIndex,
     originalSize,
+    recommendations,
+    recommendationComputing,
   } = useConversion();
   const { trackFileDownload } = useGAEvent();
 
+  const isVideo = file ? isVideoMimeType(file.type) : false;
+  const isAudio = file ? isAudioMimeType(file.type) : false;
+  const isMediaFile = isVideo || isAudio;
   const isRateLimited = remainingConversions !== null && remainingConversions <= 0;
   const isLowRemaining =
     remainingConversions !== null &&
@@ -152,11 +159,15 @@ export function ConversionCard() {
           />
 
           {file && (
-            <div className="rounded-lg bg-muted p-4">
-              <p className="text-sm font-medium">{file.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {(file.size / 1024 / 1024).toFixed(2)} MB
-              </p>
+            <div className="rounded-lg bg-muted p-4 flex items-center gap-3">
+              {isVideo && <FileVideo className="h-8 w-8 text-muted-foreground flex-shrink-0" />}
+              {isAudio && <FileAudio className="h-8 w-8 text-muted-foreground flex-shrink-0" />}
+              <div>
+                <p className="text-sm font-medium">{file.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
             </div>
           )}
 
@@ -175,20 +186,24 @@ export function ConversionCard() {
                 {t("startConversion")}
               </button>
 
-              {/* Compare Quality button */}
-              <button
-                onClick={handleCompareQuality}
-                className="w-full py-2.5 rounded-lg font-medium transition-colors border border-border text-foreground hover:bg-muted flex items-center justify-center gap-2"
-              >
-                <Eye className="h-4 w-4" />
-                {tp("compareQuality")}
-              </button>
+              {/* Compare Quality button (image only, not for video/audio) */}
+              {!isMediaFile && (
+                <>
+                  <button
+                    onClick={handleCompareQuality}
+                    className="w-full py-2.5 rounded-lg font-medium transition-colors border border-border text-foreground hover:bg-muted flex items-center justify-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    {tp("compareQuality")}
+                  </button>
 
-              {/* Teaser for free users */}
-              {!isPaid && (
-                <p className="text-xs text-muted-foreground text-center">
-                  {tp("freeTeaser")}
-                </p>
+                  {/* Teaser for free users */}
+                  {!isPaid && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      {tp("freeTeaser")}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -237,7 +252,10 @@ export function ConversionCard() {
               selectedIndex={selectedPreviewIndex}
               onSelect={selectPreviewPattern}
               isPaid={isPaid}
+              plan={plan}
               accessibleCount={accessibleCount}
+              recommendations={recommendations}
+              recommendationComputing={recommendationComputing}
             />
           </div>
 

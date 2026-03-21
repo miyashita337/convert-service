@@ -1,8 +1,79 @@
 import { Hono } from "hono";
 import { convertImage, generatePreviews } from "../services/image";
+import { convertVideoToGif } from "../services/video";
+import { convertAudio, extractAudio } from "../services/audio";
+import { imagesToPdf, pdfToImages } from "../services/pdf";
 import { downloadFromR2, uploadToR2 } from "../services/r2-client";
 import { addConversionBreadcrumb, captureException, checkMemoryUsage } from "../lib/sentry";
-import type { ImageFormat } from "@quickconv/shared";
+import type { ImageFormat, AudioFormat } from "@quickconv/shared";
+import { VIDEO_FORMATS, AUDIO_FORMATS, DOCUMENT_FORMATS, type VideoFormat, type DocumentFormat } from "@quickconv/shared";
+
+/** 入力フォーマットが動画かどうか判定 */
+function isVideoFormat(format: string): format is VideoFormat {
+  return (VIDEO_FORMATS as readonly string[]).includes(format);
+}
+
+/** 出力フォーマットがオーディオかどうか判定 */
+function isAudioOutputFormat(format: string): format is AudioFormat {
+  return (AUDIO_FORMATS as readonly string[]).includes(format);
+}
+
+/** 入力フォーマットがオーディオかどうか判定 */
+function isAudioInputFormat(format: string): boolean {
+  return (AUDIO_FORMATS as readonly string[]).includes(format);
+}
+
+/** フォーマットがPDFかどうか判定 */
+function isPdfFormat(format: string): format is DocumentFormat {
+  return (DOCUMENT_FORMATS as readonly string[]).includes(format);
+}
+
+/** フォーマットに応じた変換処理を実行 */
+async function convertFile(
+  inputBuffer: Buffer,
+  inputFormat: string,
+  outputFormat: string,
+): Promise<{ buffer: Buffer; size: number; format: string }> {
+  // Image → PDF 変換
+  if (!isPdfFormat(inputFormat) && isPdfFormat(outputFormat)) {
+    return imagesToPdf([inputBuffer], inputFormat);
+  }
+
+  // PDF → Image 変換
+  if (isPdfFormat(inputFormat) && !isPdfFormat(outputFormat)) {
+    return pdfToImages(inputBuffer, outputFormat);
+  }
+
+  // Audio → Audio 変換
+  if (isAudioInputFormat(inputFormat) && isAudioOutputFormat(outputFormat)) {
+    return convertAudio({
+      inputBuffer,
+      inputFormat,
+      outputFormat,
+    });
+  }
+
+  // Video → Audio 抽出
+  if (isVideoFormat(inputFormat) && isAudioOutputFormat(outputFormat)) {
+    return extractAudio({
+      inputBuffer,
+      inputFormat,
+      outputFormat,
+    });
+  }
+
+  // Video → GIF
+  if (isVideoFormat(inputFormat)) {
+    return convertVideoToGif({ inputBuffer });
+  }
+
+  // Image 変換
+  return convertImage({
+    inputBuffer,
+    inputFormat,
+    outputFormat: outputFormat as ImageFormat,
+  });
+}
 
 const convertRoute = new Hono();
 
@@ -27,11 +98,7 @@ convertRoute.post("/", async (c) => {
   try {
     const startTime = Date.now();
     const inputBuffer = await downloadFromR2(inputKey);
-    const result = await convertImage({
-      inputBuffer,
-      inputFormat,
-      outputFormat: outputFormat as any,
-    });
+    const result = await convertFile(inputBuffer, inputFormat, outputFormat);
     await uploadToR2(outputKey, result.buffer, result.format);
 
     addConversionBreadcrumb({
@@ -92,11 +159,7 @@ convertRoute.post("/direct", async (c) => {
     const inputBuffer = Buffer.from(await file.arrayBuffer());
     const inputFormat = file.name.split(".").pop() || "";
 
-    const result = await convertImage({
-      inputBuffer,
-      inputFormat,
-      outputFormat: outputFormat as any,
-    });
+    const result = await convertFile(inputBuffer, inputFormat, outputFormat);
 
     addConversionBreadcrumb({
       conversionFormat: `${inputFormat}-to-${outputFormat}`,

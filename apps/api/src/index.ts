@@ -19,6 +19,7 @@ import auth from "./routes/auth";
 import checkout from "./routes/checkout";
 import webhook from "./routes/webhook";
 import account from "./routes/account";
+import resize from "./routes/resize";
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -38,7 +39,8 @@ app.use(
         return allowedOrigins.includes(origin) ? origin : "";
       },
       allowMethods: ["GET", "POST", "OPTIONS"],
-      allowHeaders: ["Content-Type"],
+      allowHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
       maxAge: 86400,
     });
     return middleware(c, next);
@@ -70,5 +72,6 @@ app.route("/api/auth", auth);
 app.route("/api/checkout", checkout);
 app.route("/api/webhook", webhook);
 app.route("/api/account", account);
+app.route("/api/resize", resize);
 
 export default app;
