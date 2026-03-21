@@ -9,6 +9,7 @@ import {
   uploadRateLimitMiddleware,
 } from "./middleware/rate-limit";
 import { optionalAuthMiddleware } from "./middleware/auth";
+import { costGuardMiddleware } from "./middleware/cost-guard";
 import upload from "./routes/upload";
 import convert from "./routes/convert";
 import preview from "./routes/preview";
@@ -54,6 +55,11 @@ app.use("/api/*", identificationMiddleware());
 
 // Optional auth — JWT cookie からユーザー情報を抽出（未認証でもブロックしない）
 app.use("/api/*", optionalAuthMiddleware());
+
+// Cost guard — conversion endpoints only (hourly request limiting)
+app.use("/api/convert", costGuardMiddleware());
+app.use("/api/preview", costGuardMiddleware());
+app.use("/api/resize", costGuardMiddleware());
 
 // Rate limiting — upload にはサイズ制限 + 読み取り専用チェック、convert にはカウント消費
 app.use("/api/upload", fileSizeLimitMiddleware());
