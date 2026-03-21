@@ -7,6 +7,7 @@ import {
   requestPreview,
   checkStatus,
   getDownloadUrl,
+  connectJobStream,
 } from "@/lib/api-client";
 import type { RateLimitInfo, PreviewItem } from "@/lib/api-client";
 import { POLLING_INTERVAL_MS } from "@quickconv/shared";
@@ -27,6 +28,7 @@ type Step =
 interface ConversionState {
   step: Step;
   uploadProgress: number;
+  conversionProgress: number;
   jobId: string | null;
   downloadUrl: string | null;
   error: string | null;
@@ -44,6 +46,7 @@ export function useConversion() {
   const [state, setState] = useState<ConversionState>({
     step: "idle",
     uploadProgress: 0,
+    conversionProgress: 0,
     jobId: null,
     downloadUrl: null,
     error: null,
@@ -56,6 +59,7 @@ export function useConversion() {
   const [remainingConversions, setRemainingConversions] = useState<number | null>(null);
   const [dailyLimit, setDailyLimit] = useState<number | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sseCleanupRef = useRef<(() => void) | null>(null);
   const startTimeRef = useRef<number>(0);
   const formatsRef = useRef<{ from: string; to: string }>({ from: "", to: "" });
   const fileRef = useRef<File | null>(null);
@@ -79,6 +83,10 @@ export function useConversion() {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
+    if (sseCleanupRef.current) {
+      sseCleanupRef.current();
+      sseCleanupRef.current = null;
+    }
   }, []);
 
   /** Start preview: fetch quality pattern previews from the API */
@@ -87,6 +95,7 @@ export function useConversion() {
       setState({
         step: "previewing",
         uploadProgress: 0,
+        conversionProgress: 0,
         jobId: null,
         downloadUrl: null,
         error: null,
@@ -162,6 +171,7 @@ export function useConversion() {
     setState({
       step: "idle",
       uploadProgress: 0,
+      conversionProgress: 0,
       jobId: null,
       downloadUrl: null,
       error: null,
@@ -171,7 +181,7 @@ export function useConversion() {
 
   const startConversion = useCallback(
     async (file: File, outputFormat: OutputFormat) => {
-      setState({ step: "uploading", uploadProgress: 0, jobId: null, downloadUrl: null, error: null });
+      setState({ step: "uploading", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, error: null });
 
       const inputFormat = file.name.split(".").pop()?.toLowerCase() || "unknown";
       formatsRef.current = { from: inputFormat, to: outputFormat };
@@ -193,43 +203,90 @@ export function useConversion() {
         startTimeRef.current = Date.now();
         trackConversionStart(inputFormat, outputFormat);
 
-        const { jobId } = await requestConversion(
+        const conversionResult = await requestConversion(
           uploaded.fileId,
           outputFormat,
           handleRateLimitUpdate,
         );
+        const { jobId } = conversionResult;
         setState((s) => ({ ...s, jobId }));
 
-        // Step 3: Poll for status
-        pollingRef.current = setInterval(async () => {
-          try {
-            const status = await checkStatus(jobId);
+        // Check if the API returned an async job
+        const isAsync = (conversionResult as unknown as Record<string, unknown>).async === true;
 
-            if (status.status === "completed") {
+        if (isAsync) {
+          // Step 3a: SSE stream for async (video) conversions
+          sseCleanupRef.current = connectJobStream(
+            jobId,
+            (event) => {
+              if (event.status === "completed") {
+                stopPolling();
+                const durationMs = Date.now() - startTimeRef.current;
+                trackConversionComplete(inputFormat, outputFormat, durationMs);
+                setState((s) => ({
+                  ...s,
+                  step: "completed",
+                  conversionProgress: 100,
+                  downloadUrl: getDownloadUrl(jobId),
+                }));
+              } else if (event.status === "failed") {
+                stopPolling();
+                const errorType = event.error || "unknown";
+                trackConversionError(inputFormat, outputFormat, errorType);
+                setState((s) => ({
+                  ...s,
+                  step: "failed",
+                  error: event.error || "Conversion failed",
+                }));
+              } else {
+                // Progress update
+                setState((s) => ({
+                  ...s,
+                  conversionProgress: event.progress,
+                }));
+              }
+            },
+            (error) => {
               stopPolling();
-              const durationMs = Date.now() - startTimeRef.current;
-              trackConversionComplete(inputFormat, outputFormat, durationMs);
-              setState((s) => ({
-                ...s,
-                step: "completed",
-                downloadUrl: getDownloadUrl(jobId),
-              }));
-            } else if (status.status === "failed") {
+              trackConversionError(inputFormat, outputFormat, "sse_error");
+              setState((s) => ({ ...s, step: "failed", error: error.message }));
+            },
+          );
+        } else {
+          // Step 3b: Poll for status (sync image/audio/pdf conversions)
+          pollingRef.current = setInterval(async () => {
+            try {
+              const status = await checkStatus(jobId);
+
+              if (status.status === "completed") {
+                stopPolling();
+                const durationMs = Date.now() - startTimeRef.current;
+                trackConversionComplete(inputFormat, outputFormat, durationMs);
+                setState((s) => ({
+                  ...s,
+                  step: "completed",
+                  conversionProgress: 100,
+                  downloadUrl: getDownloadUrl(jobId),
+                }));
+              } else if (status.status === "failed") {
+                stopPolling();
+                const errorType = status.error || "unknown";
+                trackConversionError(inputFormat, outputFormat, errorType);
+                setState((s) => ({
+                  ...s,
+                  step: "failed",
+                  error: status.error || "Conversion failed",
+                }));
+              } else if (status.progress !== undefined) {
+                setState((s) => ({ ...s, conversionProgress: status.progress ?? 0 }));
+              }
+            } catch {
               stopPolling();
-              const errorType = status.error || "unknown";
-              trackConversionError(inputFormat, outputFormat, errorType);
-              setState((s) => ({
-                ...s,
-                step: "failed",
-                error: status.error || "Conversion failed",
-              }));
+              trackConversionError(inputFormat, outputFormat, "connection_lost");
+              setState((s) => ({ ...s, step: "failed", error: "Lost connection" }));
             }
-          } catch {
-            stopPolling();
-            trackConversionError(inputFormat, outputFormat, "connection_lost");
-            setState((s) => ({ ...s, step: "failed", error: "Lost connection" }));
-          }
-        }, POLLING_INTERVAL_MS);
+          }, POLLING_INTERVAL_MS);
+        }
       } catch (error) {
         stopPolling();
         const errorType = (error as Error).message || "unknown";
@@ -257,7 +314,7 @@ export function useConversion() {
 
   const reset = useCallback(() => {
     stopPolling();
-    setState({ step: "idle", uploadProgress: 0, jobId: null, downloadUrl: null, error: null });
+    setState({ step: "idle", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, error: null });
     setPreviewState({ previews: [], selectedIndex: 0, originalSize: 0 });
     fileRef.current = null;
     outputFormatRef.current = null;
@@ -278,6 +335,7 @@ export function useConversion() {
     previews: previewState.previews,
     selectedPreviewIndex: previewState.selectedIndex,
     originalSize: previewState.originalSize,
+    conversionProgress: state.conversionProgress,
     recommendations,
     recommendationComputing,
   };
