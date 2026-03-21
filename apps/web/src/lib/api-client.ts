@@ -117,6 +117,48 @@ export interface PreviewResponse {
   plan: string;
 }
 
+/** SSE event data from /api/stream/:jobId */
+export interface StreamEvent {
+  status: string;
+  progress: number;
+  downloadUrl?: string;
+  error?: string;
+}
+
+/**
+ * Connect to SSE stream for async job progress.
+ * Returns a cleanup function to close the connection.
+ */
+export function connectJobStream(
+  jobId: string,
+  onEvent: (event: StreamEvent) => void,
+  onError: (error: Error) => void,
+): () => void {
+  const eventSource = new EventSource(`${API_URL}/api/stream/${jobId}`);
+
+  eventSource.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data) as StreamEvent;
+      onEvent(data);
+
+      // Close connection on terminal states
+      if (data.status === "completed" || data.status === "failed" || data.status === "not_found") {
+        eventSource.close();
+      }
+    } catch {
+      onError(new Error("Failed to parse SSE event"));
+      eventSource.close();
+    }
+  };
+
+  eventSource.onerror = () => {
+    onError(new Error("SSE connection error"));
+    eventSource.close();
+  };
+
+  return () => eventSource.close();
+}
+
 export async function requestPreview(
   file: File,
   outputFormat: string,

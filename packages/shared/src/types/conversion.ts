@@ -55,6 +55,8 @@ export const CONVERSION_PAIRS: Record<string, OutputFormat[]> = {
 
 export type JobStatus = "pending" | "processing" | "completed" | "failed";
 
+export type ConversionCategory = "image" | "audio" | "video" | "pdf";
+
 export interface ConversionJob {
   id: string;
   inputFileKey: string;
@@ -64,7 +66,20 @@ export interface ConversionJob {
   status: JobStatus;
   fileSize: number | null;
   errorMessage: string | null;
+  progress: number;
+  category: ConversionCategory;
   createdAt: string;
   updatedAt: string;
   expiresAt: string;
+}
+
+/**
+ * Determine the conversion category from input format.
+ * Video conversions require async processing.
+ */
+export function getConversionCategory(inputFormat: string): ConversionCategory {
+  if (VIDEO_FORMATS.includes(inputFormat as VideoFormat)) return "video";
+  if (AUDIO_FORMATS.includes(inputFormat as AudioFormat)) return "audio";
+  if (DOCUMENT_FORMATS.includes(inputFormat as DocumentFormat)) return "pdf";
+  return "image";
 }

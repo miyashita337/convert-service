@@ -15,6 +15,7 @@ status.get("/:jobId", async (c) => {
   return c.json({
     jobId: job.id,
     status: job.status,
+    progress: job.progress,
     downloadUrl: job.status === "completed" ? `/api/download/${job.id}` : undefined,
     error: job.errorMessage || undefined,
   });
