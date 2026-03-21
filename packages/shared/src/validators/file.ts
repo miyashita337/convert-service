@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { ALLOWED_MIME_TYPES } from "../constants/formats";
 import { MAX_FILE_SIZE_BYTES } from "../constants/limits";
-import { IMAGE_FORMATS, AUDIO_FORMATS } from "../types/conversion";
+import { IMAGE_FORMATS, AUDIO_FORMATS, DOCUMENT_FORMATS } from "../types/conversion";
 
-const OUTPUT_FORMATS = [...IMAGE_FORMATS, ...AUDIO_FORMATS] as const;
+const OUTPUT_FORMATS = [...IMAGE_FORMATS, ...AUDIO_FORMATS, ...DOCUMENT_FORMATS] as const;
 
 export const uploadSchema = z.object({
   fileName: z.string().min(1),

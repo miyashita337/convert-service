@@ -464,6 +464,12 @@
     "lockedPattern": "{preset} quality (locked)",
     "previewAlt": "{preset} quality preview"
   },
+  "nav": {
+    "image": "Image",
+    "video": "Video",
+    "audio": "Audio",
+    "pdf": "PDF"
+  },
   "jsonLd": {
     "webAppName": "QuickConv - Free Online Image Converter",
     "webAppDescription": "Convert images between HEIC, WebP, AVIF, PNG, and JPG formats instantly. Free, fast, and secure.",

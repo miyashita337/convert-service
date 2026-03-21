@@ -457,6 +457,12 @@
     "lockedPattern": "{preset}品質（ロック中）",
     "previewAlt": "{preset}品質のプレビュー"
   },
+  "nav": {
+    "image": "画像",
+    "video": "動画",
+    "audio": "音声",
+    "pdf": "PDF"
+  },
   "jsonLd": {
     "webAppName": "QuickConv - 無料オンライン画像変換",
     "webAppDescription": "HEIC、WebP、AVIF、PNG、JPG形式の画像を瞬時に変換。無料・高速・安全。",
