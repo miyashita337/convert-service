@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConversionCard } from "@/components/conversion-card";
 import { PopularConversions } from "@/components/popular-conversions";
+import { HeroHeadline } from "@/components/hero-headline";
 import { WebApplicationJsonLd } from "@/components/json-ld";
 import { buildPageMetadata } from "@/lib/metadata";
 import { locales, type Locale } from "@/lib/i18n/config";
@@ -44,7 +45,7 @@ export default async function HomePage({
         description={tJsonLd("webAppDescription")}
       />
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold tracking-tight">{t("tagline")}</h1>
+        <HeroHeadline />
         <p className="mt-3 text-lg text-muted-foreground">
           {t("description")}
         </p>

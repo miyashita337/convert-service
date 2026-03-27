@@ -3,8 +3,11 @@
     "siteName": "QuickConv",
     "login": "ログイン",
     "logout": "ログアウト",
-    "tagline": "高速・無料のオンライン画像変換",
-    "description": "HEIC、WebP、AVIF、PNG、JPG形式の画像を瞬時に変換。無料、登録不要。",
+    "tagline": "その画像、開けない？ 今すぐ変換。",
+    "description": "iPhoneのHEIC、WebサイトのWebP、開けないAVIF — JPGやPNGに数秒で変換。無料・登録不要。",
+    "taglineVariant1": "その画像、開けない？ 今すぐ変換。",
+    "taglineVariant2": "iPhoneの写真が開けない？ 3秒で解決。",
+    "taglineVariant3": "WebP・AVIF・HEIC — どんな画像も、どこでも開ける。",
     "upload": "アップロード",
     "convert": "変換",
     "download": "ダウンロード",
@@ -41,7 +44,10 @@
     "readMore": "続きを読む",
     "tryConverter": "無料で試す",
     "tableOfContents": "目次",
-    "contact": "お問い合わせ"
+    "contact": "お問い合わせ",
+    "benefitFast": "数秒で変換",
+    "benefitNoSignup": "登録不要",
+    "benefitAutoDelete": "24時間で自動削除"
   },
   "seo": {
     "homeTitle": "QuickConv - 無料オンライン画像変換 | WebP AVIF HEIC対応",

@@ -3,8 +3,11 @@
     "siteName": "QuickConv",
     "login": "Sign in",
     "logout": "Sign out",
-    "tagline": "Fast, Free Online Image Converter",
-    "description": "Convert images between HEIC, WebP, AVIF, PNG, JPG formats instantly. Free, no registration required.",
+    "tagline": "Can't Open That Image? Convert It Instantly.",
+    "description": "HEIC from iPhone, WebP from the web, AVIF that won't open — convert to JPG or PNG in seconds. Free, no signup needed.",
+    "taglineVariant1": "Can't Open That Image? Convert It Instantly.",
+    "taglineVariant2": "iPhone Photos Won't Open? Fix It in 3 Seconds.",
+    "taglineVariant3": "WebP, AVIF, HEIC — Open Any Image, Anywhere.",
     "upload": "Upload",
     "convert": "Convert",
     "download": "Download",
@@ -41,7 +44,10 @@
     "readMore": "Read more",
     "tryConverter": "Try It Free",
     "tableOfContents": "Table of Contents",
-    "contact": "Contact"
+    "contact": "Contact",
+    "benefitFast": "Convert in seconds",
+    "benefitNoSignup": "No signup required",
+    "benefitAutoDelete": "Auto-deleted in 24h"
   },
   "seo": {
     "homeTitle": "QuickConv - Free Online Image Converter | WebP AVIF HEIC",
