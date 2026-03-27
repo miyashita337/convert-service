@@ -70,7 +70,7 @@ export function FileDropzone({ onFileSelect, disabled, remainingConversions }: F
     <div
       {...getRootProps()}
       className={cn(
-        "border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors",
+        "border-2 border-dashed rounded-xl p-6 md:p-12 text-center cursor-pointer transition-colors",
         isDragActive
           ? "border-primary bg-accent"
           : "border-border hover:border-primary hover:bg-accent/50",
