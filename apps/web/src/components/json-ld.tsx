@@ -150,6 +150,39 @@ export function ArticleJsonLd({
   );
 }
 
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+interface FAQJsonLdProps {
+  faqItems: FAQItem[];
+}
+
+export function FAQJsonLd({ faqItems }: FAQJsonLdProps) {
+  if (faqItems.length === 0) return null;
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export function BreadcrumbJsonLd({ locale, items }: BreadcrumbJsonLdProps) {
   const allItems: BreadcrumbItem[] = [
     { name: locale === "ja" ? "\u30DB\u30FC\u30E0" : "Home", href: "/" },

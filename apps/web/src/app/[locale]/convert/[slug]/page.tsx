@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConversionCard } from "@/components/conversion-card";
 import { Breadcrumb } from "@/components/breadcrumb";
-import { HowToJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
+import { HowToJsonLd, BreadcrumbJsonLd, FAQJsonLd } from "@/components/json-ld";
 import { RelatedConversions } from "@/components/related-conversions";
+import { ConvertPageContent } from "@/components/convert-page-content";
 import { CONVERSION_PAIRS, getRelatedConversions } from "@quickconv/shared";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -56,9 +57,15 @@ export default async function ConvertPage({ params }: PageProps) {
   const t = await getTranslations("seo");
   const tCommon = await getTranslations("common");
   const tJsonLd = await getTranslations("jsonLd");
+  const tConvert = await getTranslations("convertPages");
   const relatedConversions = getRelatedConversions(slug);
   const fromUpper = from.toUpperCase();
   const toUpper = to.toUpperCase();
+
+  const faqItems = [1, 2, 3, 4, 5].map((i) => ({
+    question: tConvert(`faq${i}Question`, { from: fromUpper, to: toUpper }),
+    answer: tConvert(`faq${i}Answer`, { from: fromUpper, to: toUpper }),
+  }));
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
@@ -111,7 +118,9 @@ export default async function ConvertPage({ params }: PageProps) {
         </p>
       </div>
       <ConversionCard />
+      <ConvertPageContent from={from} to={to} />
       <RelatedConversions conversions={relatedConversions} />
+      <FAQJsonLd faqItems={faqItems} />
     </div>
   );
 }
