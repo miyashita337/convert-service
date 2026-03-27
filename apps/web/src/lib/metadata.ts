@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { locales, defaultLocale, type Locale } from "./i18n/config";
 
-const SITE_URL = "https://quickconv.io";
+const SITE_URL = "https://quickconv.cc";
 
 function getAlternateLanguages(path: string): Record<string, string> {
   const languages: Record<string, string> = {};

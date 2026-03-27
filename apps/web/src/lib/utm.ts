@@ -13,10 +13,10 @@
  * -------------------------------------------------------
  *
  * Example output:
- *   https://quickconv.io/?utm_source=twitter&utm_medium=social&utm_campaign=conversion_complete
+ *   https://quickconv.cc/?utm_source=twitter&utm_medium=social&utm_campaign=conversion_complete
  */
 
-const SITE_URL = "https://quickconv.io";
+const SITE_URL = "https://quickconv.cc";
 
 export type ShareSource =
   | "twitter"

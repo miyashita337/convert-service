@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -17,22 +17,29 @@ function hasConsentAccepted(): boolean {
 
 export function GoogleAnalytics() {
   const pathname = usePathname();
-  const [consentGiven, setConsentGiven] = useState(false);
+  const consentUpdatedRef = useRef(false);
 
-  // Check consent on mount and listen for consent changes
+  // Update consent when accepted (same-tab or cross-tab)
   useEffect(() => {
-    setConsentGiven(hasConsentAccepted());
-
-    // Same-tab consent changes via custom event
-    const handleConsentChange = (e: Event) => {
-      const detail = (e as CustomEvent<string>).detail;
-      setConsentGiven(detail === "accepted");
+    const updateConsent = (granted: boolean) => {
+      if (!granted || consentUpdatedRef.current) return;
+      if (typeof window.gtag !== "function") return;
+      consentUpdatedRef.current = true;
+      window.gtag("consent", "update", {
+        analytics_storage: "granted",
+      });
     };
 
-    // Cross-tab consent changes via storage event
+    updateConsent(hasConsentAccepted());
+
+    const handleConsentChange = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      updateConsent(detail === "accepted");
+    };
+
     const handleStorage = (e: StorageEvent) => {
       if (e.key === "qc_cookie_consent") {
-        setConsentGiven(e.newValue === "accepted");
+        updateConsent(e.newValue === "accepted");
       }
     };
 
@@ -49,16 +56,15 @@ export function GoogleAnalytics() {
 
   // Send pageview on SPA navigation
   useEffect(() => {
-    if (!consentGiven || !GA_MEASUREMENT_ID) return;
+    if (!GA_MEASUREMENT_ID) return;
     if (typeof window.gtag !== "function") return;
 
     window.gtag("config", GA_MEASUREMENT_ID, {
       page_path: pathname,
     });
-  }, [pathname, consentGiven]);
+  }, [pathname]);
 
-  // Don't render anything if no measurement ID or no consent
-  if (!GA_MEASUREMENT_ID || !consentGiven) {
+  if (!GA_MEASUREMENT_ID) {
     return null;
   }
 
@@ -66,6 +72,19 @@ export function GoogleAnalytics() {
 
   return (
     <>
+      {/* Consent mode v2 defaults — must execute before gtag.js loads */}
+      <Script id="gtag-consent-default" strategy="beforeInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied',
+          });
+        `}
+      </Script>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
         strategy="afterInteractive"
