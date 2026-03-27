@@ -62,10 +62,21 @@ export default async function ConvertPage({ params }: PageProps) {
   const fromUpper = from.toUpperCase();
   const toUpper = to.toUpperCase();
 
-  const faqItems = [1, 2, 3, 4, 5].map((i) => ({
-    question: tConvert(`faq${i}Question`, { from: fromUpper, to: toUpper }),
-    answer: tConvert(`faq${i}Answer`, { from: fromUpper, to: toUpper }),
-  }));
+  const pageKey = `pages.${slug}`;
+  const faqItems: { question: string; answer: string }[] = [];
+  for (let i = 1; i <= 8; i++) {
+    const qKey = tConvert.has(`${pageKey}.faq${i}Question`)
+      ? `${pageKey}.faq${i}Question`
+      : i <= 5 ? `faq${i}Question` : null;
+    if (!qKey) break;
+    const aKey = tConvert.has(`${pageKey}.faq${i}Answer`)
+      ? `${pageKey}.faq${i}Answer`
+      : `faq${i}Answer`;
+    faqItems.push({
+      question: tConvert(qKey, { from: fromUpper, to: toUpper }),
+      answer: tConvert(aKey, { from: fromUpper, to: toUpper }),
+    });
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
