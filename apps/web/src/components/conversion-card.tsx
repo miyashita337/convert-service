@@ -35,11 +35,15 @@ import type { OutputFormat } from "@quickconv/shared";
 /** Warning threshold: show warning when remaining <= this value */
 const REMAINING_WARNING_THRESHOLD = 3;
 
-export function ConversionCard() {
+interface ConversionCardProps {
+  presetFormat?: OutputFormat;
+}
+
+export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
   const t = useTranslations("common");
   const tp = useTranslations("preview");
   const [file, setFile] = useState<File | null>(null);
-  const [outputFormat, setOutputFormat] = useState<OutputFormat | null>(null);
+  const [outputFormat, setOutputFormat] = useState<OutputFormat | null>(presetFormat ?? null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { plan, isPaid } = useSubscription();
   const {
@@ -80,8 +84,19 @@ export function ConversionCard() {
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
-    setOutputFormat(null);
-    reset();
+    if (presetFormat) {
+      setOutputFormat(presetFormat);
+      reset();
+      // Auto-start conversion on preset pages
+      if (remainingConversions !== null && remainingConversions <= 0) {
+        setShowUpgradeModal(true);
+      } else {
+        startConversion(selectedFile, presetFormat);
+      }
+    } else {
+      setOutputFormat(null);
+      reset();
+    }
   };
 
   const handleConvert = () => {
