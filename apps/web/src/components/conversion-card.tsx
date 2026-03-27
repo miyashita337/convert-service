@@ -11,6 +11,9 @@ import {
   Eye,
   FileVideo,
   FileAudio,
+  Shield,
+  Clock,
+  Trash2,
 } from "lucide-react";
 import { FileDropzone } from "./file-dropzone";
 import { FormatSelector } from "./format-selector";
@@ -158,6 +161,9 @@ export function ConversionCard() {
             onFileSelect={handleFileSelect}
             remainingConversions={remainingConversions}
           />
+
+          {/* Benefit badges */}
+          <BenefitBadges />
 
           {file && (
             <div className="rounded-lg bg-muted p-4 flex items-center gap-3">
@@ -344,9 +350,6 @@ export function ConversionCard() {
             </span>
           )}
 
-          {/* Ad: Rectangle above download button */}
-          <AdSlot slot="completed-rectangle" placement="rectangle" className="my-2" />
-
           <a
             href={downloadUrl}
             download
@@ -360,6 +363,9 @@ export function ConversionCard() {
 
           {/* Share buttons */}
           <ShareButtons from={inputFormat} to={convOutputFormat} />
+
+          {/* Ad: Rectangle below download button */}
+          <AdSlot slot="completed-rectangle" placement="rectangle" className="mt-2" />
 
           <button
             onClick={handleReset}
@@ -400,6 +406,29 @@ export function ConversionCard() {
           dailyLimit={dailyLimit}
         />
       )}
+    </div>
+  );
+}
+
+function BenefitBadges() {
+  const t = useTranslations("common");
+  const badges = [
+    { icon: Clock, label: t("benefitFast") },
+    { icon: Shield, label: t("benefitNoSignup") },
+    { icon: Trash2, label: t("benefitAutoDelete") },
+  ] as const;
+
+  return (
+    <div className="flex flex-wrap justify-center gap-3">
+      {badges.map(({ icon: Icon, label }) => (
+        <span
+          key={label}
+          className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
+        >
+          <Icon className="h-3.5 w-3.5" />
+          {label}
+        </span>
+      ))}
     </div>
   );
 }
