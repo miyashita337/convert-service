@@ -2,6 +2,20 @@ import { useTranslations } from "next-intl";
 import { getFormatMeta } from "@/lib/format-metadata";
 import { getConversionCategory } from "@quickconv/shared";
 
+/** Slugs that have page-specific content in convertPages.pages.{slug} */
+const PAGES_WITH_CUSTOM_CONTENT = [
+  "heic-to-jpg",
+  "heic-to-png",
+  "avif-to-jpg",
+  "png-to-avif",
+  "png-to-webp",
+  "webp-to-jpg",
+  "jpg-to-webp",
+  "svg-to-png",
+  "jpg-to-avif",
+  "mp4-to-gif",
+] as const;
+
 interface ConvertPageContentProps {
   from: string;
   to: string;
@@ -13,11 +27,15 @@ export function ConvertPageContent({ from, to }: ConvertPageContentProps) {
   const toUpper = to.toUpperCase();
   const fromLower = from.toLowerCase();
   const toLower = to.toLowerCase();
+  const slug = `${fromLower}-to-${toLower}`;
 
   const fromMeta = getFormatMeta(fromLower);
   const toMeta = getFormatMeta(toLower);
   const category = getConversionCategory(fromLower);
   const isImage = category === "image";
+
+  const hasCustom = (PAGES_WITH_CUSTOM_CONTENT as readonly string[]).includes(slug);
+  const pageKey = `pages.${slug}` as const;
 
   return (
     <div className="mt-16 space-y-16">
@@ -27,7 +45,11 @@ export function ConvertPageContent({ from, to }: ConvertPageContentProps) {
           {t("aboutTitle", { from: fromUpper, to: toUpper })}
         </h2>
         <div className="mt-4 space-y-4 text-muted-foreground leading-relaxed">
-          <p>{t("aboutDescription", { from: fromUpper, to: toUpper })}</p>
+          {hasCustom && t.has(`${pageKey}.description`) ? (
+            <p>{t(`${pageKey}.description`)}</p>
+          ) : (
+            <p>{t("aboutDescription", { from: fromUpper, to: toUpper })}</p>
+          )}
           {t.has(`formatDescriptions.${fromLower}`) && (
             <p>
               <strong>{fromUpper}:</strong>{" "}
@@ -38,6 +60,13 @@ export function ConvertPageContent({ from, to }: ConvertPageContentProps) {
             <p>
               <strong>{toUpper}:</strong> {t(`formatDescriptions.${toLower}`)}
             </p>
+          )}
+          {/* Extra paragraphs for pages with custom content */}
+          {hasCustom && t.has(`${pageKey}.useCases`) && (
+            <p>{t(`${pageKey}.useCases`)}</p>
+          )}
+          {hasCustom && t.has(`${pageKey}.tips`) && (
+            <p>{t(`${pageKey}.tips`)}</p>
           )}
         </div>
       </section>
@@ -105,33 +134,60 @@ export function ConvertPageContent({ from, to }: ConvertPageContentProps) {
         </section>
       )}
 
-      {/* FAQ Section */}
+      {/* FAQ Section — page-specific FAQs override generic ones */}
       <section>
         <h2 className="text-2xl font-bold tracking-tight">
           {t("faqTitle")}
         </h2>
         <div className="mt-4 space-y-6">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <details
-              key={i}
-              className="group border rounded-lg"
-              open={i === 1}
-            >
-              <summary className="flex cursor-pointer items-center justify-between px-4 py-3 font-medium hover:bg-muted/50 transition-colors">
-                {t(`faq${i}Question`, { from: fromUpper, to: toUpper })}
-                <span className="ml-2 text-muted-foreground transition-transform group-open:rotate-180">
-                  ▼
-                </span>
-              </summary>
-              <p className="px-4 pb-4 text-muted-foreground leading-relaxed">
-                {t(`faq${i}Answer`, { from: fromUpper, to: toUpper })}
-              </p>
-            </details>
-          ))}
+          {getFaqIndices(t, pageKey, hasCustom).map((i) => {
+            const qKey = hasCustom && t.has(`${pageKey}.faq${i}Question`)
+              ? `${pageKey}.faq${i}Question`
+              : `faq${i}Question`;
+            const aKey = hasCustom && t.has(`${pageKey}.faq${i}Answer`)
+              ? `${pageKey}.faq${i}Answer`
+              : `faq${i}Answer`;
+            return (
+              <details
+                key={i}
+                className="group border rounded-lg"
+                open={i === 1}
+              >
+                <summary className="flex cursor-pointer items-center justify-between px-4 py-3 font-medium hover:bg-muted/50 transition-colors">
+                  {t(qKey, { from: fromUpper, to: toUpper })}
+                  <span className="ml-2 text-muted-foreground transition-transform group-open:rotate-180">
+                    ▼
+                  </span>
+                </summary>
+                <p className="px-4 pb-4 text-muted-foreground leading-relaxed">
+                  {t(aKey, { from: fromUpper, to: toUpper })}
+                </p>
+              </details>
+            );
+          })}
         </div>
       </section>
     </div>
   );
+}
+
+/**
+ * Determine which FAQ indices to render.
+ * Pages with custom content may have more than 5 FAQs.
+ */
+function getFaqIndices(
+  t: ReturnType<typeof useTranslations>,
+  pageKey: string,
+  hasCustom: boolean,
+): number[] {
+  if (!hasCustom) return [1, 2, 3, 4, 5];
+  const indices: number[] = [];
+  for (let i = 1; i <= 8; i++) {
+    if (t.has(`${pageKey}.faq${i}Question`) || i <= 5) {
+      indices.push(i);
+    }
+  }
+  return indices;
 }
 
 function ComparisonRow({
