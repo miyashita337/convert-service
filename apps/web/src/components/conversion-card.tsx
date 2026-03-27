@@ -14,6 +14,8 @@ import {
   Shield,
   Clock,
   Trash2,
+  CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 import { FileDropzone } from "./file-dropzone";
 import { FormatSelector } from "./format-selector";
@@ -212,6 +214,17 @@ export function ConversionCard() {
                   )}
                 </>
               )}
+
+              {/* Soft upsell when remaining <= 3 */}
+              {isLowRemaining && (
+                <p className="text-xs text-center text-yellow-700 dark:text-yellow-300">
+                  {t("softUpsell", { remaining: remainingConversions })}
+                  {" "}
+                  <a href="/pricing" className="underline font-medium hover:text-yellow-900 dark:hover:text-yellow-100">
+                    {t("softUpsellLink")}
+                  </a>
+                </p>
+              )}
             </div>
           )}
 
@@ -330,8 +343,8 @@ export function ConversionCard() {
       {/* Step 4: Completed */}
       {step === "completed" && downloadUrl && (
         <div className="rounded-xl border border-border p-8 text-center space-y-4">
-          <div className="mx-auto h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-            <Download className="h-6 w-6 text-green-600" />
+          <div className="mx-auto h-12 w-12 rounded-full bg-green-100 flex items-center justify-center animate-in zoom-in duration-300">
+            <CheckCircle2 className="h-6 w-6 text-green-600" />
           </div>
           <p className="font-medium text-green-600">{t("completed")}</p>
 
@@ -354,7 +367,7 @@ export function ConversionCard() {
             href={downloadUrl}
             download
             onClick={() => trackFileDownload(inputFormat, convOutputFormat)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
           >
             <Download className="h-4 w-4" />
             {t("downloadFile")}
@@ -383,13 +396,24 @@ export function ConversionCard() {
           <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
           <p className="font-medium text-destructive">{t("failed")}</p>
           {error && <p className="text-sm text-muted-foreground">{error}</p>}
-          <button
-            onClick={handleReset}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" />
-            {t("convertAnother")}
-          </button>
+          <div className="flex flex-col gap-2">
+            {file && outputFormat && (
+              <button
+                onClick={handleConvert}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {t("retry")}
+              </button>
+            )}
+            <button
+              onClick={handleReset}
+              className="inline-flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {t("convertAnother")}
+            </button>
+          </div>
         </div>
       )}
 

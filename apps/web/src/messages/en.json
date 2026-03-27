@@ -47,7 +47,10 @@
     "contact": "Contact",
     "benefitFast": "Convert in seconds",
     "benefitNoSignup": "No signup required",
-    "benefitAutoDelete": "Auto-deleted in 24h"
+    "benefitAutoDelete": "Auto-deleted in 24h",
+    "retry": "Try Again",
+    "softUpsell": "Only {remaining} free conversion(s) left today.",
+    "softUpsellLink": "Get unlimited with Plus →"
   },
   "seo": {
     "homeTitle": "QuickConv - Free Online Image Converter | WebP AVIF HEIC",
