@@ -1,6 +1,6 @@
 import type { Locale } from "@/lib/i18n/config";
 
-const SITE_URL = "https://quickconv.io";
+const SITE_URL = "https://quickconv.cc";
 
 interface BreadcrumbItem {
   name: string;
