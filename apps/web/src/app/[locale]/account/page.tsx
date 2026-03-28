@@ -143,21 +143,39 @@ export default function AccountPage() {
             </p>
           )}
 
+          {/* Cancel-at-period-end banner */}
+          {accountInfo?.subscription?.cancelAtPeriodEnd &&
+            accountInfo.subscription.currentPeriodEnd && (
+              <div className="mt-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  {t("cancelBanner", {
+                    date: new Date(
+                      accountInfo.subscription.currentPeriodEnd
+                    ).toLocaleDateString(),
+                  })}
+                </p>
+                <button
+                  onClick={handlePortal}
+                  className="mt-1 text-sm font-medium text-yellow-700 dark:text-yellow-300 underline hover:no-underline"
+                >
+                  {t("cancelBannerRevert")}
+                </button>
+              </div>
+            )}
+
           {/* Subscription next renewal */}
-          {accountInfo?.subscription?.currentPeriodEnd && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>
-                {accountInfo.subscription.cancelAtPeriodEnd
-                  ? t("cancelsAt")
-                  : t("renewsAt")}
-                :{" "}
-                {new Date(
-                  accountInfo.subscription.currentPeriodEnd
-                ).toLocaleDateString()}
-              </span>
-            </div>
-          )}
+          {accountInfo?.subscription?.currentPeriodEnd &&
+            !accountInfo.subscription.cancelAtPeriodEnd && (
+              <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {t("renewsAt")}:{" "}
+                  {new Date(
+                    accountInfo.subscription.currentPeriodEnd
+                  ).toLocaleDateString()}
+                </span>
+              </div>
+            )}
 
           <div className="mt-4 flex gap-3">
             {isPaid ? (

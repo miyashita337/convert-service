@@ -105,7 +105,7 @@ export function PricingPlans() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {/* Free */}
         <div className="rounded-xl border border-border p-6 flex flex-col">
           <h3 className="text-lg font-semibold">{t("freeName")}</h3>
@@ -156,6 +156,32 @@ export function PricingPlans() {
             planId="pass_7d"
             currency={currency}
             label={t("passCta")}
+          />
+        </div>
+
+        {/* 30-Day Pass */}
+        <div className="rounded-xl border border-border p-6 flex flex-col">
+          <h3 className="text-lg font-semibold">{t("pass30Name")}</h3>
+          <div className="mt-4 flex items-baseline gap-1">
+            <span className="text-3xl font-bold">{t("pass30Price")}</span>
+            <span className="text-sm text-muted-foreground">
+              /{t("pass30Period")}
+            </span>
+          </div>
+          <ul className="mt-6 space-y-3 flex-1">
+            {[t("pass30Feature1"), t("pass30Feature2"), t("pass30Feature3"), t("pass30Feature4")].map(
+              (feature, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm">
+                  <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <span>{feature}</span>
+                </li>
+              )
+            )}
+          </ul>
+          <PurchaseButton
+            planId="pass_30d"
+            currency={currency}
+            label={t("pass30Cta")}
           />
         </div>
 

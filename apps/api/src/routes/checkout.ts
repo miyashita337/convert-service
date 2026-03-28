@@ -4,6 +4,33 @@ import { createStripeClient, PLAN_CONFIGS, isValidPlanId, resolveStripePriceId, 
 
 const checkout = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
+/** Rate limit: max 10 checkout sessions per user per hour */
+const CHECKOUT_RATE_LIMIT = 10;
+
+async function checkCheckoutRateLimit(db: D1Database, email: string): Promise<boolean> {
+  const hourKey = new Date().toISOString().slice(0, 13); // YYYY-MM-DDTHH
+  const row = await db
+    .prepare(
+      `SELECT count FROM hourly_request_counts WHERE client_hash = ? AND hour_key = ? AND endpoint = 'checkout'`
+    )
+    .bind(email, hourKey)
+    .first<{ count: number }>();
+
+  const currentCount = row?.count ?? 0;
+  if (currentCount >= CHECKOUT_RATE_LIMIT) return false;
+
+  await db
+    .prepare(
+      `INSERT INTO hourly_request_counts (client_hash, hour_key, endpoint, count)
+       VALUES (?, ?, 'checkout', 1)
+       ON CONFLICT(client_hash, hour_key, endpoint) DO UPDATE SET count = count + 1`
+    )
+    .bind(email, hourKey)
+    .run();
+
+  return true;
+}
+
 checkout.post("/", async (c) => {
   const user = c.get("user");
   if (!user) {
@@ -13,6 +40,12 @@ checkout.post("/", async (c) => {
   const body = await c.req.json<{ planId: string; currency?: string }>().catch(() => null);
   if (!body?.planId || !isValidPlanId(body.planId)) {
     return c.json({ error: "invalid_plan", message: "Invalid plan ID." }, 400);
+  }
+
+  // Rate limit check
+  const allowed = await checkCheckoutRateLimit(c.env.DB, user.email);
+  if (!allowed) {
+    return c.json({ error: "rate_limit_exceeded", message: "Too many checkout requests. Please try again later." }, 429);
   }
 
   const currency: SupportedCurrency = body.currency === "usd" ? "usd" : "jpy";
@@ -27,6 +60,11 @@ checkout.post("/", async (c) => {
     return c.json({ error: "invalid_plan", message: "Invalid plan ID." }, 400);
   }
 
+  // Reuse existing Stripe Customer ID if available
+  const customerParams = user.stripeCustomerId
+    ? { customer: user.stripeCustomerId }
+    : { customer_email: user.email };
+
   try {
     if (plan.mode === "subscription") {
       const session = await stripe.checkout.sessions.create({
@@ -34,7 +72,7 @@ checkout.post("/", async (c) => {
         payment_method_types: ["card"],
         line_items: [{ price: stripePriceId, quantity: 1 }],
         metadata: { planId: body.planId, userEmail: user.email, stripeCustomerId: user.stripeCustomerId || "" },
-        customer_email: user.email,
+        ...customerParams,
         success_url: `${frontendUrl}/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${frontendUrl}/purchase/cancel`,
       });
@@ -52,7 +90,7 @@ checkout.post("/", async (c) => {
         stripeCustomerId: user.stripeCustomerId || "",
         durationDays: String(plan.durationDays),
       },
-      customer_email: user.email,
+      ...customerParams,
       success_url: `${frontendUrl}/purchase/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/purchase/cancel`,
     });

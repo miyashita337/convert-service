@@ -126,7 +126,15 @@
     "faq3Question": "サブスクリプションはキャンセルできますか？",
     "faq3Answer": "はい、アカウントページからいつでもキャンセルできます。請求期間の終了までアクセスは維持されます。",
     "faq4Question": "どの支払い方法に対応していますか？",
-    "faq4Answer": "Stripeを通じて主要なクレジットカードに対応しています。お支払い情報は安全に処理され、当社のサーバーに保存されることはありません。"
+    "faq4Answer": "Stripeを通じて主要なクレジットカードに対応しています。お支払い情報は安全に処理され、当社のサーバーに保存されることはありません。",
+    "pass30Name": "30日間パス",
+    "pass30Price": "¥980",
+    "pass30Period": "30日間",
+    "pass30Feature1": "変換回数無制限",
+    "pass30Feature2": "1ファイル最大20MB",
+    "pass30Feature3": "同時10ファイルまで",
+    "pass30Feature4": "広告なし",
+    "pass30Cta": "購入する"
   },
   "cookieConsent": {
     "message": "当サイトでは、より良いサービスを提供するためにCookieを使用しています。レート制限およびサービス改善の目的で使用されます。",
@@ -223,7 +231,9 @@
     "logout": "ログアウト",
     "loginRequired": "ログインが必要です",
     "loginRequiredDescription": "アカウントを表示するにはログインしてください。",
-    "signIn": "Googleでログイン"
+    "signIn": "Googleでログイン",
+    "cancelBanner": "{date} に解約予定です",
+    "cancelBannerRevert": "解約を取り消す"
   },
   "upgrade": {
     "modalTitle": "本日の無料変換 {limit}回を使い切りました",

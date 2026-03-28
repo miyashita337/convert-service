@@ -9,7 +9,7 @@ export function createStripeClient(env: Env): Stripe {
   });
 }
 
-export type PlanId = "pass_7d" | "plus_monthly" | "plus_yearly" | "pro_monthly" | "pro_yearly";
+export type PlanId = "pass_7d" | "pass_30d" | "plus_monthly" | "plus_yearly" | "pro_monthly" | "pro_yearly";
 
 interface PlanConfig {
   name: string;
@@ -20,6 +20,7 @@ interface PlanConfig {
 
 export const PLAN_CONFIGS: Record<PlanId, PlanConfig> = {
   pass_7d: { name: "QuickConv 7-Day Pass", mode: "payment", durationDays: 7 },
+  pass_30d: { name: "QuickConv 30-Day Pass", mode: "payment", durationDays: 30 },
   plus_monthly: { name: "QuickConv Plus", mode: "subscription", interval: "month" },
   plus_yearly: { name: "QuickConv Plus (Annual)", mode: "subscription", interval: "year" },
   pro_monthly: { name: "QuickConv Pro", mode: "subscription", interval: "month" },

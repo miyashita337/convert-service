@@ -15,6 +15,10 @@ export const STRIPE_PRICE_IDS: Record<string, StripePriceConfig> = {
     jpy: "price_1TCzCoAxIqELGvqZIae0Z6nS",
     usd: "price_1TCzCpAxIqELGvqZ3QUfhWhh",
   },
+  pass_30d: {
+    jpy: "price_1TFzVVAxIqELGvqZOgrMTTYS",
+    usd: "price_1TFzVWAxIqELGvqZgFBHGvDx",
+  },
   plus_monthly: {
     jpy: "price_1TCzD6AxIqELGvqZOUspjkhE",
     usd: "price_1TCzD8AxIqELGvqZCnSwJYZh",
