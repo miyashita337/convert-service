@@ -4,6 +4,7 @@ import { ConversionCard } from "@/components/conversion-card";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { HowToJsonLd, BreadcrumbJsonLd, FAQJsonLd } from "@/components/json-ld";
 import { RelatedConversions } from "@/components/related-conversions";
+import { RelatedGuides } from "@/components/related-guides";
 import { ConvertPageContent } from "@/components/convert-page-content";
 import { CONVERSION_PAIRS, getRelatedConversions, type OutputFormat } from "@quickconv/shared";
 import { locales, type Locale } from "@/lib/i18n/config";
@@ -130,6 +131,7 @@ export default async function ConvertPage({ params }: PageProps) {
       </div>
       <ConversionCard presetFormat={to as OutputFormat} />
       <ConvertPageContent from={from} to={to} />
+      <RelatedGuides from={from} to={to} />
       <RelatedConversions conversions={relatedConversions} />
       <FAQJsonLd faqItems={faqItems} />
     </div>
