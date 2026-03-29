@@ -23,6 +23,7 @@ import account from "./routes/account";
 import resize from "./routes/resize";
 import stream from "./routes/stream";
 import presign from "./routes/presign";
+import stats from "./routes/stats";
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -83,5 +84,6 @@ app.route("/api/account", account);
 app.route("/api/resize", resize);
 app.route("/api/stream", stream);
 app.route("/api/upload", presign);
+app.route("/api/stats", stats);
 
 export default app;

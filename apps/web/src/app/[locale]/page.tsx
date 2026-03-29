@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConversionCard } from "@/components/conversion-card";
 import { PopularConversions } from "@/components/popular-conversions";
 import { CategoryConversions } from "@/components/category-conversions";
+import { ConversionCounter } from "@/components/conversion-counter";
 import { HeroHeadline } from "@/components/hero-headline";
 import { WebApplicationJsonLd } from "@/components/json-ld";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -50,6 +51,7 @@ export default async function HomePage({
         <p className="mt-3 text-lg text-muted-foreground">
           {t("description")}
         </p>
+        <ConversionCounter />
       </div>
       <ConversionCard />
       <PopularConversions />

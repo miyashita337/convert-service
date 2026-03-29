@@ -37,6 +37,7 @@
     "category_audio": "Audio Conversions",
     "category_video": "Video Conversions",
     "category_pdf": "Document Conversions",
+    "conversionCount": "{count}+ files converted",
     "popularConversions": "Popular Conversions",
     "popularConversionsDescription": "Most used image conversion tools",
     "convertFromTo": "{from} to {to}",
