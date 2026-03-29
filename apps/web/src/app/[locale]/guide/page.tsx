@@ -32,6 +32,8 @@ const GUIDE_NAMESPACE_MAP: Record<string, string> = {
   "what-is-avif": "guideWhatIsAvif",
   "heic-to-jpg-guide": "guideHeicToJpg",
   "webp-vs-avif-vs-heic": "guideWebpVsAvifVsHeic",
+  "heic-complete-guide": "guideHeicComplete",
+  "blog-image-optimization": "guideBlogImageOpt",
 };
 
 export default async function GuideListPage({

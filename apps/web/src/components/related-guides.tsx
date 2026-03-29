@@ -9,14 +9,18 @@ import type { GuideSlug } from "@/lib/guide";
  */
 const FORMAT_TO_GUIDES: Record<string, GuideSlug[]> = {
   avif: ["what-is-avif", "webp-vs-avif-vs-heic"],
-  heic: ["heic-to-jpg-guide", "webp-vs-avif-vs-heic"],
-  webp: ["webp-vs-avif-vs-heic"],
+  heic: ["heic-to-jpg-guide", "heic-complete-guide", "webp-vs-avif-vs-heic"],
+  webp: ["webp-vs-avif-vs-heic", "blog-image-optimization"],
+  jpg: ["blog-image-optimization"],
+  png: ["blog-image-optimization"],
 };
 
 const GUIDE_TITLE_KEYS: Record<GuideSlug, string> = {
   "what-is-avif": "guideWhatIsAvifTitle",
   "heic-to-jpg-guide": "guideHeicToJpgTitle",
   "webp-vs-avif-vs-heic": "guideWebpVsAvifVsHeicTitle",
+  "heic-complete-guide": "guideHeicCompleteTitle",
+  "blog-image-optimization": "guideBlogImageOptTitle",
 };
 
 export function getRelatedGuides(from: string, to: string): GuideSlug[] {
