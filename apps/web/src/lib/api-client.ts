@@ -122,6 +122,7 @@ export interface StreamEvent {
   status: string;
   progress: number;
   downloadUrl?: string;
+  outputSize?: number;
   error?: string;
 }
 

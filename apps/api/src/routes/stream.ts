@@ -27,7 +27,7 @@ stream.get("/:jobId", async (c) => {
     for (let i = 0; i < MAX_POLLS; i++) {
       try {
         const row = await db
-          .prepare("SELECT status, progress, output_file_key, error_message FROM jobs WHERE id = ?")
+          .prepare("SELECT status, progress, output_file_key, file_size, error_message FROM jobs WHERE id = ?")
           .bind(jobId)
           .first();
 
@@ -42,6 +42,7 @@ stream.get("/:jobId", async (c) => {
         const eventData: Record<string, unknown> = { status, progress };
         if (status === "completed") {
           eventData.downloadUrl = `/api/download/${jobId}`;
+          if (row.file_size) eventData.outputSize = row.file_size;
         }
         if (status === "failed" && row.error_message) {
           eventData.error = row.error_message as string;

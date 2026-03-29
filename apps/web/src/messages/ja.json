@@ -38,6 +38,7 @@
     "category_video": "動画変換",
     "category_pdf": "ドキュメント変換",
     "conversionCount": "{count}件以上のファイルを変換済み",
+    "sizeReduction": "-{percent}%",
     "popularConversions": "人気の変換",
     "popularConversionsDescription": "よく使われている画像変換ツール",
     "convertFromTo": "{from}から{to}",

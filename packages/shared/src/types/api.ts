@@ -22,6 +22,7 @@ export interface StatusResponse {
   status: JobStatus;
   progress?: number;
   downloadUrl?: string;
+  outputSize?: number;
   error?: string;
 }
 
