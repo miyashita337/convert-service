@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { routing } from "@/lib/i18n/routing";
 import { locales } from "@/lib/i18n/config";
@@ -14,6 +15,12 @@ import { AdSlot } from "@/components/ad-slot";
 import { SentryInit } from "@/components/sentry-init";
 import { GlobalErrorBoundary } from "@/components/error-boundary";
 import "../globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -48,9 +55,15 @@ export default async function LocaleLayout({
           name="category"
           content="image converter, file conversion, HEIC, WebP, AVIF"
         />
+        {/* GA consent defaults — inline in head to avoid Next.js Script overhead */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied'});`,
+          }}
+        />
         <OrganizationJsonLd />
       </head>
-      <body className="min-h-screen flex flex-col bg-background text-foreground">
+      <body className={`min-h-screen flex flex-col bg-background text-foreground ${inter.variable}`}>
         <SentryInit />
         <GoogleAnalytics />
         <CfAnalytics />

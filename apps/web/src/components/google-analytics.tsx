@@ -72,19 +72,7 @@ export function GoogleAnalytics() {
 
   return (
     <>
-      {/* Consent mode v2 defaults — must execute before gtag.js loads */}
-      <Script id="gtag-consent-default" strategy="beforeInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('consent', 'default', {
-            'analytics_storage': 'denied',
-            'ad_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
-          });
-        `}
-      </Script>
+      {/* Consent defaults are now inlined in layout <head> for faster LCP */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
         strategy="afterInteractive"
