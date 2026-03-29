@@ -66,6 +66,7 @@ async function postWebhook(
   return app.fetch(req, {
     DB: db as unknown as D1Database,
     STRIPE_SECRET_KEY: "sk_test_xxx",
+    APP_URL: "http://localhost:8787",
   } as unknown as Env);
 }
 
@@ -181,7 +182,7 @@ describe("webhook /stripe", () => {
       expect(db.prepare).toHaveBeenCalledWith(expect.stringContaining("UPDATE users SET plan"));
     });
 
-    it("AC-5: downgrades to free on past_due", async () => {
+    it("keeps user plan on past_due (grace period)", async () => {
       const res = await postWebhook(app, db, "customer.subscription.updated", {
         id: "sub_123",
         customer: "cus_456",
@@ -192,7 +193,23 @@ describe("webhook /stripe", () => {
       });
 
       expect(res.status).toBe(200);
-      // UPDATE users SET plan = 'free' ... WHERE stripe_subscription_id = ?
+      // Should NOT downgrade to free during grace period
+      expect(db.prepare).not.toHaveBeenCalledWith(
+        expect.stringContaining("plan = 'free'")
+      );
+    });
+
+    it("downgrades to free on unpaid (all retries exhausted)", async () => {
+      const res = await postWebhook(app, db, "customer.subscription.updated", {
+        id: "sub_123",
+        customer: "cus_456",
+        status: "unpaid",
+        current_period_end: 1713225600,
+        cancel_at_period_end: false,
+        metadata: { planId: "plus_monthly" },
+      });
+
+      expect(res.status).toBe(200);
       expect(db.prepare).toHaveBeenCalledWith(
         expect.stringContaining("plan = 'free'")
       );
@@ -242,7 +259,7 @@ describe("webhook /stripe", () => {
   });
 
   describe("invoice.payment_failed", () => {
-    it("AC-4: updates subscription to past_due and downgrades user", async () => {
+    it("updates subscription to past_due but keeps user plan (grace period)", async () => {
       const res = await postWebhook(app, db, "invoice.payment_failed", {
         id: "in_123",
         subscription: "sub_456",
@@ -253,6 +270,10 @@ describe("webhook /stripe", () => {
         expect.anything(),
         "sub_456",
         "past_due"
+      );
+      // Should NOT downgrade user plan during grace period
+      expect(db.prepare).not.toHaveBeenCalledWith(
+        expect.stringContaining("plan = 'free'")
       );
     });
   });
@@ -296,5 +317,58 @@ describe("webhook /stripe", () => {
     } as unknown as Env);
 
     expect(res.status).toBe(400);
+  });
+
+  it("returns 500 when STRIPE_WEBHOOK_SECRET is not configured in production", async () => {
+    const event = { type: "test" };
+    const req = new Request("http://localhost/webhook/stripe", {
+      method: "POST",
+      body: JSON.stringify(event),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await app.fetch(req, {
+      DB: db as unknown as D1Database,
+      STRIPE_SECRET_KEY: "sk_test_xxx",
+      APP_URL: "https://api.quickconv.cc",
+      // No STRIPE_WEBHOOK_SECRET
+    } as unknown as Env);
+
+    expect(res.status).toBe(500);
+    const json = await res.json() as Record<string, unknown>;
+    expect(json.error).toBe("webhook_secret_not_configured");
+  });
+
+  it("returns 400 when signature is missing in production", async () => {
+    const event = { type: "test" };
+    const req = new Request("http://localhost/webhook/stripe", {
+      method: "POST",
+      body: JSON.stringify(event),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const res = await app.fetch(req, {
+      DB: db as unknown as D1Database,
+      STRIPE_SECRET_KEY: "sk_test_xxx",
+      STRIPE_WEBHOOK_SECRET: "whsec_test",
+      APP_URL: "https://api.quickconv.cc",
+    } as unknown as Env);
+
+    expect(res.status).toBe(400);
+    const json = await res.json() as Record<string, unknown>;
+    expect(json.error).toBe("missing_signature");
+  });
+
+  it("allows unsigned events in development (localhost)", async () => {
+    const res = await postWebhook(app, db, "checkout.session.completed", {
+      payment_intent: "pi_dev_test",
+    }, {
+      planId: "plus_monthly",
+      stripeCustomerId: "cus_dev",
+      durationDays: "0",
+    });
+
+    // postWebhook uses no STRIPE_WEBHOOK_SECRET and localhost → should pass
+    expect(res.status).toBe(200);
   });
 });

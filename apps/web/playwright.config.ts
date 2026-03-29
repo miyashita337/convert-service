@@ -16,6 +16,9 @@ export default defineConfig({
   reporter: "html",
   use: {
     trace: "on-first-retry",
+    video: "retain-on-failure",
+    screenshot: "only-on-failure",
+    actionTimeout: 10_000,
   },
   projects: [
     // --- Local development ---

@@ -23,6 +23,14 @@ webhook.post("/stripe", async (c) => {
   const body = await c.req.text();
   const signature = c.req.header("stripe-signature");
 
+  const isDev = c.env.APP_URL?.includes("localhost");
+
+  // In production, STRIPE_WEBHOOK_SECRET must be configured
+  if (!isDev && !c.env.STRIPE_WEBHOOK_SECRET) {
+    console.error("STRIPE_WEBHOOK_SECRET is not configured in production");
+    return c.json({ error: "webhook_secret_not_configured" }, 500);
+  }
+
   let event;
   if (c.env.STRIPE_WEBHOOK_SECRET && signature) {
     try {
@@ -30,8 +38,11 @@ webhook.post("/stripe", async (c) => {
     } catch {
       return c.json({ error: "invalid_signature" }, 400);
     }
-  } else {
+  } else if (isDev) {
+    // Development only: allow unsigned events
     event = JSON.parse(body);
+  } else {
+    return c.json({ error: "missing_signature" }, 400);
   }
 
   const db = c.env.DB;
@@ -140,11 +151,14 @@ webhook.post("/stripe", async (c) => {
         const planName = planTierFromId(planId);
         await db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE stripe_subscription_id = ?")
           .bind(planName, subId).run();
-      } else if (status === "past_due" || status === "unpaid") {
-        // AC-4/AC-5: Downgrade to free on payment issues
+      } else if (status === "past_due") {
+        // Grace period: keep user plan during Stripe Smart Retries
+        console.warn(`Subscription ${subId} status changed to past_due — grace period active, plan maintained`);
+      } else if (status === "unpaid") {
+        // All retries exhausted: downgrade to free
         await db.prepare("UPDATE users SET plan = 'free', updated_at = datetime('now') WHERE stripe_subscription_id = ?")
           .bind(subId).run();
-        console.warn(`Subscription ${subId} status changed to ${status} — user downgraded to free`);
+        console.warn(`Subscription ${subId} status changed to unpaid — user downgraded to free`);
       }
 
       // AC-7: Downgrade at period end — when cancel_at_period_end is true,
@@ -187,15 +201,14 @@ webhook.post("/stripe", async (c) => {
     }
 
     case "invoice.payment_failed": {
-      // AC-4: Update subscription to past_due
+      // Grace period: update subscription to past_due but keep user plan
       const invoice = event.data.object;
       const subId = typeof invoice.subscription === "string" ? invoice.subscription : null;
       if (subId) {
         await updateSubscriptionStatus(db, subId, "past_due");
-        // AC-5: Downgrade user to free
-        await db.prepare("UPDATE users SET plan = 'free', updated_at = datetime('now') WHERE stripe_subscription_id = ?")
-          .bind(subId).run();
-        console.warn(`Payment failed for subscription ${subId} — user downgraded to free`);
+        // Do NOT downgrade user plan — Stripe Smart Retries will handle recovery
+        // Actual downgrade happens via customer.subscription.updated(status=unpaid)
+        console.warn(`Payment failed for subscription ${subId} — grace period active, plan maintained`);
       }
       break;
     }

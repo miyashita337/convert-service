@@ -133,7 +133,15 @@
     "faq3Question": "Can I cancel my subscription?",
     "faq3Answer": "Yes, you can cancel anytime from your account page. You'll retain access until the end of your billing period.",
     "faq4Question": "What payment methods are accepted?",
-    "faq4Answer": "We accept all major credit cards through Stripe. Your payment information is securely processed and never stored on our servers."
+    "faq4Answer": "We accept all major credit cards through Stripe. Your payment information is securely processed and never stored on our servers.",
+    "pass30Name": "30-Day Pass",
+    "pass30Price": "$6.99",
+    "pass30Period": "30 days",
+    "pass30Feature1": "Unlimited conversions",
+    "pass30Feature2": "Up to 20MB per file",
+    "pass30Feature3": "Up to 10 files at once",
+    "pass30Feature4": "No ads",
+    "pass30Cta": "Buy Now"
   },
   "cookieConsent": {
     "message": "This website uses cookies to provide you with a better experience. We use cookies for rate limiting and service improvement.",
@@ -415,7 +423,9 @@
     "logout": "Sign out",
     "loginRequired": "Sign in Required",
     "loginRequiredDescription": "Please sign in to view your account.",
-    "signIn": "Sign in with Google"
+    "signIn": "Sign in with Google",
+    "cancelBanner": "Your subscription will be canceled on {date}",
+    "cancelBannerRevert": "Undo cancellation"
   },
   "upgrade": {
     "modalTitle": "You've used all {limit} free conversions today",
