@@ -50,7 +50,8 @@
     "benefitAutoDelete": "24時間で自動削除",
     "retry": "もう一度試す",
     "softUpsell": "本日の無料変換は残り{remaining}回です。",
-    "softUpsellLink": "Plusなら無制限 →"
+    "softUpsellLink": "Plusなら無制限 →",
+    "conversionCount": "{count}件以上のファイルを変換済み"
   },
   "seo": {
     "homeTitle": "QuickConv - 無料オンライン画像変換 | WebP AVIF HEIC対応",

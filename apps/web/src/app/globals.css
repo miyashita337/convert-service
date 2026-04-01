@@ -10,7 +10,7 @@
   --color-border: #e5e5e5;
   --color-accent: #f0f7ff;
   --color-destructive: #ef4444;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --radius: 0.5rem;
 }
 

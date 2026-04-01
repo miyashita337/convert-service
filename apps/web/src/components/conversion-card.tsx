@@ -67,6 +67,7 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
     recommendations,
     recommendationComputing,
     conversionProgress,
+    outputFileSize,
   } = useConversion();
   const { trackFileDownload } = useGAEvent();
 
@@ -363,6 +364,11 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
           </div>
           <p className="font-medium text-green-600">{t("completed")}</p>
 
+          {/* File size comparison */}
+          {file && outputFileSize != null && (
+            <FileSizeComparison inputSize={file.size} outputSize={outputFileSize} />
+          )}
+
           {/* Show remaining count after conversion */}
           {hasRateLimitInfo && (
             <span
@@ -444,6 +450,30 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
           onClose={() => setShowUpgradeModal(false)}
           dailyLimit={dailyLimit}
         />
+      )}
+    </div>
+  );
+}
+
+function FileSizeComparison({ inputSize, outputSize }: { inputSize: number; outputSize: number }) {
+  const formatSize = (bytes: number) => {
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / 1024).toFixed(0)} KB`;
+  };
+
+  const reduction = Math.round((1 - outputSize / inputSize) * 100);
+  const increased = outputSize > inputSize;
+
+  return (
+    <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+      <span>{formatSize(inputSize)}</span>
+      <span className="text-foreground">→</span>
+      <span className="font-medium text-foreground">{formatSize(outputSize)}</span>
+      {!increased && reduction > 0 && (
+        <span className="text-green-600 font-medium">-{reduction}%</span>
+      )}
+      {increased && (
+        <span className="text-yellow-600 font-medium">+{Math.abs(reduction)}%</span>
       )}
     </div>
   );

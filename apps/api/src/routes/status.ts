@@ -17,6 +17,7 @@ status.get("/:jobId", async (c) => {
     status: job.status,
     progress: job.progress,
     downloadUrl: job.status === "completed" ? `/api/download/${job.id}` : undefined,
+    outputFileSize: job.status === "completed" ? (job.fileSize ?? undefined) : undefined,
     error: job.errorMessage || undefined,
   });
 });
