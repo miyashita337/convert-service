@@ -98,6 +98,12 @@ export async function checkStatus(jobId: string): Promise<StatusResponse> {
   return res.json();
 }
 
+export async function fetchStats(): Promise<{ totalConversions: number }> {
+  const res = await fetch(`${API_URL}/api/stats`);
+  if (!res.ok) return { totalConversions: 0 };
+  return res.json();
+}
+
 export function getDownloadUrl(jobId: string): string {
   return `${API_URL}/api/download/${jobId}`;
 }

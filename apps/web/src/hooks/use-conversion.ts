@@ -31,6 +31,7 @@ interface ConversionState {
   conversionProgress: number;
   jobId: string | null;
   downloadUrl: string | null;
+  outputFileSize: number | null;
   error: string | null;
 }
 
@@ -49,6 +50,7 @@ export function useConversion() {
     conversionProgress: 0,
     jobId: null,
     downloadUrl: null,
+    outputFileSize: null,
     error: null,
   });
   const [previewState, setPreviewState] = useState<PreviewState>({
@@ -98,6 +100,7 @@ export function useConversion() {
         conversionProgress: 0,
         jobId: null,
         downloadUrl: null,
+        outputFileSize: null,
         error: null,
       });
 
@@ -174,6 +177,7 @@ export function useConversion() {
       conversionProgress: 0,
       jobId: null,
       downloadUrl: null,
+      outputFileSize: null,
       error: null,
     });
     setPreviewState({ previews: [], selectedIndex: 0, originalSize: 0 });
@@ -181,7 +185,7 @@ export function useConversion() {
 
   const startConversion = useCallback(
     async (file: File, outputFormat: OutputFormat) => {
-      setState({ step: "uploading", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, error: null });
+      setState({ step: "uploading", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, outputFileSize: null, error: null });
 
       const inputFormat = file.name.split(".").pop()?.toLowerCase() || "unknown";
       formatsRef.current = { from: inputFormat, to: outputFormat };
@@ -223,6 +227,13 @@ export function useConversion() {
                 stopPolling();
                 const durationMs = Date.now() - startTimeRef.current;
                 trackConversionComplete(inputFormat, outputFormat, durationMs);
+                // Fetch file size from status endpoint
+                checkStatus(jobId).then((status) => {
+                  setState((s) => ({
+                    ...s,
+                    outputFileSize: status.outputFileSize ?? null,
+                  }));
+                }).catch(() => { /* ignore */ });
                 setState((s) => ({
                   ...s,
                   step: "completed",
@@ -267,6 +278,7 @@ export function useConversion() {
                   step: "completed",
                   conversionProgress: 100,
                   downloadUrl: getDownloadUrl(jobId),
+                  outputFileSize: status.outputFileSize ?? null,
                 }));
               } else if (status.status === "failed") {
                 stopPolling();
@@ -314,7 +326,7 @@ export function useConversion() {
 
   const reset = useCallback(() => {
     stopPolling();
-    setState({ step: "idle", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, error: null });
+    setState({ step: "idle", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, outputFileSize: null, error: null });
     setPreviewState({ previews: [], selectedIndex: 0, originalSize: 0 });
     fileRef.current = null;
     outputFormatRef.current = null;

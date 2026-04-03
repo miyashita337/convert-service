@@ -50,7 +50,8 @@
     "benefitAutoDelete": "Auto-deleted in 24h",
     "retry": "Try Again",
     "softUpsell": "Only {remaining} free conversion(s) left today.",
-    "softUpsellLink": "Get unlimited with Plus →"
+    "softUpsellLink": "Get unlimited with Plus →",
+    "conversionCount": "{count}+ files converted"
   },
   "seo": {
     "homeTitle": "QuickConv - Free Online Image Converter | WebP AVIF HEIC",

@@ -1,8 +1,15 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { routing } from "@/lib/i18n/routing";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 import { locales } from "@/lib/i18n/config";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -38,7 +45,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={inter.variable}>
       <head>
         <meta
           name="keywords"
