@@ -33,10 +33,10 @@ routes = [
 ]
 
 [env.staging.vars]
-CORS_ORIGIN = "https://quickconv.cc,https://www.quickconv.cc,https://quickconv-web.pages.dev,https://staging.quickconv-web.pages.dev"
+CORS_ORIGIN = "https://quickconv.cc,https://www.quickconv.cc,https://quickconv-web.pages.dev,https://staging.quickconv-web.pages.dev,https://staging.quickconv.cc"
 CONVERTER_URL = "https://quickconv-converter-896908237738.us-central1.run.app"
 APP_URL = "https://api-staging.quickconv.cc"
-FRONTEND_URL = "https://quickconv-web.pages.dev"
+FRONTEND_URL = "https://staging.quickconv.cc"
 
 [[env.staging.r2_buckets]]
 binding = "R2_BUCKET"

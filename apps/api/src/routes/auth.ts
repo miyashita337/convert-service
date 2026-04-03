@@ -10,6 +10,15 @@ import { upsertUser } from "../repositories/user-repository";
 
 const auth = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
+/** Determine SameSite policy based on whether API and frontend share a site */
+function getSameSite(env: Env): "Lax" | "None" {
+  const frontendUrl = env.FRONTEND_URL || "https://quickconv.cc";
+  const apiHost = new URL(env.APP_URL).hostname;
+  const frontendHost = new URL(frontendUrl).hostname;
+  const isCrossSite = apiHost.split(".").slice(-2).join(".") !== frontendHost.split(".").slice(-2).join(".");
+  return isCrossSite ? "None" : "Lax";
+}
+
 // GET /api/auth/google — redirect to Google OAuth consent screen
 auth.get("/google", (c) => {
   const url = getGoogleAuthUrl(c.env);
@@ -47,12 +56,13 @@ auth.get("/google/callback", async (c) => {
     );
 
     // Set HTTP-only cookie and redirect to frontend
+    const sameSite = getSameSite(c.env);
     const cookieOptions = [
       `qc_auth=${jwt}`,
       "Path=/",
       "HttpOnly",
       "Secure",
-      "SameSite=Lax",
+      `SameSite=${sameSite}`,
       "Max-Age=604800", // 7 days
     ].join("; ");
 
@@ -114,12 +124,13 @@ auth.get("/me", async (c) => {
 
 // POST /api/auth/logout — clear auth cookie
 auth.post("/logout", (c) => {
+  const sameSite = getSameSite(c.env);
   const cookieOptions = [
     "qc_auth=",
     "Path=/",
     "HttpOnly",
     "Secure",
-    "SameSite=Lax",
+    `SameSite=${sameSite}`,
     "Max-Age=0",
   ].join("; ");
 
