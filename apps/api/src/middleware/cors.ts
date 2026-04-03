@@ -7,9 +7,16 @@ export const corsMiddleware = (env: Env) => {
     : ["*"];
 
   return cors({
-    origin: origins.length === 1 ? origins[0] : origins,
+    origin: (origin) => {
+      // Exact match
+      if (origins.includes(origin)) return origin;
+      // Cloudflare Pages preview URLs: *.quickconv-web.pages.dev
+      if (/^https:\/\/[a-z0-9-]+\.quickconv-web\.pages\.dev$/.test(origin)) return origin;
+      return undefined;
+    },
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type"],
+    credentials: true,
     maxAge: 86400,
   });
 };
