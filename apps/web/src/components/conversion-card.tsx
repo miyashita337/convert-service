@@ -30,6 +30,7 @@ import { useConversion } from "@/hooks/use-conversion";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useGAEvent } from "@/hooks/use-ga-event";
 import { useFormatMemory } from "@/hooks/use-format-memory";
+import { formatFileSize } from "@/lib/format";
 import { FREE_PREVIEW_LIMIT, isVideoMimeType, isAudioMimeType, CONVERSION_PAIRS, MIME_TO_FORMAT } from "@quickconv/shared";
 import type { OutputFormat } from "@quickconv/shared";
 
@@ -45,6 +46,7 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
   const tp = useTranslations("preview");
   const [file, setFile] = useState<File | null>(null);
   const [outputFormat, setOutputFormat] = useState<OutputFormat | null>(presetFormat ?? null);
+  const [restoredFormat, setRestoredFormat] = useState<OutputFormat | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { plan, isPaid } = useSubscription();
   const {
@@ -103,8 +105,10 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
       const available = inputFmt ? CONVERSION_PAIRS[inputFmt] || [] : [];
       if (lastFormat && available.includes(lastFormat)) {
         setOutputFormat(lastFormat);
+        setRestoredFormat(lastFormat);
       } else {
         setOutputFormat(null);
+        setRestoredFormat(null);
       }
       reset();
     }
@@ -140,6 +144,7 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
   const handleReset = () => {
     setFile(null);
     setOutputFormat(null);
+    setRestoredFormat(null);
     reset();
   };
 
@@ -191,10 +196,10 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
             remainingConversions={remainingConversions}
           />
 
-          {/* Format memory badge */}
-          {!presetFormat && file && outputFormat && (
+          {/* Format memory badge — only shown when format was restored */}
+          {!presetFormat && file && restoredFormat && outputFormat === restoredFormat && (
             <p className="text-xs text-muted-foreground text-center" aria-live="polite">
-              {t("lastFormat", { format: outputFormat.toUpperCase() })}
+              {t("lastFormat", { format: restoredFormat.toUpperCase() })}
             </p>
           )}
 
@@ -208,7 +213,7 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
               <div>
                 <p className="text-sm font-medium">{file.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                  {formatFileSize(file.size)}
                 </p>
               </div>
             </div>
@@ -292,7 +297,7 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
             <div className="rounded-lg bg-muted p-3">
               <p className="text-sm font-medium">{file.name}</p>
               <p className="text-xs text-muted-foreground">
-                {tp("originalSize")}: {(file.size / 1024).toFixed(1)} KB
+                {tp("originalSize")}: {formatFileSize(file.size)}
               </p>
             </div>
           )}
@@ -474,10 +479,7 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
 }
 
 function FileSizeComparison({ inputSize, outputSize }: { inputSize: number; outputSize: number }) {
-  const formatSize = (bytes: number) => {
-    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(bytes / 1024).toFixed(0)} KB`;
-  };
+  const formatSize = formatFileSize;
 
   const reduction = Math.round((1 - outputSize / inputSize) * 100);
   const increased = outputSize > inputSize;

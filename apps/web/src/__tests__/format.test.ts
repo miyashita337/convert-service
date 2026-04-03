@@ -19,4 +19,11 @@ describe("formatFileSize", () => {
     expect(formatFileSize(5242880)).toBe("5.00 MB");
     expect(formatFileSize(10485760)).toBe("10.00 MB");
   });
+
+  test("handles invalid inputs", () => {
+    expect(formatFileSize(NaN)).toBe("0 B");
+    expect(formatFileSize(Infinity)).toBe("0 B");
+    expect(formatFileSize(-1)).toBe("0 B");
+    expect(formatFileSize(-Infinity)).toBe("0 B");
+  });
 });

@@ -7,6 +7,7 @@
     "build": "next build && npx tsx scripts/generate-sitemap.ts",
     "start": "next start",
     "lint": "tsc --noEmit",
+    "test": "vitest run",
     "test:e2e": "playwright test",
     "sentry:sourcemaps": "sentry-cli releases files \"$RELEASE\" upload-sourcemaps .next/static --url-prefix '~/_next/static'"
   },

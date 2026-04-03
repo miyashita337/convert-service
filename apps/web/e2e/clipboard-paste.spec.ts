@@ -12,7 +12,6 @@ test.describe("Clipboard paste conversion", () => {
     await page.goto(`${BASE_URL}/en`);
     await page.waitForLoadState("domcontentloaded");
 
-    // Paste hint should be visible on desktop
     const hint = page.locator("text=Cmd+V to paste");
     await expect(hint).toBeVisible({ timeout: 10_000 });
   });
@@ -22,8 +21,9 @@ test.describe("Clipboard paste conversion", () => {
     await page.goto(`${BASE_URL}/en`);
     await page.waitForLoadState("domcontentloaded");
 
-    // Paste hint should be hidden on mobile (hidden md:inline)
     const hint = page.locator("text=Cmd+V to paste");
+    // Element exists in DOM but hidden via CSS (hidden md:inline)
+    await expect(hint).toHaveCount(1);
     await expect(hint).toBeHidden();
   });
 });
