@@ -2,6 +2,8 @@ export const GUIDE_SLUGS = [
   "what-is-avif",
   "heic-to-jpg-guide",
   "webp-vs-avif-vs-heic",
+  "heic-complete-guide",
+  "blog-image-optimization",
 ] as const;
 
 export type GuideSlug = (typeof GUIDE_SLUGS)[number];

@@ -14,6 +14,14 @@ const PAGES_WITH_CUSTOM_CONTENT = [
   "svg-to-png",
   "jpg-to-avif",
   "mp4-to-gif",
+  "png-to-jpg",
+  "mp4-to-mp3",
+  "mp3-to-wav",
+  "wav-to-mp3",
+  "flac-to-mp3",
+  "ogg-to-mp3",
+  "jpg-to-pdf",
+  "png-to-pdf",
 ] as const;
 
 interface ConvertPageContentProps {

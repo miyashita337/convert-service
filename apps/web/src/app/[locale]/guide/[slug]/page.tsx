@@ -16,12 +16,16 @@ const GUIDE_NAMESPACE_MAP: Record<GuideSlug, string> = {
   "what-is-avif": "guideWhatIsAvif",
   "heic-to-jpg-guide": "guideHeicToJpg",
   "webp-vs-avif-vs-heic": "guideWebpVsAvifVsHeic",
+  "heic-complete-guide": "guideHeicComplete",
+  "blog-image-optimization": "guideBlogImageOpt",
 };
 
 const GUIDE_SEO_KEY_MAP: Record<GuideSlug, { title: string; description: string }> = {
   "what-is-avif": { title: "guideWhatIsAvifTitle", description: "guideWhatIsAvifDescription" },
   "heic-to-jpg-guide": { title: "guideHeicToJpgTitle", description: "guideHeicToJpgDescription" },
   "webp-vs-avif-vs-heic": { title: "guideWebpVsAvifVsHeicTitle", description: "guideWebpVsAvifVsHeicDescription" },
+  "heic-complete-guide": { title: "guideHeicCompleteTitle", description: "guideHeicCompleteDescription" },
+  "blog-image-optimization": { title: "guideBlogImageOptTitle", description: "guideBlogImageOptDescription" },
 };
 
 export async function generateStaticParams() {
@@ -88,6 +92,8 @@ export default async function GuideArticlePage({ params }: PageProps) {
       {slug === "what-is-avif" && <WhatIsAvifContent t={t} tCommon={tCommon} />}
       {slug === "heic-to-jpg-guide" && <HeicToJpgContent t={t} tCommon={tCommon} />}
       {slug === "webp-vs-avif-vs-heic" && <WebpVsAvifVsHeicContent t={t} tCommon={tCommon} />}
+      {slug === "heic-complete-guide" && <HeicCompleteGuideContent t={t} tCommon={tCommon} />}
+      {slug === "blog-image-optimization" && <BlogImageOptContent t={t} tCommon={tCommon} />}
     </div>
   );
 }
@@ -424,6 +430,174 @@ function WebpVsAvifVsHeicContent({ t, tCommon }: ContentProps) {
         <h2 className="text-2xl font-semibold">{t("conclusionTitle")}</h2>
         <p className="mt-3 text-muted-foreground leading-relaxed">{t("conclusionText")}</p>
         <GuideCta href="/" label={tCommon("tryConverter")} />
+      </section>
+    </>
+  );
+}
+
+function HeicCompleteGuideContent({ t, tCommon }: ContentProps) {
+  return (
+    <>
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("whatIsHeicTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("whatIsHeicText")}</p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("whyConvertTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("whyConvertText")}</p>
+        <ul className="mt-3 list-disc list-inside text-muted-foreground space-y-1.5">
+          <li>{t("whyConvertReason1")}</li>
+          <li>{t("whyConvertReason2")}</li>
+          <li>{t("whyConvertReason3")}</li>
+          <li>{t("whyConvertReason4")}</li>
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("onlineMethodTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("onlineMethodText")}</p>
+        <ol className="mt-3 list-decimal list-inside text-muted-foreground space-y-1.5">
+          <li>{t("onlineStep1")}</li>
+          <li>{t("onlineStep2")}</li>
+          <li>{t("onlineStep3")}</li>
+        </ol>
+        <GuideCta href="/convert/heic-to-jpg" label={tCommon("tryConverter")} />
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("windowsMethodTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("windowsMethodText")}</p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("macMethodTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("macMethodText")}</p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("iphoneSettingsTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("iphoneSettingsText")}</p>
+        <ol className="mt-3 list-decimal list-inside text-muted-foreground space-y-1.5">
+          <li>{t("iphoneStep1")}</li>
+          <li>{t("iphoneStep2")}</li>
+          <li>{t("iphoneStep3")}</li>
+        </ol>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("formatComparisonTitle")}</h2>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-2 pr-4 font-semibold">{t("comparisonHeaderFormat")}</th>
+                <th className="text-left py-2 pr-4 font-semibold">{t("comparisonHeaderQuality")}</th>
+                <th className="text-left py-2 pr-4 font-semibold">{t("comparisonHeaderSize")}</th>
+                <th className="text-left py-2 font-semibold">{t("comparisonHeaderBestFor")}</th>
+              </tr>
+            </thead>
+            <tbody className="text-muted-foreground">
+              <tr className="border-b border-border">
+                <td className="py-2 pr-4 font-medium text-foreground">JPG</td>
+                <td className="py-2 pr-4">{t("comparisonJpgQuality")}</td>
+                <td className="py-2 pr-4">{t("comparisonJpgSize")}</td>
+                <td className="py-2">{t("comparisonJpgBestFor")}</td>
+              </tr>
+              <tr className="border-b border-border">
+                <td className="py-2 pr-4 font-medium text-foreground">PNG</td>
+                <td className="py-2 pr-4">{t("comparisonPngQuality")}</td>
+                <td className="py-2 pr-4">{t("comparisonPngSize")}</td>
+                <td className="py-2">{t("comparisonPngBestFor")}</td>
+              </tr>
+              <tr>
+                <td className="py-2 pr-4 font-medium text-foreground">WebP</td>
+                <td className="py-2 pr-4">{t("comparisonWebpQuality")}</td>
+                <td className="py-2 pr-4">{t("comparisonWebpSize")}</td>
+                <td className="py-2">{t("comparisonWebpBestFor")}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("conclusionTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("conclusionText")}</p>
+        <GuideCta href="/convert/heic-to-png" label={tCommon("tryConverter")} />
+      </section>
+    </>
+  );
+}
+
+function BlogImageOptContent({ t, tCommon }: ContentProps) {
+  return (
+    <>
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("whyOptimizeTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("whyOptimizeText")}</p>
+        <ul className="mt-3 list-disc list-inside text-muted-foreground space-y-1.5">
+          <li>{t("whyOptimizeReason1")}</li>
+          <li>{t("whyOptimizeReason2")}</li>
+          <li>{t("whyOptimizeReason3")}</li>
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("formatGuideTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("formatGuideText")}</p>
+        <div className="mt-6 space-y-4">
+          <div className="border border-border rounded-lg p-4">
+            <h3 className="font-semibold">{t("formatWebpTitle")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t("formatWebpText")}</p>
+          </div>
+          <div className="border border-border rounded-lg p-4">
+            <h3 className="font-semibold">{t("formatAvifTitle")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t("formatAvifText")}</p>
+          </div>
+          <div className="border border-border rounded-lg p-4">
+            <h3 className="font-semibold">{t("formatJpgTitle")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t("formatJpgText")}</p>
+          </div>
+          <div className="border border-border rounded-lg p-4">
+            <h3 className="font-semibold">{t("formatPngTitle")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t("formatPngText")}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("pagespeedTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("pagespeedText")}</p>
+        <ol className="mt-3 list-decimal list-inside text-muted-foreground space-y-1.5">
+          <li>{t("pagespeedStep1")}</li>
+          <li>{t("pagespeedStep2")}</li>
+          <li>{t("pagespeedStep3")}</li>
+          <li>{t("pagespeedStep4")}</li>
+        </ol>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("batchConvertTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("batchConvertText")}</p>
+        <GuideCta href="/convert/jpg-to-webp" label={tCommon("tryConverter")} />
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("checklistTitle")}</h2>
+        <ul className="mt-3 list-disc list-inside text-muted-foreground space-y-1.5">
+          <li>{t("checklistItem1")}</li>
+          <li>{t("checklistItem2")}</li>
+          <li>{t("checklistItem3")}</li>
+          <li>{t("checklistItem4")}</li>
+          <li>{t("checklistItem5")}</li>
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("conclusionTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("conclusionText")}</p>
+        <GuideCta href="/convert/png-to-webp" label={tCommon("tryConverter")} />
       </section>
     </>
   );
