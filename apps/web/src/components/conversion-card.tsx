@@ -29,7 +29,8 @@ import { ImageCompareSlider } from "./image-compare-slider";
 import { useConversion } from "@/hooks/use-conversion";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useGAEvent } from "@/hooks/use-ga-event";
-import { FREE_PREVIEW_LIMIT, isVideoMimeType, isAudioMimeType } from "@quickconv/shared";
+import { useFormatMemory } from "@/hooks/use-format-memory";
+import { FREE_PREVIEW_LIMIT, isVideoMimeType, isAudioMimeType, CONVERSION_PAIRS, MIME_TO_FORMAT } from "@quickconv/shared";
 import type { OutputFormat } from "@quickconv/shared";
 
 /** Warning threshold: show warning when remaining <= this value */
@@ -70,6 +71,7 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
     outputFileSize,
   } = useConversion();
   const { trackFileDownload } = useGAEvent();
+  const { getLastFormat, saveFormat } = useFormatMemory();
 
   const isVideo = file ? isVideoMimeType(file.type) : false;
   const isAudio = file ? isAudioMimeType(file.type) : false;
@@ -95,7 +97,15 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
         startConversion(selectedFile, presetFormat);
       }
     } else {
-      setOutputFormat(null);
+      // Restore last used format for this input type (non-preset pages only)
+      const lastFormat = getLastFormat(selectedFile.type);
+      const inputFmt = MIME_TO_FORMAT[selectedFile.type];
+      const available = inputFmt ? CONVERSION_PAIRS[inputFmt] || [] : [];
+      if (lastFormat && available.includes(lastFormat)) {
+        setOutputFormat(lastFormat);
+      } else {
+        setOutputFormat(null);
+      }
       reset();
     }
   };
@@ -106,6 +116,7 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
       setShowUpgradeModal(true);
       return;
     }
+    saveFormat(file.type, outputFormat);
     startConversion(file, outputFormat);
   };
 
@@ -179,6 +190,13 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
             onFileSelect={handleFileSelect}
             remainingConversions={remainingConversions}
           />
+
+          {/* Format memory badge */}
+          {!presetFormat && file && outputFormat && (
+            <p className="text-xs text-muted-foreground text-center" aria-live="polite">
+              {t("lastFormat", { format: outputFormat.toUpperCase() })}
+            </p>
+          )}
 
           {/* Benefit badges */}
           <BenefitBadges />

@@ -45,7 +45,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={inter.variable}>
+    <html lang={locale} className={inter.variable} suppressHydrationWarning>
       <head>
         <meta
           name="keywords"
@@ -56,6 +56,11 @@ export default async function LocaleLayout({
           content="image converter, file conversion, HEIC, WebP, AVIF"
         />
         <OrganizationJsonLd />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("dark")}catch(e){}})()`,
+          }}
+        />
       </head>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
         <SentryInit />
