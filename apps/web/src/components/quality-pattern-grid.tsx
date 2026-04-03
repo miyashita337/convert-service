@@ -28,11 +28,7 @@ interface QualityPatternGridProps {
   className?: string;
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-}
+import { formatFileSize as formatSize } from "@/lib/format";
 
 const PRESET_LABELS: Record<number, string> = {
   0: "low",

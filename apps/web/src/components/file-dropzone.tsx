@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -21,6 +21,36 @@ interface FileDropzoneProps {
 
 export function FileDropzone({ onFileSelect, disabled, remainingConversions }: FileDropzoneProps) {
   const t = useTranslations("common");
+
+  // Document-level paste handler for Cmd+V / Ctrl+V
+  useEffect(() => {
+    if (disabled) return;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      // Don't intercept paste in input/textarea elements
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+        return;
+      }
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith("image/")) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            onFileSelect(file);
+            return;
+          }
+        }
+      }
+    };
+
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, [onFileSelect, disabled]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -82,6 +112,7 @@ export function FileDropzone({ onFileSelect, disabled, remainingConversions }: F
       <p className="text-lg font-medium">{t("dragDrop")}</p>
       <p className="mt-2 text-sm text-muted-foreground">
         {t("maxSize", { size: MAX_FILE_SIZE_MB })}
+        <span className="hidden md:inline"> · {t("pasteHint")}</span>
       </p>
       <p className="mt-1 text-xs text-muted-foreground">{t("supportedFormats")}</p>
     </div>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-background: #ffffff;
   --color-foreground: #0a0a0a;
@@ -14,15 +16,13 @@
   --radius: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-background: #0a0a0a;
-    --color-foreground: #ededed;
-    --color-primary: #3b82f6;
-    --color-primary-foreground: #ffffff;
-    --color-muted: #1a1a1a;
-    --color-muted-foreground: #a3a3a3;
-    --color-border: #2a2a2a;
-    --color-accent: #1e293b;
-  }
+.dark {
+  --color-background: #0a0a0a;
+  --color-foreground: #ededed;
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #a3a3a3;
+  --color-border: #2a2a2a;
+  --color-accent: #1e293b;
 }

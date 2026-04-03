@@ -14,8 +14,11 @@ import {
   Video,
   Music,
   FileText,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 
 interface CategoryLink {
   key: string;
@@ -90,6 +93,7 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, loading, login, logout } = useAuth();
+  const { toggle: toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -156,6 +160,15 @@ export function Header() {
             <span className="hidden sm:inline">
               {locale === "en" ? "日本語" : "English"}
             </span>
+          </button>
+
+          <button
+            onClick={toggleTheme}
+            className="inline-flex items-center justify-center p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors"
+            aria-label="Toggle theme"
+          >
+            <Sun className="h-4 w-4 dark:hidden" />
+            <Moon className="h-4 w-4 hidden dark:block" />
           </button>
 
           {!loading && !user && (
@@ -254,6 +267,16 @@ export function Header() {
             })}
 
             <div className="border-t border-border pt-2 mt-2">
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted w-full rounded-md"
+              >
+                <Sun className="h-4 w-4 dark:hidden" />
+                <Moon className="h-4 w-4 hidden dark:block" />
+                <span className="dark:hidden">{tNav("darkMode")}</span>
+                <span className="hidden dark:inline">{tNav("lightMode")}</span>
+              </button>
+
               {!loading && !user && (
                 <button
                   onClick={() => {

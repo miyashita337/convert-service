@@ -15,6 +15,8 @@
     "completed": "完了",
     "failed": "変換に失敗しました",
     "dragDrop": "ファイルをドラッグ＆ドロップ、またはクリックして選択",
+    "pasteHint": "Cmd+Vで貼り付けもOK",
+    "lastFormat": "前回: {format}に変換",
     "maxSize": "最大ファイルサイズ: {size}MB",
     "supportedFormats": "対応形式: JPG, PNG, WebP, AVIF, HEIC, GIF, SVG, MP4",
     "selectFormat": "変換先",
@@ -494,7 +496,9 @@
     "image": "画像",
     "video": "動画",
     "audio": "音声",
-    "pdf": "PDF"
+    "pdf": "PDF",
+    "darkMode": "ダークモード",
+    "lightMode": "ライトモード"
   },
   "convertPages": {
     "aboutTitle": "{from}から{to}への変換について",
