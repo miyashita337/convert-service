@@ -90,7 +90,12 @@ auth.get("/me", async (c) => {
       const padded =
         payloadB64.replace(/-/g, "+").replace(/_/g, "/") +
         "=".repeat((4 - (payloadB64.length % 4)) % 4);
-      const payload = JSON.parse(atob(padded));
+      const binary = atob(padded);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const payload = JSON.parse(new TextDecoder().decode(bytes));
       picture = payload.picture || "";
       name = payload.name || "";
     } catch {
