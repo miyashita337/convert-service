@@ -1,9 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConversionCard } from "@/components/conversion-card";
 import { PopularConversions } from "@/components/popular-conversions";
-import { CategoryConversions } from "@/components/category-conversions";
-import { ConversionCounter } from "@/components/conversion-counter";
 import { HeroHeadline } from "@/components/hero-headline";
+import { ConversionCounter } from "@/components/conversion-counter";
 import { WebApplicationJsonLd } from "@/components/json-ld";
 import { buildPageMetadata } from "@/lib/metadata";
 import { locales, type Locale } from "@/lib/i18n/config";
@@ -55,7 +54,6 @@ export default async function HomePage({
       </div>
       <ConversionCard />
       <PopularConversions />
-      <CategoryConversions />
     </div>
   );
 }

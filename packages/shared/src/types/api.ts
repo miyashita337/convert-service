@@ -22,7 +22,7 @@ export interface StatusResponse {
   status: JobStatus;
   progress?: number;
   downloadUrl?: string;
-  outputSize?: number;
+  outputFileSize?: number;
   error?: string;
 }
 

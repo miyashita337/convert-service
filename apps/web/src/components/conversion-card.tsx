@@ -64,10 +64,10 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
     previews,
     selectedPreviewIndex,
     originalSize,
-    outputSize,
     recommendations,
     recommendationComputing,
     conversionProgress,
+    outputFileSize,
   } = useConversion();
   const { trackFileDownload } = useGAEvent();
 
@@ -365,22 +365,8 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
           <p className="font-medium text-green-600">{t("completed")}</p>
 
           {/* File size comparison */}
-          {originalSize > 0 && outputSize !== null && outputSize > 0 && (
-            <div className="inline-flex items-center gap-3 rounded-lg bg-muted/50 px-4 py-2 text-sm">
-              <span className="text-muted-foreground">{formatBytes(originalSize)}</span>
-              <span className="text-muted-foreground">&rarr;</span>
-              <span className="font-medium">{formatBytes(outputSize)}</span>
-              {outputSize < originalSize && (
-                <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                  {t("sizeReduction", { percent: Math.round((1 - outputSize / originalSize) * 100) })}
-                </span>
-              )}
-              {outputSize > originalSize && (
-                <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300">
-                  +{Math.round((outputSize / originalSize - 1) * 100)}%
-                </span>
-              )}
-            </div>
+          {file && outputFileSize != null && (
+            <FileSizeComparison inputSize={file.size} outputSize={outputFileSize} />
           )}
 
           {/* Show remaining count after conversion */}
@@ -469,10 +455,28 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
   );
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+function FileSizeComparison({ inputSize, outputSize }: { inputSize: number; outputSize: number }) {
+  const formatSize = (bytes: number) => {
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / 1024).toFixed(0)} KB`;
+  };
+
+  const reduction = Math.round((1 - outputSize / inputSize) * 100);
+  const increased = outputSize > inputSize;
+
+  return (
+    <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+      <span>{formatSize(inputSize)}</span>
+      <span className="text-foreground">→</span>
+      <span className="font-medium text-foreground">{formatSize(outputSize)}</span>
+      {!increased && reduction > 0 && (
+        <span className="text-green-600 font-medium">-{reduction}%</span>
+      )}
+      {increased && (
+        <span className="text-yellow-600 font-medium">+{Math.abs(reduction)}%</span>
+      )}
+    </div>
+  );
 }
 
 function BenefitBadges() {

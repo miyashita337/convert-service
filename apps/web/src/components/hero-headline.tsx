@@ -1,4 +1,7 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 const VARIANT_KEYS = [
   "taglineVariant1",
@@ -6,12 +9,27 @@ const VARIANT_KEYS = [
   "taglineVariant3",
 ] as const;
 
-export async function HeroHeadline() {
-  const t = await getTranslations("common");
+const STORAGE_KEY = "hero_variant";
 
-  // Pick a deterministic variant at build time for static export.
-  // All three variants convey the same value proposition, so any is fine for LCP.
-  const key = VARIANT_KEYS[0];
+export function HeroHeadline() {
+  const t = useTranslations("common");
+  const [variantIndex, setVariantIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem(STORAGE_KEY);
+    if (stored !== null) {
+      setVariantIndex(Number(stored));
+    } else {
+      const idx = Math.floor(Math.random() * VARIANT_KEYS.length);
+      sessionStorage.setItem(STORAGE_KEY, String(idx));
+      setVariantIndex(idx);
+    }
+    setMounted(true);
+  }, []);
+
+  // SSR and initial render: always show variant1 (no layout shift)
+  const key = mounted ? VARIANT_KEYS[variantIndex] : VARIANT_KEYS[0];
 
   return (
     <h1 className="text-4xl font-bold tracking-tight" data-variant={key}>

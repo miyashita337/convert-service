@@ -31,7 +31,7 @@ interface ConversionState {
   conversionProgress: number;
   jobId: string | null;
   downloadUrl: string | null;
-  outputSize: number | null;
+  outputFileSize: number | null;
   error: string | null;
 }
 
@@ -50,7 +50,7 @@ export function useConversion() {
     conversionProgress: 0,
     jobId: null,
     downloadUrl: null,
-    outputSize: null,
+    outputFileSize: null,
     error: null,
   });
   const [previewState, setPreviewState] = useState<PreviewState>({
@@ -100,7 +100,7 @@ export function useConversion() {
         conversionProgress: 0,
         jobId: null,
         downloadUrl: null,
-        outputSize: null,
+        outputFileSize: null,
         error: null,
       });
 
@@ -177,7 +177,7 @@ export function useConversion() {
       conversionProgress: 0,
       jobId: null,
       downloadUrl: null,
-      outputSize: null,
+      outputFileSize: null,
       error: null,
     });
     setPreviewState({ previews: [], selectedIndex: 0, originalSize: 0 });
@@ -185,7 +185,7 @@ export function useConversion() {
 
   const startConversion = useCallback(
     async (file: File, outputFormat: OutputFormat) => {
-      setState({ step: "uploading", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, outputSize: null, error: null });
+      setState({ step: "uploading", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, outputFileSize: null, error: null });
 
       const inputFormat = file.name.split(".").pop()?.toLowerCase() || "unknown";
       formatsRef.current = { from: inputFormat, to: outputFormat };
@@ -227,12 +227,18 @@ export function useConversion() {
                 stopPolling();
                 const durationMs = Date.now() - startTimeRef.current;
                 trackConversionComplete(inputFormat, outputFormat, durationMs);
+                // Fetch file size from status endpoint
+                checkStatus(jobId).then((status) => {
+                  setState((s) => ({
+                    ...s,
+                    outputFileSize: status.outputFileSize ?? null,
+                  }));
+                }).catch(() => { /* ignore */ });
                 setState((s) => ({
                   ...s,
                   step: "completed",
                   conversionProgress: 100,
                   downloadUrl: getDownloadUrl(jobId),
-                  outputSize: event.outputSize ?? null,
                 }));
               } else if (event.status === "failed") {
                 stopPolling();
@@ -272,7 +278,7 @@ export function useConversion() {
                   step: "completed",
                   conversionProgress: 100,
                   downloadUrl: getDownloadUrl(jobId),
-                  outputSize: status.outputSize ?? null,
+                  outputFileSize: status.outputFileSize ?? null,
                 }));
               } else if (status.status === "failed") {
                 stopPolling();
@@ -320,7 +326,7 @@ export function useConversion() {
 
   const reset = useCallback(() => {
     stopPolling();
-    setState({ step: "idle", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, outputSize: null, error: null });
+    setState({ step: "idle", uploadProgress: 0, conversionProgress: 0, jobId: null, downloadUrl: null, outputFileSize: null, error: null });
     setPreviewState({ previews: [], selectedIndex: 0, originalSize: 0 });
     fileRef.current = null;
     outputFormatRef.current = null;
@@ -340,8 +346,7 @@ export function useConversion() {
     dailyLimit,
     previews: previewState.previews,
     selectedPreviewIndex: previewState.selectedIndex,
-    originalSize: previewState.originalSize || fileRef.current?.size || 0,
-    outputSize: state.outputSize,
+    originalSize: previewState.originalSize,
     conversionProgress: state.conversionProgress,
     recommendations,
     recommendationComputing,

@@ -5,14 +5,12 @@ const stats = new Hono<{ Bindings: Env }>();
 
 stats.get("/", async (c) => {
   const result = await c.env.DB.prepare(
-    "SELECT COUNT(*) as total FROM jobs WHERE status = 'completed'"
-  ).first<{ total: number }>();
+    "SELECT COUNT(*) as count FROM jobs WHERE status = 'completed'",
+  ).first<{ count: number }>();
 
-  return c.json(
-    { totalConversions: result?.total ?? 0 },
-    200,
-    { "Cache-Control": "public, max-age=300" },
-  );
+  return c.json({
+    totalConversions: result?.count ?? 0,
+  });
 });
 
 export default stats;
