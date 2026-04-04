@@ -9,31 +9,31 @@ export interface StripePriceConfig {
   usd: string;
 }
 
-/** Stripe Price IDs per plan and currency */
+/** Stripe Price IDs per plan and currency (LIVE mode) */
 export const STRIPE_PRICE_IDS: Record<string, StripePriceConfig> = {
   pass_7d: {
-    jpy: "price_1TCzCoAxIqELGvqZIae0Z6nS",
-    usd: "price_1TCzCpAxIqELGvqZ3QUfhWhh",
+    jpy: "price_1TIYNDBsqjfyEDMQED9FRqCI",
+    usd: "price_1TIYNCBsqjfyEDMQdCYC4Nmn",
   },
   pass_30d: {
-    jpy: "price_1TFzVVAxIqELGvqZOgrMTTYS",
-    usd: "price_1TFzVWAxIqELGvqZgFBHGvDx",
+    jpy: "price_1TIYNEBsqjfyEDMQ40EDKzhq",
+    usd: "price_1TIYNEBsqjfyEDMQlIxO0OH6",
   },
   plus_monthly: {
-    jpy: "price_1TCzD6AxIqELGvqZOUspjkhE",
-    usd: "price_1TCzD8AxIqELGvqZCnSwJYZh",
+    jpy: "price_1TIYNEBsqjfyEDMQYVke8YiN",
+    usd: "price_1TIYNDBsqjfyEDMQo9M4xprG",
   },
   plus_yearly: {
-    jpy: "price_1TCzD7AxIqELGvqZMChBD1zR",
-    usd: "price_1TCzD8AxIqELGvqZnEOHgR6U",
+    jpy: "price_1TIYNDBsqjfyEDMQxwNORl50",
+    usd: "price_1TIYNCBsqjfyEDMQt2piUoW1",
   },
   pro_monthly: {
-    jpy: "price_1TCzDMAxIqELGvqZQkv7W2fr",
-    usd: "price_1TCzDOAxIqELGvqZk6xxDyXh",
+    jpy: "price_1TIYNEBsqjfyEDMQrBl1kw1n",
+    usd: "price_1TIYNDBsqjfyEDMQUy2OqXec",
   },
   pro_yearly: {
-    jpy: "price_1TCzDNAxIqELGvqZjp2Um7KL",
-    usd: "price_1TCzDPAxIqELGvqZ1tuOLtUD",
+    jpy: "price_1TIYNEBsqjfyEDMQJNfIpWsj",
+    usd: "price_1TIYNCBsqjfyEDMQHegHIIDR",
   },
 };
 
