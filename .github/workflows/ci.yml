@@ -122,10 +122,15 @@ jobs:
         env:
           E2E_TEST_SECRET: ${{ secrets.E2E_TEST_SECRET }}
         run: |
-          TOKEN=$(curl -sf -X POST "https://api-staging.quickconv.cc/api/test/token" \
+          RESPONSE=$(curl -sf --retry 3 -X POST "https://api-staging.quickconv.cc/api/test/token" \
             -H "Content-Type: application/json" \
             -H "X-E2E-Secret: ${E2E_TEST_SECRET}" \
-            -d '{"email":"proce55ingpurser@gmail.com","plan":"free"}' | jq -r '.token')
+            -d '{"email":"proce55ingpurser@gmail.com","plan":"free"}') || { echo "::error::Failed to fetch E2E token"; exit 1; }
+          TOKEN=$(echo "$RESPONSE" | jq -r '.token')
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "::error::E2E token is empty or null"
+            exit 1
+          fi
           cat > apps/web/e2e/auth-state.json << AUTHEOF
           {
             "cookies": [{
