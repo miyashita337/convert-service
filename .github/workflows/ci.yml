@@ -104,6 +104,52 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler pages deploy apps/web/out --project-name quickconv-web
 
+  e2e-stripe:
+    runs-on: ubuntu-latest
+    needs: [lint-and-build, test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: cd apps/web && npx playwright install --with-deps chromium
+      - name: Generate auth-state.json
+        env:
+          E2E_QC_AUTH_TOKEN: ${{ secrets.E2E_QC_AUTH_TOKEN }}
+        run: |
+          cat > apps/web/e2e/auth-state.json << EOF
+          {
+            "cookies": [{
+              "name": "qc_auth",
+              "value": "${E2E_QC_AUTH_TOKEN}",
+              "domain": "api-staging.quickconv.cc",
+              "path": "/",
+              "expires": -1,
+              "httpOnly": true,
+              "secure": true,
+              "sameSite": "Lax"
+            }],
+            "origins": []
+          }
+          EOF
+      - name: Run Stripe E2E tests
+        env:
+          E2E_TARGET: staging
+        working-directory: apps/web
+        run: npx playwright test --project=production e2e/stripe-e2e.spec.ts --reporter=github
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-stripe-results
+          path: apps/web/test-results/
+          retention-days: 7
+
   e2e-production:
     runs-on: ubuntu-latest
     needs: [lint-and-build, test]
