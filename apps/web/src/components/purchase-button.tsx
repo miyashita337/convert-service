@@ -19,9 +19,12 @@ export function PurchaseButton({ planId, label, currency = "jpy", highlighted, d
   const locale = useLocale();
   const [loading, setLoading] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   const handlePurchase = async () => {
     if (!user) { login(); return; }
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${API_URL}/api/checkout`, {
         method: "POST",
@@ -30,23 +33,32 @@ export function PurchaseButton({ planId, label, currency = "jpy", highlighted, d
         body: JSON.stringify({ planId, currency, locale }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "Purchase failed. Please try again.");
+        return;
+      }
       if (data.url) window.location.href = data.url;
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally { setLoading(false); }
   };
 
   return (
-    <button
-      onClick={handlePurchase}
-      disabled={disabled || loading}
-      className={`mt-8 w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${
-        highlighted
-          ? "bg-primary text-primary-foreground hover:bg-primary/90"
-          : disabled
-            ? "bg-muted text-muted-foreground cursor-not-allowed"
-            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-      }`}
-    >
-      {loading ? "..." : label}
-    </button>
+    <div>
+      <button
+        onClick={handlePurchase}
+        disabled={disabled || loading}
+        className={`mt-8 w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${
+          highlighted
+            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            : disabled
+              ? "bg-muted text-muted-foreground cursor-not-allowed"
+              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+        }`}
+      >
+        {loading ? "..." : label}
+      </button>
+      {error && <p className="mt-2 text-xs text-red-500 text-center">{error}</p>}
+    </div>
   );
 }

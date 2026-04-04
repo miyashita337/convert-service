@@ -9,11 +9,12 @@ const CHECKOUT_RATE_LIMIT = 10;
 
 async function checkCheckoutRateLimit(db: D1Database, email: string): Promise<boolean> {
   const hourKey = new Date().toISOString().slice(0, 13); // YYYY-MM-DDTHH
+  // Use same schema as cost-guard: composite key = "checkout:{email}:{hourKey}"
+  const key = `checkout:${email}:${hourKey}`;
+
   const row = await db
-    .prepare(
-      `SELECT count FROM hourly_request_counts WHERE client_hash = ? AND hour_key = ? AND endpoint = 'checkout'`
-    )
-    .bind(email, hourKey)
+    .prepare(`SELECT count FROM hourly_request_counts WHERE key = ?`)
+    .bind(key)
     .first<{ count: number }>();
 
   const currentCount = row?.count ?? 0;
@@ -21,11 +22,11 @@ async function checkCheckoutRateLimit(db: D1Database, email: string): Promise<bo
 
   await db
     .prepare(
-      `INSERT INTO hourly_request_counts (client_hash, hour_key, endpoint, count)
-       VALUES (?, ?, 'checkout', 1)
-       ON CONFLICT(client_hash, hour_key, endpoint) DO UPDATE SET count = count + 1`
+      `INSERT INTO hourly_request_counts (key, count, updated_at)
+       VALUES (?1, 1, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET count = count + 1, updated_at = datetime('now')`
     )
-    .bind(email, hourKey)
+    .bind(key)
     .run();
 
   return true;
