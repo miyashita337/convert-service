@@ -107,22 +107,19 @@ test.describe("Stripe 決済フロー", () => {
   });
 
   test("Plus月額サブスク購入 → 成功ページ表示", async ({ page }) => {
-    await page.getByRole("button", { name: "始める" }).first().click({ timeout: 30000 });
-
-    // Stripe Checkout 画面に遷移
-    await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 30000 });
+    // dispatchEvent でクリック（click() は window.location.href によるナビゲーション完了を待ってしまうため）
+    await page.getByRole("button", { name: "始める" }).first().dispatchEvent("click");
+    await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 60000 });
 
     await fillStripeCheckout(page);
 
-    // 成功ページにリダイレクト
     await expect(page).toHaveURL(/\/ja\/purchase\/success/, { timeout: 60000 });
     await expect(page.getByText("購入が完了しました")).toBeVisible();
   });
 
   test("7日パス購入 → 成功ページ表示", async ({ page }) => {
-    await page.getByRole("button", { name: "購入する" }).first().click({ timeout: 30000 });
-
-    await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 30000 });
+    await page.getByRole("button", { name: "購入する" }).first().dispatchEvent("click");
+    await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 60000 });
 
     await fillStripeCheckout(page);
 
@@ -131,9 +128,8 @@ test.describe("Stripe 決済フロー", () => {
   });
 
   test("30日パス購入 → 成功ページ表示", async ({ page }) => {
-    await page.getByRole("button", { name: "購入する" }).nth(1).click({ timeout: 30000 });
-
-    await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 30000 });
+    await page.getByRole("button", { name: "購入する" }).nth(1).dispatchEvent("click");
+    await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 60000 });
 
     await fillStripeCheckout(page);
 
@@ -142,9 +138,8 @@ test.describe("Stripe 決済フロー", () => {
   });
 
   test("Pro月額サブスク購入 → 成功ページ表示", async ({ page }) => {
-    await page.getByRole("button", { name: "始める" }).nth(1).click({ timeout: 30000 });
-
-    await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 30000 });
+    await page.getByRole("button", { name: "始める" }).nth(1).dispatchEvent("click");
+    await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 60000 });
 
     await fillStripeCheckout(page);
 
