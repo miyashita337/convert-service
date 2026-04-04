@@ -5,6 +5,7 @@ import {
   exchangeCodeForTokens,
   getGoogleUserInfo,
   createJwt,
+  base64urlDecode,
 } from "../services/auth";
 import { upsertUser } from "../repositories/user-repository";
 
@@ -97,15 +98,7 @@ auth.get("/me", async (c) => {
     try {
       // Decode JWT payload (already verified by middleware)
       const payloadB64 = match[1].split(".")[1];
-      const padded =
-        payloadB64.replace(/-/g, "+").replace(/_/g, "/") +
-        "=".repeat((4 - (payloadB64.length % 4)) % 4);
-      const binary = atob(padded);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      const payload = JSON.parse(new TextDecoder().decode(bytes));
+      const payload = JSON.parse(new TextDecoder().decode(base64urlDecode(payloadB64)));
       picture = payload.picture || "";
       name = payload.name || "";
     } catch {

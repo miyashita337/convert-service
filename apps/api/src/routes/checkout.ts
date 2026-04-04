@@ -51,9 +51,15 @@ checkout.post("/", async (c) => {
   const currency: SupportedCurrency = body.currency === "usd" ? "usd" : "jpy";
   const plan = PLAN_CONFIGS[body.planId];
   const stripe = createStripeClient(c.env);
-  const frontendBase = c.env.FRONTEND_URL || c.env.APP_URL.replace("api.", "");
+  const frontendBase = c.env.FRONTEND_URL || (() => {
+    const appUrl = new URL(c.env.APP_URL);
+    if (appUrl.hostname.startsWith("api.")) {
+      appUrl.hostname = appUrl.hostname.slice(4);
+    }
+    return appUrl.origin;
+  })();
   const locale = body.locale === "ja" ? "ja" : "en";
-  const frontendUrl = `${frontendBase}/${locale}`;
+  const frontendUrl = `${frontendBase.replace(/\/+$/, "")}/${locale}`;
 
   let stripePriceId: string;
   try {
