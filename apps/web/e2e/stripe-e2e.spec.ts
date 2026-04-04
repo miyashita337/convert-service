@@ -57,7 +57,9 @@ async function fillStripeCheckout(page: import("@playwright/test").Page) {
   await page.getByTestId("hosted-payment-submit-button").click();
 }
 
+// Stripe 決済フローは API呼び出し + Stripe Checkout + リダイレクトで時間がかかる
 test.describe("Stripe 決済フロー", () => {
+  test.setTimeout(120_000);
   test.beforeEach(async ({ page, context }) => {
     const token = getAuthToken();
 
@@ -105,7 +107,7 @@ test.describe("Stripe 決済フロー", () => {
   });
 
   test("Plus月額サブスク購入 → 成功ページ表示", async ({ page }) => {
-    await page.getByRole("button", { name: "始める" }).first().click();
+    await page.getByRole("button", { name: "始める" }).first().click({ timeout: 30000 });
 
     // Stripe Checkout 画面に遷移
     await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 30000 });
@@ -118,7 +120,7 @@ test.describe("Stripe 決済フロー", () => {
   });
 
   test("7日パス購入 → 成功ページ表示", async ({ page }) => {
-    await page.getByRole("button", { name: "購入する" }).first().click();
+    await page.getByRole("button", { name: "購入する" }).first().click({ timeout: 30000 });
 
     await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 30000 });
 
@@ -129,7 +131,7 @@ test.describe("Stripe 決済フロー", () => {
   });
 
   test("30日パス購入 → 成功ページ表示", async ({ page }) => {
-    await page.getByRole("button", { name: "購入する" }).nth(1).click();
+    await page.getByRole("button", { name: "購入する" }).nth(1).click({ timeout: 30000 });
 
     await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 30000 });
 
@@ -140,7 +142,7 @@ test.describe("Stripe 決済フロー", () => {
   });
 
   test("Pro月額サブスク購入 → 成功ページ表示", async ({ page }) => {
-    await page.getByRole("button", { name: "始める" }).nth(1).click();
+    await page.getByRole("button", { name: "始める" }).nth(1).click({ timeout: 30000 });
 
     await expect(page).toHaveURL(/checkout\.stripe\.com/, { timeout: 30000 });
 
