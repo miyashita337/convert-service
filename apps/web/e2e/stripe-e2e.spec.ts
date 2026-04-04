@@ -41,8 +41,9 @@ async function fillStripeCheckout(page: import("@playwright/test").Page) {
 
 test.describe("Stripe 決済フロー", () => {
   test.beforeEach(async ({ page, context }) => {
-    // Set auth cookie on API domain so credentials: "include" sends it
     const token = getAuthToken();
+
+    // Set auth cookie on API domain
     await context.addCookies([
       {
         name: "qc_auth",
@@ -54,6 +55,24 @@ test.describe("Stripe 決済フロー", () => {
         sameSite: "None",
       },
     ]);
+
+    // Intercept /api/auth/me to ensure authenticated state in frontend
+    // (workaround for cross-domain cookie restrictions in CI headless browser)
+    await page.route(`**/api/auth/me`, async (route) => {
+      const response = await route.fetch({
+        headers: { ...route.request().headers(), Cookie: `qc_auth=${token}` },
+      });
+      await route.fulfill({ response });
+    });
+
+    // Intercept /api/checkout to inject cookie
+    await page.route(`**/api/checkout`, async (route) => {
+      const response = await route.fetch({
+        headers: { ...route.request().headers(), Cookie: `qc_auth=${token}` },
+      });
+      await route.fulfill({ response });
+    });
+
     await page.goto(`${STAGING_URL}/ja/pricing`);
     // Cookie同意バナーが表示されたら閉じる
     const consent = page.getByRole("button", { name: "同意する" });
