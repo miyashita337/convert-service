@@ -24,6 +24,7 @@ import resize from "./routes/resize";
 import stream from "./routes/stream";
 import presign from "./routes/presign";
 import stats from "./routes/stats";
+import testAuth from "./routes/test-auth";
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -85,5 +86,6 @@ app.route("/api/resize", resize);
 app.route("/api/stream", stream);
 app.route("/api/upload", presign);
 app.route("/api/stats", stats);
+app.route("/api/test", testAuth);
 
 export default app;
