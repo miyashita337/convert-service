@@ -118,15 +118,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright browsers
         run: cd apps/web && npx playwright install --with-deps chromium
-      - name: Generate auth-state.json
+      - name: Generate auth-state.json via test auth endpoint
         env:
-          E2E_QC_AUTH_TOKEN: ${{ secrets.E2E_QC_AUTH_TOKEN }}
+          E2E_TEST_SECRET: ${{ secrets.E2E_TEST_SECRET }}
         run: |
-          cat > apps/web/e2e/auth-state.json << EOF
+          TOKEN=$(curl -sf -X POST "https://api-staging.quickconv.cc/api/test/token" \
+            -H "Content-Type: application/json" \
+            -H "X-E2E-Secret: ${E2E_TEST_SECRET}" \
+            -d '{"email":"proce55ingpurser@gmail.com","plan":"free"}' | jq -r '.token')
+          cat > apps/web/e2e/auth-state.json << AUTHEOF
           {
             "cookies": [{
               "name": "qc_auth",
-              "value": "${E2E_QC_AUTH_TOKEN}",
+              "value": "${TOKEN}",
               "domain": "api-staging.quickconv.cc",
               "path": "/",
               "expires": -1,
@@ -136,7 +140,7 @@ jobs:
             }],
             "origins": []
           }
-          EOF
+          AUTHEOF
       - name: Run Stripe E2E tests
         env:
           E2E_TARGET: staging
