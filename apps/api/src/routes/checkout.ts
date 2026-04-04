@@ -37,7 +37,7 @@ checkout.post("/", async (c) => {
     return c.json({ error: "authentication_required", message: "Please log in to purchase." }, 401);
   }
 
-  const body = await c.req.json<{ planId: string; currency?: string }>().catch(() => null);
+  const body = await c.req.json<{ planId: string; currency?: string; locale?: string }>().catch(() => null);
   if (!body?.planId || !isValidPlanId(body.planId)) {
     return c.json({ error: "invalid_plan", message: "Invalid plan ID." }, 400);
   }
@@ -51,7 +51,9 @@ checkout.post("/", async (c) => {
   const currency: SupportedCurrency = body.currency === "usd" ? "usd" : "jpy";
   const plan = PLAN_CONFIGS[body.planId];
   const stripe = createStripeClient(c.env);
-  const frontendUrl = c.env.APP_URL.replace("api.", "");
+  const frontendBase = c.env.FRONTEND_URL || c.env.APP_URL.replace("api.", "");
+  const locale = body.locale === "ja" ? "ja" : "en";
+  const frontendUrl = `${frontendBase}/${locale}`;
 
   let stripePriceId: string;
   try {

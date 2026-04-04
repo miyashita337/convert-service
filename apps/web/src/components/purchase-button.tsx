@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
@@ -15,6 +16,7 @@ interface PurchaseButtonProps {
 
 export function PurchaseButton({ planId, label, currency = "jpy", highlighted, disabled }: PurchaseButtonProps) {
   const { user, login } = useAuth();
+  const locale = useLocale();
   const [loading, setLoading] = useState(false);
 
   const handlePurchase = async () => {
@@ -25,7 +27,7 @@ export function PurchaseButton({ planId, label, currency = "jpy", highlighted, d
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ planId, currency }),
+        body: JSON.stringify({ planId, currency, locale }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
