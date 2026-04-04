@@ -1,8 +1,14 @@
 import { test, expect } from "@playwright/test";
+import * as fs from "fs";
+import * as path from "path";
 
 const STAGING_URL = process.env.E2E_TARGET === "production"
   ? "https://quickconv.cc"
   : "https://staging.quickconv.cc";
+
+const API_DOMAIN = process.env.E2E_TARGET === "production"
+  ? "api.quickconv.cc"
+  : "api-staging.quickconv.cc";
 
 const TEST_CARD = {
   number: "4242 4242 4242 4242",
@@ -11,9 +17,18 @@ const TEST_CARD = {
   name: "TEST USER",
 };
 
-test.use({
-  storageState: "e2e/auth-state.json",
-});
+/** Load JWT from auth-state.json */
+function getAuthToken(): string {
+  const statePath = path.join(__dirname, "auth-state.json");
+  const state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
+  const token = state?.cookies?.find(
+    (cookie: { name?: string; value?: string }) => cookie.name === "qc_auth",
+  )?.value;
+  if (!token) {
+    throw new Error("qc_auth token is missing in e2e/auth-state.json");
+  }
+  return token;
+}
 
 /** Fill Stripe Checkout form and submit */
 async function fillStripeCheckout(page: import("@playwright/test").Page) {
@@ -25,7 +40,20 @@ async function fillStripeCheckout(page: import("@playwright/test").Page) {
 }
 
 test.describe("Stripe 決済フロー", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
+    // Set auth cookie on API domain so credentials: "include" sends it
+    const token = getAuthToken();
+    await context.addCookies([
+      {
+        name: "qc_auth",
+        value: token,
+        domain: API_DOMAIN,
+        path: "/",
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      },
+    ]);
     await page.goto(`${STAGING_URL}/ja/pricing`);
     // Cookie同意バナーが表示されたら閉じる
     const consent = page.getByRole("button", { name: "同意する" });
