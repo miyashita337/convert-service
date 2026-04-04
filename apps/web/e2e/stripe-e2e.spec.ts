@@ -15,6 +15,7 @@ const TEST_CARD = {
   expiry: "12 / 30",
   cvc: "123",
   name: "TEST USER",
+  postalCode: "10001",
 };
 
 /** Load JWT from auth-state.json */
@@ -48,6 +49,10 @@ async function fillStripeCheckout(page: import("@playwright/test").Page) {
 
   const nameInput = page.locator('[name="billingName"], [autocomplete="cc-name"]').first();
   await nameInput.fill(TEST_CARD.name);
+
+  // Stripe requires postal code for USD transactions
+  const postalInput = page.locator('[name="postalCode"], [name="billingPostalCode"], [autocomplete="postal-code"]').first();
+  await postalInput.fill(TEST_CARD.postalCode);
 
   await page.getByTestId("hosted-payment-submit-button").click();
 }
@@ -87,10 +92,15 @@ test.describe("Stripe 決済フロー", () => {
     });
 
     await page.goto(`${STAGING_URL}/ja/pricing`);
-    // Cookie同意バナーが表示されたら閉じる
-    const consent = page.getByRole("button", { name: "同意する" });
-    if (await consent.isVisible({ timeout: 2000 }).catch(() => false)) {
+    // Cookie同意バナーが表示されたら閉じる（React hydration 後に出現するため waitFor で待つ）
+    try {
+      const consent = page.getByRole("button", { name: "同意する" });
+      await consent.waitFor({ state: "visible", timeout: 5000 });
       await consent.click();
+      // バナーが消えるのを待つ
+      await consent.waitFor({ state: "hidden", timeout: 3000 });
+    } catch {
+      // Cookie同意バナーが表示されない場合（既に同意済み等）は無視
     }
   });
 
