@@ -21,7 +21,13 @@ const TEST_CARD = {
 function getAuthToken(): string {
   const statePath = path.join(__dirname, "auth-state.json");
   const state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
-  return state.cookies[0]?.value || "";
+  const token = state?.cookies?.find(
+    (cookie: { name?: string; value?: string }) => cookie.name === "qc_auth",
+  )?.value;
+  if (!token) {
+    throw new Error("qc_auth token is missing in e2e/auth-state.json");
+  }
+  return token;
 }
 
 /** Fill Stripe Checkout form and submit */
