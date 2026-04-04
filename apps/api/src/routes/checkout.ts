@@ -69,9 +69,11 @@ checkout.post("/", async (c) => {
     return c.json({ error: "invalid_plan", message: "Invalid plan ID." }, 400);
   }
 
-  // Reuse existing Stripe Customer ID if available
-  const customerParams = user.stripeCustomerId
-    ? { customer: user.stripeCustomerId }
+  // Reuse existing Stripe Customer ID if available (must start with "cus_")
+  // The DB uses stripe_customer_id as PK with UUID for users who haven't purchased yet
+  const hasRealStripeId = user.stripeCustomerId?.startsWith("cus_");
+  const customerParams = hasRealStripeId
+    ? { customer: user.stripeCustomerId! }
     : { customer_email: user.email };
 
   try {
@@ -105,8 +107,9 @@ checkout.post("/", async (c) => {
     });
     return c.json({ url: session.url });
   } catch (err) {
-    console.error("Stripe checkout error:", err);
-    return c.json({ error: "checkout_failed", message: "Failed to create checkout session." }, 500);
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error("Stripe checkout error:", errMsg);
+    return c.json({ error: "checkout_failed", message: `Failed to create checkout session.`, detail: errMsg }, 500);
   }
 });
 

@@ -25,7 +25,7 @@ export async function upsertUser(
     };
   }
 
-  // New user — stripe_customer_id will be set later when they first purchase
+  // New user — stripe_customer_id is used as PK (UUID), NOT a real Stripe customer ID
   const id = crypto.randomUUID();
   await db
     .prepare(
