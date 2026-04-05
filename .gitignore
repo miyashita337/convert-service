@@ -23,6 +23,12 @@ Thumbs.db
 # Claude Code
 .claude/progress.json
 .claude/worktrees/
+.observer.lock
+
+# Launch binary assets (regenerable via create-demo-gif.sh)
+docs/launch/*.gif
+docs/launch/*.png
+docs/launch/*.mp4
 
 # Sessions
 tools/.sessions/
