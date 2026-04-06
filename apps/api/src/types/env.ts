@@ -22,9 +22,16 @@ export interface AuthUser {
   googleId: string | null;
 }
 
+export interface ApiKeyContext {
+  keyId: string;
+  userEmail: string;
+  plan: string;
+}
+
 export interface AppVariables {
   clientHash: string;
   rateLimitRemaining: number;
   rateLimitLimit: number;
   user: AuthUser | null;
+  apiKey?: ApiKeyContext;
 }

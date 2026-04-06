@@ -88,7 +88,9 @@
     "contactTitle": "Contact Us | QuickConv",
     "contactDescription": "Get in touch with the QuickConv team. Report bugs, request features, or ask questions about our free online image converter.",
     "pricingTitle": "Pricing | QuickConv",
-    "pricingDescription": "Compare QuickConv plans. Free image conversion with optional upgrades for unlimited access, larger files, and no ads."
+    "pricingDescription": "Compare QuickConv plans. Free image conversion with optional upgrades for unlimited access, larger files, and no ads.",
+    "developersTitle": "Image Conversion API for Developers | QuickConv",
+    "developersDescription": "Convert images between WebP, AVIF, PNG, and JPG via a simple REST API. Free tier included. Cheaper than CloudConvert."
   },
   "pricing": {
     "title": "Pricing",
@@ -934,5 +936,39 @@
     "stepConvertText": "Select {to} as the output format and click Start Conversion.",
     "stepDownloadName": "Download the result",
     "stepDownloadText": "Once the conversion is complete, click Download to save your {to} file."
+  },
+  "developers": {
+    "title": "Image Conversion API",
+    "subtitle": "Convert images between WebP, AVIF, PNG, and JPG with a single API call.",
+    "getApiKey": "Get Your Free API Key",
+    "viewDocs": "View API Docs",
+    "whyTitle": "Why QuickConv API?",
+    "why1Title": "Simple",
+    "why1Desc": "One endpoint, one request. Upload a file, get a converted file back. No complex workflows.",
+    "why2Title": "Affordable",
+    "why2Desc": "100 free conversions/month. Paid plans start at just ¥980/month — fraction of CloudConvert's price.",
+    "why3Title": "Next-Gen Focused",
+    "why3Desc": "Specialized in WebP and AVIF — the formats modern web demands. Not 200+ formats you'll never use.",
+    "codeTitle": "One API Call. That's It.",
+    "pricingTitle": "API Pricing",
+    "pricingFree": "Free",
+    "pricingFreePrice": "¥0",
+    "pricingFreeDesc": "100 conversions/month, 10MB/file",
+    "pricingStarter": "Starter",
+    "pricingStarterPrice": "¥980/mo",
+    "pricingStarterDesc": "5,000 conversions/month, 50MB/file",
+    "pricingPro": "Pro",
+    "pricingProPrice": "¥4,980/mo",
+    "pricingProDesc": "50,000 conversions/month, 100MB/file",
+    "pricingEnterprise": "Enterprise",
+    "pricingEnterprisePrice": "Custom",
+    "pricingEnterpriseDesc": "Custom limits, SLA, dedicated support",
+    "compareTitle": "How We Compare",
+    "compareService": "Service",
+    "comparePrice": "Starting Price",
+    "compareFormats": "Formats",
+    "compareFocus": "Focus",
+    "ctaTitle": "Start Converting in Minutes",
+    "ctaDesc": "Get your free API key and make your first conversion in under 5 minutes."
   }
 }

@@ -88,7 +88,9 @@
     "contactTitle": "お問い合わせ | QuickConv",
     "contactDescription": "QuickConvチームへのお問い合わせ。バグ報告、機能リクエスト、無料オンライン画像変換に関するご質問はこちら。",
     "pricingTitle": "料金プラン | QuickConv",
-    "pricingDescription": "QuickConvの料金プラン比較。無料で画像変換、アップグレードで無制限・大容量・広告なし。"
+    "pricingDescription": "QuickConvの料金プラン比較。無料で画像変換、アップグレードで無制限・大容量・広告なし。",
+    "developersTitle": "画像変換API | QuickConv",
+    "developersDescription": "WebP・AVIF・PNG・JPGをシンプルなREST APIで変換。無料枠あり。CloudConvertより低価格。"
   },
   "pricing": {
     "title": "料金プラン",
@@ -927,5 +929,39 @@
     "stepConvertText": "出力形式として{to}を選択し、「変換開始」をクリックします。",
     "stepDownloadName": "結果をダウンロード",
     "stepDownloadText": "変換が完了したら、「ダウンロード」をクリックして{to}ファイルを保存します。"
+  },
+  "developers": {
+    "title": "画像変換API",
+    "subtitle": "WebP・AVIF・PNG・JPGをたった1回のAPIコールで変換。",
+    "getApiKey": "無料APIキーを取得",
+    "viewDocs": "APIドキュメント",
+    "whyTitle": "QuickConv APIの特長",
+    "why1Title": "シンプル",
+    "why1Desc": "1エンドポイント、1リクエスト。ファイルを送って変換結果を受け取るだけ。",
+    "why2Title": "低価格",
+    "why2Desc": "月100回まで無料。有料プランは月額¥980から — CloudConvertの数分の一。",
+    "why3Title": "次世代フォーマット特化",
+    "why3Desc": "WebPとAVIFに特化。モダンWebが求めるフォーマットに集中。",
+    "codeTitle": "APIコール1回。それだけ。",
+    "pricingTitle": "API料金",
+    "pricingFree": "Free",
+    "pricingFreePrice": "¥0",
+    "pricingFreeDesc": "月100回変換、10MB/ファイル",
+    "pricingStarter": "Starter",
+    "pricingStarterPrice": "¥980/月",
+    "pricingStarterDesc": "月5,000回変換、50MB/ファイル",
+    "pricingPro": "Pro",
+    "pricingProPrice": "¥4,980/月",
+    "pricingProDesc": "月50,000回変換、100MB/ファイル",
+    "pricingEnterprise": "Enterprise",
+    "pricingEnterprisePrice": "カスタム",
+    "pricingEnterpriseDesc": "カスタム制限、SLA、専用サポート",
+    "compareTitle": "競合比較",
+    "compareService": "サービス",
+    "comparePrice": "最低価格",
+    "compareFormats": "フォーマット数",
+    "compareFocus": "特長",
+    "ctaTitle": "数分で変換開始",
+    "ctaDesc": "無料APIキーを取得して、5分以内に最初の変換を実行しましょう。"
   }
 }
