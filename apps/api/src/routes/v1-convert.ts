@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
 import { CONVERSION_PAIRS, FILE_EXPIRY_HOURS, FORMAT_TO_MIME, MIME_TO_FORMAT } from "@quickconv/shared";
+import type { OutputFormat } from "@quickconv/shared";
 import type { Env, AppVariables } from "../types/env";
 import { createJob, updateJobStatus } from "../services/d1";
 import { requestDirectConversion } from "../services/converter";
@@ -49,7 +50,7 @@ v1Convert.post("/", async (c) => {
 
   // Validate conversion pair
   const allowedOutputs = CONVERSION_PAIRS[inputFormat];
-  if (!allowedOutputs?.includes(outputFormat)) {
+  if (!allowedOutputs?.includes(outputFormat as OutputFormat)) {
     return c.json(
       { error: { code: "validation", message: `Cannot convert ${inputFormat} to ${outputFormat}` } },
       400
@@ -80,7 +81,7 @@ v1Convert.post("/", async (c) => {
     id: jobId,
     inputFileKey: inputKey,
     inputFormat,
-    outputFormat,
+    outputFormat: outputFormat as OutputFormat,
     expiresAt,
   });
 

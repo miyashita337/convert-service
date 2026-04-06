@@ -22,7 +22,7 @@ developer.post("/keys", async (c) => {
   const user = requireAuth(c);
   if (user instanceof Response) return user;
 
-  const body = await c.req.json<{ name?: string }>().catch(() => ({}));
+  const body = await c.req.json<{ name?: string }>().catch(() => ({ name: undefined }));
   const name = body.name?.trim() || "Default";
 
   if (name.length > 64) {
