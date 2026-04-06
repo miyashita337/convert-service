@@ -1,0 +1,231 @@
+openapi: 3.0.3
+info:
+  title: QuickConv API
+  description: |
+    Image format conversion API specializing in next-gen formats (WebP, AVIF).
+    Simple, affordable, and focused on modern image formats.
+  version: 1.0.0
+  contact:
+    url: https://quickconv.cc/developers
+
+servers:
+  - url: https://api.quickconv.cc
+    description: Production
+
+security:
+  - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      description: |
+        API Key with `qc_` prefix. Get yours at https://quickconv.cc/developers.
+        Example: `Authorization: Bearer qc_abc123def456`
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - unauthorized
+                - validation
+                - file_too_large
+                - rate_limit_exceeded
+                - conversion_failed
+            message:
+              type: string
+
+    ConvertResponse:
+      type: object
+      required: [url, format, size, expires_at]
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Download URL for the converted file (expires in 24h)
+        format:
+          type: string
+          description: Output format
+          enum: [jpg, png, webp, avif]
+        size:
+          type: integer
+          description: Output file size in bytes
+        expires_at:
+          type: string
+          format: date-time
+          description: When the download URL expires
+
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+          description: Full API key (shown only once at creation)
+        prefix:
+          type: string
+          description: Key prefix for identification (e.g., qc_abc123)
+        name:
+          type: string
+        plan:
+          type: string
+          enum: [free, starter, pro]
+        createdAt:
+          type: string
+          format: date-time
+
+paths:
+  /v1/convert:
+    post:
+      summary: Convert an image
+      description: |
+        Upload an image and convert it to another format in a single request.
+        The response includes a download URL valid for 24 hours.
+      operationId: convertImage
+      tags: [Conversion]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, output_format]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file to convert
+                output_format:
+                  type: string
+                  enum: [jpg, png, webp, avif]
+                  description: Target format
+                quality:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  description: Output quality (1-100, optional)
+      responses:
+        "200":
+          description: Conversion successful
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Monthly request limit
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+              description: Remaining requests this month
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+              description: Unix timestamp when the limit resets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConvertResponse"
+              example:
+                url: "https://api.quickconv.cc/api/download/abc123"
+                format: "webp"
+                size: 45678
+                expires_at: "2026-04-08T12:00:00.000Z"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Monthly rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/developer/keys:
+    post:
+      summary: Create an API key
+      description: Generate a new API key. Store it securely — it's shown only once.
+      operationId: createApiKey
+      tags: [Developer]
+      security:
+        - {} # Cookie auth (logged in via web)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 64
+                  description: Optional label for the key
+      responses:
+        "201":
+          description: API key created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKey"
+        "401":
+          description: Login required
+
+    get:
+      summary: List your API keys
+      operationId: listApiKeys
+      tags: [Developer]
+      security:
+        - {} # Cookie auth
+      responses:
+        "200":
+          description: List of active API keys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApiKey"
+
+  /api/developer/keys/{id}:
+    delete:
+      summary: Revoke an API key
+      operationId: revokeApiKey
+      tags: [Developer]
+      security:
+        - {} # Cookie auth
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Key revoked
+        "404":
+          description: Key not found

@@ -25,13 +25,16 @@ import stream from "./routes/stream";
 import presign from "./routes/presign";
 import stats from "./routes/stats";
 import testAuth from "./routes/test-auth";
+import developer from "./routes/developer";
+import v1Convert from "./routes/v1-convert";
+import { apiKeyAuthMiddleware } from "./middleware/api-key-auth";
 
 const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
 // Sentry — must be first to capture all errors
 app.use("/api/*", sentryMiddleware());
 
-// CORS
+// CORS — /api/* and /v1/*
 app.use(
   "/api/*",
   async (c, next) => {
@@ -87,5 +90,11 @@ app.route("/api/stream", stream);
 app.route("/api/upload", presign);
 app.route("/api/stats", stats);
 app.route("/api/test", testAuth);
+app.route("/api/developer", developer);
+
+// Public API v1 — CORS + API Key authentication
+app.use("/v1/*", cors({ origin: "*", allowMethods: ["POST", "OPTIONS"], allowHeaders: ["Content-Type", "Authorization"] }));
+app.use("/v1/*", apiKeyAuthMiddleware());
+app.route("/v1/convert", v1Convert);
 
 export default app;
