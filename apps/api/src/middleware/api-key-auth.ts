@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
 import type { Env, AppVariables } from "../types/env";
-import { findApiKeyByRawKey, getApiKeyUsage, incrementApiKeyUsage, getApiPlanLimit } from "../repositories/api-key-repository";
+import { findApiKeyByRawKey, consumeApiKeyUsage } from "../repositories/api-key-repository";
 
 /**
  * API Key authentication middleware for /v1/* routes.
@@ -27,27 +27,24 @@ export function apiKeyAuthMiddleware() {
         );
       }
 
-      // Check monthly rate limit before incrementing
-      const currentUsage = await getApiKeyUsage(c.env.DB, keyInfo.id);
+      // Atomic rate limit check + increment
+      const usage = await consumeApiKeyUsage(c.env.DB, keyInfo.id, keyInfo.plan);
 
-      if (currentUsage.count >= currentUsage.limit) {
+      if (!usage.allowed) {
         return c.json(
           {
             error: {
               code: "rate_limit_exceeded",
-              message: `Monthly limit exceeded (${currentUsage.limit}/month). Upgrade your plan.`,
+              message: `Monthly limit exceeded (${usage.limit}/month). Upgrade your plan.`,
             },
           },
           429
         );
       }
 
-      // Increment only after passing the check
-      const usage = await incrementApiKeyUsage(c.env.DB, keyInfo.id);
-
       // Set rate limit headers
-      c.header("X-RateLimit-Limit", String(currentUsage.limit));
-      c.header("X-RateLimit-Remaining", String(Math.max(0, currentUsage.limit - usage.count)));
+      c.header("X-RateLimit-Limit", String(usage.limit));
+      c.header("X-RateLimit-Remaining", String(Math.max(0, usage.limit - usage.count)));
       c.header("X-RateLimit-Reset", getMonthEndTimestamp());
 
       c.set("apiKey", {

@@ -58,18 +58,17 @@ export async function createApiKeyWithLimit(
   const keyPrefix = rawKey.slice(0, 10);
   const month = getCurrentMonth();
 
-  // D1 batch executes all statements in a single transaction
-  const [countResult] = await db.batch([
-    db.prepare("SELECT COUNT(*) as cnt FROM api_keys WHERE user_email = ? AND revoked_at IS NULL").bind(userEmail),
-    db.prepare(
+  // Conditional INSERT: only inserts if active key count < maxKeys
+  const insertResult = await db
+    .prepare(
       `INSERT INTO api_keys (id, user_email, key_hash, key_prefix, name, plan, monthly_count, count_month)
        SELECT ?, ?, ?, ?, ?, 'free', 0, ?
        WHERE (SELECT COUNT(*) FROM api_keys WHERE user_email = ? AND revoked_at IS NULL) < ?`
-    ).bind(id, userEmail, keyHash, keyPrefix, name, month, userEmail, maxKeys),
-  ]);
+    )
+    .bind(id, userEmail, keyHash, keyPrefix, name, month, userEmail, maxKeys)
+    .run();
 
-  const count = (countResult.results[0] as Record<string, unknown>)?.cnt as number ?? 0;
-  if (count >= maxKeys) return null;
+  if ((insertResult.meta.changes ?? 0) === 0) return null;
 
   return {
     key: rawKey,
@@ -126,29 +125,20 @@ export async function revokeApiKey(
   return (result.meta.changes ?? 0) > 0;
 }
 
-export async function getApiKeyUsage(
+/**
+ * Atomically check rate limit + increment in a single UPDATE.
+ * Returns null if limit exceeded (no rows updated).
+ */
+export async function consumeApiKeyUsage(
   db: D1Database,
-  keyId: string
-): Promise<{ count: number; limit: number; plan: string }> {
+  keyId: string,
+  plan: string
+): Promise<{ allowed: boolean; count: number; limit: number }> {
   const month = getCurrentMonth();
-  const row = await db
-    .prepare("SELECT plan, monthly_count, count_month FROM api_keys WHERE id = ?")
-    .bind(keyId)
-    .first<{ plan: string; monthly_count: number; count_month: string | null }>();
+  const limit = getApiPlanLimit(plan);
 
-  const plan = row?.plan ?? "free";
-  // If month doesn't match, count is effectively 0
-  const count = row?.count_month === month ? (row?.monthly_count ?? 0) : 0;
-  return { count, limit: getApiPlanLimit(plan), plan };
-}
-
-export async function incrementApiKeyUsage(
-  db: D1Database,
-  keyId: string
-): Promise<{ count: number; limit: number }> {
-  const month = getCurrentMonth();
-
-  // Reset count if new month
+  // Reset month if needed, then conditionally increment only if under limit
+  // Step 1: Reset if new month
   await db
     .prepare(
       "UPDATE api_keys SET monthly_count = 0, count_month = ? WHERE id = ? AND (count_month IS NULL OR count_month != ?)"
@@ -156,23 +146,26 @@ export async function incrementApiKeyUsage(
     .bind(month, keyId, month)
     .run();
 
-  // Increment
-  await db
+  // Step 2: Atomic increment with limit guard
+  const result = await db
     .prepare(
-      "UPDATE api_keys SET monthly_count = monthly_count + 1 WHERE id = ?"
+      "UPDATE api_keys SET monthly_count = monthly_count + 1 WHERE id = ? AND monthly_count < ?"
     )
-    .bind(keyId)
+    .bind(keyId, limit)
     .run();
 
-  const row = await db
-    .prepare("SELECT plan, monthly_count FROM api_keys WHERE id = ?")
-    .bind(keyId)
-    .first<{ plan: string; monthly_count: number }>();
+  const allowed = (result.meta.changes ?? 0) > 0;
 
-  const plan = row?.plan ?? "free";
+  // Read final count
+  const row = await db
+    .prepare("SELECT monthly_count FROM api_keys WHERE id = ?")
+    .bind(keyId)
+    .first<{ monthly_count: number }>();
+
   return {
-    count: row?.monthly_count ?? 1,
-    limit: getApiPlanLimit(plan),
+    allowed,
+    count: row?.monthly_count ?? 0,
+    limit,
   };
 }
 

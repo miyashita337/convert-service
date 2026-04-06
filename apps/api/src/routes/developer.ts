@@ -22,9 +22,21 @@ developer.post("/keys", async (c) => {
   const user = requireAuth(c);
   if (user instanceof Response) return user;
 
-  const raw: unknown = await c.req.json().catch(() => null);
-  const rawName = raw && typeof raw === "object" && "name" in raw ? (raw as Record<string, unknown>).name : undefined;
-  const name = typeof rawName === "string" ? rawName.trim().slice(0, 64) || "Default" : "Default";
+  // Distinguish empty body (allowed) from malformed JSON (400)
+  const text = await c.req.text();
+  let name = "Default";
+  if (text.length > 0) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return c.json({ error: { code: "validation", message: "Invalid JSON body" } }, 400);
+    }
+    const rawName = parsed && typeof parsed === "object" && "name" in parsed
+      ? (parsed as Record<string, unknown>).name
+      : undefined;
+    name = typeof rawName === "string" ? rawName.trim().slice(0, 64) || "Default" : "Default";
+  }
 
   const result = await createApiKeyWithLimit(c.env.DB, user.email, name, 5);
   if (!result) {
@@ -49,13 +61,14 @@ developer.get("/keys", async (c) => {
 
   const keys = await listApiKeysByUser(c.env.DB, user.email);
 
+  const currentMonth = new Date().toISOString().slice(0, 7);
   return c.json({
     keys: keys.map((k) => ({
       id: k.id,
       prefix: k.keyPrefix,
       name: k.name,
       plan: k.plan,
-      monthlyCount: k.monthlyCount,
+      monthlyCount: k.countMonth === currentMonth ? k.monthlyCount : 0,
       createdAt: k.createdAt,
     })),
   });
