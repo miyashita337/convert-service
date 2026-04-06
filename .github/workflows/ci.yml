@@ -80,7 +80,8 @@ jobs:
       - name: Run unit tests
         run: cd apps/api && pnpm test
 
-  deploy-web:
+  # ── Stage 2: Staging Deploy ──────────────────────────────────────
+  deploy-stg:
     runs-on: ubuntu-latest
     needs: [lint-and-build, test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -92,22 +93,16 @@ jobs:
           node-version: 22
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
-      - name: Build web
-        env:
-          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
-          NEXT_PUBLIC_API_URL: https://api.quickconv.cc
-          NEXT_PUBLIC_SITE_URL: https://quickconv.cc
-        run: pnpm run build --filter=@quickconv/web
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy API to Workers (staging)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler pages deploy apps/web/out --project-name quickconv-web
+        run: cd apps/api && npx wrangler deploy --env staging
 
-  e2e-stripe:
+  # ── Stage 3: Staging E2E ───────────────────────────────────────
+  e2e-stg:
     runs-on: ubuntu-latest
-    needs: [lint-and-build, test]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: deploy-stg
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -146,7 +141,7 @@ jobs:
             "origins": []
           }
           AUTHEOF
-      - name: Run Stripe E2E tests
+      - name: Run staging E2E tests
         env:
           E2E_TARGET: staging
         working-directory: apps/web
@@ -155,14 +150,43 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-stripe-results
+          name: e2e-stg-results
           path: apps/web/test-results/
           retention-days: 7
 
-  e2e-production:
+  # ── Stage 4: Production Deploy (gated by staging E2E) ──────────
+  deploy-prod:
     runs-on: ubuntu-latest
-    needs: [lint-and-build, test]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: e2e-stg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Build web
+        env:
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+          NEXT_PUBLIC_API_URL: https://api.quickconv.cc
+          NEXT_PUBLIC_SITE_URL: https://quickconv.cc
+        run: pnpm run build --filter=@quickconv/web
+      - name: Deploy Pages to production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler pages deploy apps/web/out --project-name quickconv-web
+      - name: Deploy API to Workers (production)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: cd apps/api && npx wrangler deploy
+
+  # ── Stage 5: Production E2E ────────────────────────────────────
+  e2e-prod:
+    runs-on: ubuntu-latest
+    needs: deploy-prod
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -186,6 +210,43 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-results
+          name: e2e-prod-results
           path: apps/web/test-results/
           retention-days: 7
+
+  # ── Stage 6: Notify ────────────────────────────────────────────
+  notify:
+    runs-on: ubuntu-latest
+    needs: [e2e-stg, deploy-prod, e2e-prod]
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Determine result
+        id: result
+        run: |
+          if [[ "${{ needs.e2e-stg.result }}" == "failure" ]]; then
+            echo "status=FAIL" >> "$GITHUB_OUTPUT"
+            echo "message=Staging E2E failed — production deploy was blocked" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ needs.deploy-prod.result }}" == "failure" ]]; then
+            echo "status=FAIL" >> "$GITHUB_OUTPUT"
+            echo "message=Production deploy failed" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ needs.e2e-prod.result }}" == "failure" ]]; then
+            echo "status=FAIL" >> "$GITHUB_OUTPUT"
+            echo "message=Production E2E failed — deployed code may have issues" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=PASS" >> "$GITHUB_OUTPUT"
+            echo "message=All stages passed" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Send Pushover notification on failure
+        if: steps.result.outputs.status == 'FAIL'
+        env:
+          PUSHOVER_USER_KEY: ${{ secrets.PUSHOVER_USER_KEY }}
+          PUSHOVER_API_TOKEN: ${{ secrets.PUSHOVER_API_TOKEN }}
+        run: |
+          curl -sf -X POST "https://api.pushover.net/1/messages.json" \
+            -d "token=${PUSHOVER_API_TOKEN}" \
+            -d "user=${PUSHOVER_USER_KEY}" \
+            -d "title=QuickConv CI: ${{ steps.result.outputs.status }}" \
+            -d "message=${{ steps.result.outputs.message }}" \
+            -d "url=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -d "url_title=View Run" \
+            -d "priority=1"
