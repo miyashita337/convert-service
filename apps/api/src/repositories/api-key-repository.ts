@@ -115,6 +115,22 @@ export async function revokeApiKey(
   return (result.meta.changes ?? 0) > 0;
 }
 
+export async function getApiKeyUsage(
+  db: D1Database,
+  keyId: string
+): Promise<{ count: number; limit: number; plan: string }> {
+  const month = getCurrentMonth();
+  const row = await db
+    .prepare("SELECT plan, monthly_count, count_month FROM api_keys WHERE id = ?")
+    .bind(keyId)
+    .first<{ plan: string; monthly_count: number; count_month: string | null }>();
+
+  const plan = row?.plan ?? "free";
+  // If month doesn't match, count is effectively 0
+  const count = row?.count_month === month ? (row?.monthly_count ?? 0) : 0;
+  return { count, limit: getApiPlanLimit(plan), plan };
+}
+
 export async function incrementApiKeyUsage(
   db: D1Database,
   keyId: string

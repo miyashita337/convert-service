@@ -92,7 +92,8 @@ app.route("/api/stats", stats);
 app.route("/api/test", testAuth);
 app.route("/api/developer", developer);
 
-// Public API v1 — CORS + API Key authentication
+// Public API v1 — Sentry + CORS + API Key authentication
+app.use("/v1/*", sentryMiddleware());
 app.use("/v1/*", cors({ origin: "*", allowMethods: ["POST", "OPTIONS"], allowHeaders: ["Content-Type", "Authorization"] }));
 app.use("/v1/*", apiKeyAuthMiddleware());
 app.route("/v1/convert", v1Convert);

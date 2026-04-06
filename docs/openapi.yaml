@@ -109,11 +109,6 @@ paths:
                   type: string
                   enum: [jpg, png, webp, avif]
                   description: Target format
-                quality:
-                  type: integer
-                  minimum: 1
-                  maximum: 100
-                  description: Output quality (1-100, optional)
       responses:
         "200":
           description: Conversion successful

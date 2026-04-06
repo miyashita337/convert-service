@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
   key_hash TEXT NOT NULL UNIQUE,
   key_prefix TEXT NOT NULL,
   name TEXT NOT NULL DEFAULT 'Default',
-  plan TEXT NOT NULL DEFAULT 'free',
+  plan TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'starter', 'pro')),
   monthly_count INTEGER NOT NULL DEFAULT 0,
   count_month TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),

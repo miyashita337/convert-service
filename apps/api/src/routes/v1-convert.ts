@@ -32,7 +32,6 @@ v1Convert.post("/", async (c) => {
   const formData = await c.req.formData();
   const file = formData.get("file");
   const outputFormat = formData.get("output_format") as string | null;
-  const quality = formData.get("quality") as string | null;
 
   if (!file || !(file instanceof File)) {
     return c.json({ error: { code: "validation", message: "Missing 'file' field" } }, 400);
@@ -86,9 +85,18 @@ v1Convert.post("/", async (c) => {
   });
 
   // Convert
+  const converterApiKey = c.env.CONVERTER_API_KEY;
+  if (!converterApiKey) {
+    console.error("CONVERTER_API_KEY is not configured");
+    return c.json(
+      { error: { code: "internal_error", message: "Service configuration error" } },
+      500
+    );
+  }
+
   const result = await requestDirectConversion(
     c.env.CONVERTER_URL,
-    c.env.CONVERTER_API_KEY || "test-key",
+    converterApiKey,
     {
       jobId,
       fileBody: fileBuffer,
