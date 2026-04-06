@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
 import {
-  createApiKey,
+  createApiKeyWithLimit,
   listApiKeysByUser,
   revokeApiKey,
 } from "../repositories/api-key-repository";
@@ -22,20 +22,14 @@ developer.post("/keys", async (c) => {
   const user = requireAuth(c);
   if (user instanceof Response) return user;
 
-  const body = await c.req.json<{ name?: string }>().catch(() => ({ name: undefined }));
-  const name = body.name?.trim() || "Default";
+  const raw: unknown = await c.req.json().catch(() => null);
+  const rawName = raw && typeof raw === "object" && "name" in raw ? (raw as Record<string, unknown>).name : undefined;
+  const name = typeof rawName === "string" ? rawName.trim().slice(0, 64) || "Default" : "Default";
 
-  if (name.length > 64) {
-    return c.json({ error: { code: "validation", message: "Name must be 64 characters or less" } }, 400);
-  }
-
-  // Limit to 5 active keys per user
-  const existing = await listApiKeysByUser(c.env.DB, user.email);
-  if (existing.length >= 5) {
+  const result = await createApiKeyWithLimit(c.env.DB, user.email, name, 5);
+  if (!result) {
     return c.json({ error: { code: "limit", message: "Maximum 5 active API keys per account" } }, 400);
   }
-
-  const result = await createApiKey(c.env.DB, user.email, name);
 
   return c.json({
     key: result.key,

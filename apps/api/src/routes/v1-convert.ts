@@ -5,7 +5,7 @@ import type { OutputFormat } from "@quickconv/shared";
 import type { Env, AppVariables } from "../types/env";
 import { createJob, updateJobStatus } from "../services/d1";
 import { requestDirectConversion } from "../services/converter";
-import { uploadToR2 } from "../services/r2";
+import { uploadToR2, deleteFromR2 } from "../services/r2";
 
 const API_FILE_SIZE_LIMITS: Record<string, number> = {
   free: 10 * 1024 * 1024,       // 10MB
@@ -70,21 +70,6 @@ v1Convert.post("/", async (c) => {
   const inputKey = `uploads/${fileId}.${inputFormat}`;
   const expiresAt = new Date(Date.now() + FILE_EXPIRY_HOURS * 60 * 60 * 1000).toISOString();
 
-  // Upload to R2
-  const fileBuffer = await file.arrayBuffer();
-  const inputMime = FORMAT_TO_MIME[inputFormat] || "application/octet-stream";
-  await uploadToR2(c.env.R2_BUCKET, inputKey, fileBuffer, inputMime);
-
-  // Create job record
-  await createJob(c.env.DB, {
-    id: jobId,
-    inputFileKey: inputKey,
-    inputFormat,
-    outputFormat: outputFormat as OutputFormat,
-    expiresAt,
-  });
-
-  // Convert
   const converterApiKey = c.env.CONVERTER_API_KEY;
   if (!converterApiKey) {
     console.error("CONVERTER_API_KEY is not configured");
@@ -94,44 +79,77 @@ v1Convert.post("/", async (c) => {
     );
   }
 
-  const result = await requestDirectConversion(
-    c.env.CONVERTER_URL,
-    converterApiKey,
-    {
-      jobId,
-      fileBody: fileBuffer,
-      fileName: `input.${inputFormat}`,
-      outputFormat,
-    }
-  );
+  const fileBuffer = await file.arrayBuffer();
+  const inputMime = FORMAT_TO_MIME[inputFormat] || "application/octet-stream";
+  let jobCreated = false;
 
-  if (!result.success || !result.outputBuffer) {
-    await updateJobStatus(c.env.DB, jobId, "failed", { errorMessage: result.error });
+  try {
+    // Upload to R2
+    await uploadToR2(c.env.R2_BUCKET, inputKey, fileBuffer, inputMime);
+
+    // Create job record
+    await createJob(c.env.DB, {
+      id: jobId,
+      inputFileKey: inputKey,
+      inputFormat,
+      outputFormat: outputFormat as OutputFormat,
+      expiresAt,
+    });
+    jobCreated = true;
+
+    // Convert
+    const result = await requestDirectConversion(
+      c.env.CONVERTER_URL,
+      converterApiKey,
+      {
+        jobId,
+        fileBody: fileBuffer,
+        fileName: `input.${inputFormat}`,
+        outputFormat,
+      }
+    );
+
+    if (!result.success || !result.outputBuffer) {
+      await updateJobStatus(c.env.DB, jobId, "failed", { errorMessage: result.error });
+      return c.json(
+        { error: { code: "conversion_failed", message: result.error || "Conversion failed" } },
+        500
+      );
+    }
+
+    // Store output
+    const outputKey = `converted/${jobId}.${outputFormat}`;
+    const outputMime = FORMAT_TO_MIME[outputFormat] || "application/octet-stream";
+    await uploadToR2(c.env.R2_BUCKET, outputKey, result.outputBuffer, outputMime);
+
+    await updateJobStatus(c.env.DB, jobId, "completed", {
+      outputFileKey: outputKey,
+      fileSize: result.fileSize,
+      progress: 100,
+    });
+
+    const appUrl = c.env.APP_URL || "https://api.quickconv.cc";
+
+    return c.json({
+      url: `${appUrl}/api/download/${jobId}`,
+      format: outputFormat,
+      size: result.fileSize ?? result.outputBuffer.byteLength,
+      expires_at: expiresAt,
+    });
+  } catch (err) {
+    // Cleanup: mark job as failed and remove orphaned R2 object
+    if (jobCreated) {
+      await updateJobStatus(c.env.DB, jobId, "failed", {
+        errorMessage: `Unexpected error: ${(err as Error).message}`,
+      }).catch(() => {});
+    }
+    await deleteFromR2(c.env.R2_BUCKET, inputKey).catch(() => {});
+
     return c.json(
-      { error: { code: "conversion_failed", message: result.error || "Conversion failed" } },
+      { error: { code: "internal_error", message: "An unexpected error occurred" } },
       500
     );
   }
-
-  // Store output
-  const outputKey = `converted/${jobId}.${outputFormat}`;
-  const outputMime = FORMAT_TO_MIME[outputFormat] || "application/octet-stream";
-  await uploadToR2(c.env.R2_BUCKET, outputKey, result.outputBuffer, outputMime);
-
-  await updateJobStatus(c.env.DB, jobId, "completed", {
-    outputFileKey: outputKey,
-    fileSize: result.fileSize,
-    progress: 100,
-  });
-
-  const appUrl = c.env.APP_URL || "https://api.quickconv.cc";
-
-  return c.json({
-    url: `${appUrl}/api/download/${jobId}`,
-    format: outputFormat,
-    size: result.fileSize ?? result.outputBuffer.byteLength,
-    expires_at: expiresAt,
-  });
 });
 
 export default v1Convert;

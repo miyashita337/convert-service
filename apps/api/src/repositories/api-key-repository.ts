@@ -42,23 +42,34 @@ async function hashKey(key: string): Promise<string> {
     .join("");
 }
 
-export async function createApiKey(
+/**
+ * Atomically check key count + insert using D1 batch.
+ * Returns null if limit would be exceeded.
+ */
+export async function createApiKeyWithLimit(
   db: D1Database,
   userEmail: string,
-  name: string
-): Promise<{ key: string; info: ApiKeyInfo }> {
+  name: string,
+  maxKeys: number
+): Promise<{ key: string; info: ApiKeyInfo } | null> {
   const id = crypto.randomUUID();
   const rawKey = `qc_${crypto.randomUUID().replace(/-/g, "")}`;
   const keyHash = await hashKey(rawKey);
   const keyPrefix = rawKey.slice(0, 10);
+  const month = getCurrentMonth();
 
-  await db
-    .prepare(
+  // D1 batch executes all statements in a single transaction
+  const [countResult] = await db.batch([
+    db.prepare("SELECT COUNT(*) as cnt FROM api_keys WHERE user_email = ? AND revoked_at IS NULL").bind(userEmail),
+    db.prepare(
       `INSERT INTO api_keys (id, user_email, key_hash, key_prefix, name, plan, monthly_count, count_month)
-       VALUES (?, ?, ?, ?, ?, 'free', 0, ?)`
-    )
-    .bind(id, userEmail, keyHash, keyPrefix, name, getCurrentMonth())
-    .run();
+       SELECT ?, ?, ?, ?, ?, 'free', 0, ?
+       WHERE (SELECT COUNT(*) FROM api_keys WHERE user_email = ? AND revoked_at IS NULL) < ?`
+    ).bind(id, userEmail, keyHash, keyPrefix, name, month, userEmail, maxKeys),
+  ]);
+
+  const count = (countResult.results[0] as Record<string, unknown>)?.cnt as number ?? 0;
+  if (count >= maxKeys) return null;
 
   return {
     key: rawKey,
@@ -69,7 +80,7 @@ export async function createApiKey(
       name,
       plan: "free",
       monthlyCount: 0,
-      countMonth: getCurrentMonth(),
+      countMonth: month,
       createdAt: new Date().toISOString(),
       revokedAt: null,
     },
