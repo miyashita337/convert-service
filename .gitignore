@@ -24,6 +24,7 @@ Thumbs.db
 .claude/progress.json
 .claude/worktrees/
 .observer.lock
+.supervisor-relay-url
 
 # Launch binary assets (regenerable via create-demo-gif.sh)
 docs/launch/*.gif
