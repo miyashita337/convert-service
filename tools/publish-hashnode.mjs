@@ -9,15 +9,41 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const TOKEN = process.env.HASHNODE_TOKEN;
-const PUBLICATION_ID = process.env.HASHNODE_PUBLICATION_ID;
+const PUBLICATION_SLUG = process.env.HASHNODE_PUBLICATION_ID; // slug or ObjectId
 
 if (!TOKEN) {
   console.error("ERROR: HASHNODE_TOKEN が未設定です");
   process.exit(1);
 }
-if (!PUBLICATION_ID) {
+if (!PUBLICATION_SLUG) {
   console.error("ERROR: HASHNODE_PUBLICATION_ID が未設定です");
   process.exit(1);
+}
+
+// MongoDB ObjectId かどうか判定（24文字の hex）
+const isObjectId = /^[a-f0-9]{24}$/i.test(PUBLICATION_SLUG);
+
+let PUBLICATION_ID = PUBLICATION_SLUG;
+if (!isObjectId) {
+  // スラッグから実際のIDを取得
+  const host = PUBLICATION_SLUG.includes(".")
+    ? PUBLICATION_SLUG
+    : `${PUBLICATION_SLUG}.hashnode.dev`;
+  console.log(`Publication ID を取得中 (host: ${host})...`);
+  const res = await fetch("https://gql.hashnode.com", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: TOKEN },
+    body: JSON.stringify({
+      query: `{ publication(host: "${host}") { id title } }`,
+    }),
+  });
+  const json = await res.json();
+  if (json.errors || !json.data?.publication?.id) {
+    console.error("Publication取得エラー:", JSON.stringify(json, null, 2));
+    process.exit(1);
+  }
+  PUBLICATION_ID = json.data.publication.id;
+  console.log(`  ID: ${PUBLICATION_ID} (${json.data.publication.title})`);
 }
 
 // 記事ファイルを読み込む
