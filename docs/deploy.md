@@ -13,15 +13,61 @@ npx turbo build --filter=@quickconv/api       # APIのみ
 ```
 
 ## デプロイ（本番）
+
+### 通常フロー（CIに任せる）
+
+`main` への push で `.github/workflows/ci.yml` が以下を自動実行する:
+
+1. `lint-and-build` / `test`
+2. `deploy-stg` — Pages + Workers をステージングにデプロイ
+3. `e2e-stg` — ステージング E2E（失敗すると本番デプロイをブロック）
+4. `deploy-prod` — Pages + Workers を本番にデプロイ
+5. `e2e-prod` — 本番 E2E スモーク
+6. `notify` — 失敗時 Pushover 通知
+
+通常のマージでは下記コマンドを手動実行する必要はない。
+
+### 手動デプロイ（CIが落ちた / 緊急時のみ）
+
 ```bash
 # API (Cloudflare Workers)
-npx wrangler deploy --config apps/api/wrangler.toml
+cd apps/api && npx wrangler deploy
 
 # Frontend (Cloudflare Pages)
+npx turbo build --filter=@quickconv/web
 npx wrangler pages deploy apps/web/out --project-name quickconv-web
 
-# Converter (GCP Cloud Run)
+# Converter (GCP Cloud Run) — CI対象外、変更時のみ手動
 gcloud builds submit --config=cloudbuild.yaml .
+```
+
+### D1 マイグレーション（本番）
+
+**CI は D1 マイグレーションを適用しない。** スキーマ変更を含む PR をマージしたら、**本番デプロイ前** に必ず手動で適用する:
+
+```bash
+cd apps/api
+
+# dry-run（適用内容を確認）
+npx wrangler d1 migrations list quickconv-db --remote
+
+# 本番適用
+npx wrangler d1 migrations apply quickconv-db --remote
+```
+
+マイグレーション適用を忘れると `deploy-prod` 後の API で 500（テーブル不整合）が発生する。
+
+### デプロイ後の動作確認
+
+```bash
+# ヘルスチェック
+curl https://api.quickconv.cc/health
+
+# 本番 E2E スモーク（CIが e2e-prod で自動実行するが、手動再実行する場合）
+cd apps/web
+E2E_TARGET=production E2E_BASE_URL=https://quickconv.cc \
+  npx playwright test --project=production \
+  e2e/deploy-check.spec.ts e2e/smoke.spec.ts
 ```
 
 ## ステージング環境
