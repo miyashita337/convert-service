@@ -14,15 +14,15 @@
 ```
 1. Issue着手 → gh issue edit <N> --add-label in-progress
 2. テスト作成（TDD） → E2Eテストを先に書く
-3. 実装（D1スキーマ変更時は apps/api/migrations/ にマイグレーション追加）
-4. ローカルビルド・テスト確認（pnpm build && pnpm test）
+3. 実装（D1スキーマ変更時は apps/api/src/db/migrations/ にマイグレーション追加）
+4. ローカルビルド・テスト確認（`pnpm build && cd apps/api && pnpm test` — 現状 test スクリプトは apps/api のみ）
 5. Push → CI自動実行（lint / build / test / staging deploy）
 6. PR作成（Closes #XX 必須）
 7. コードレビュー対応 → レビューコメントに全件返信
 8. ステージングE2E確認（CI e2e-stg ジョブ）→ PASSで本番デプロイを許可
 9. PRマージ
 10. 本番デプロイ:
-   a. D1マイグレーション（スキーマ変更時のみ）: `npx wrangler d1 migrations apply quickconv-db --remote`
+   a. D1マイグレーション（スキーマ変更時のみ）: `cd apps/api && npx wrangler d1 migrations apply quickconv-db --remote`
    b. Web（Pages）: CI自動デプロイ → 完了待ち
    c. API（Workers）: CI自動デプロイ → 完了待ち
    d. Converter（Cloud Run）: 変更時のみ手動 `gcloud builds submit --config=cloudbuild.yaml .`

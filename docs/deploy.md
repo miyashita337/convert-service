@@ -46,6 +46,8 @@ gcloud builds submit --config=cloudbuild.yaml .
 **CI は D1 マイグレーションを適用しない。** スキーマ変更を含む PR をマージしたら、**本番デプロイ前** に必ず手動で適用する:
 
 ```bash
+cd apps/api
+
 # dry-run（適用内容を確認）
 npx wrangler d1 migrations list quickconv-db --remote
 
