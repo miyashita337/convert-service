@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
 import { createJwt } from "../services/auth";
+import { upsertUser } from "../repositories/user-repository";
 
 /**
  * E2E テスト専用の JWT 発行エンドポイント。
@@ -23,6 +24,10 @@ testAuth.post("/token", async (c) => {
   if (!body?.email) {
     return c.json({ error: "email_required" }, 400);
   }
+
+  // optionalAuthMiddleware は DB にレコードが存在する email しか認証済みにしないため
+  // JWT 発行前に user を upsert しておく（決定論的な googleId `e2e-test-<email>` を使用）
+  await upsertUser(c.env.DB, body.email, `e2e-test-${body.email}`, "E2E Test User");
 
   const jwt = await createJwt(
     { email: body.email, plan: body.plan || "free", name: "E2E Test User", picture: "" },
