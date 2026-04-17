@@ -8,7 +8,7 @@ published: true
 published_at: "2026-04-16"
 platforms:
   hashnode: "https://quickconv-dev.hashnode.dev/i-built-an-image-conversion-saas-on-almost-0month-heres-the-full-stack"
-  devto: ""
+  devto: "https://dev.to/cc_quickconv_ff5b94a1d015/i-built-an-image-conversion-saas-on-almost-0month-heres-the-full-stack-4o2i"
   medium: ""
   zenn: ""
   qiita: ""
