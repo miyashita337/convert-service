@@ -2,11 +2,12 @@
 title: "I Built an Image Conversion SaaS on (Almost) $0/Month — Here's the Full Stack"
 description: "A full technical breakdown of QuickConv: Next.js static export on Cloudflare Pages, Hono on Workers, Sharp on GCP Cloud Run, R2, D1, and Stripe. No marketing fluff."
 tags: ["cloudflare", "nextjs", "typescript", "saas", "webdev"]
-canonical_url: ""
+canonical_url: "https://quickconv-dev.hashnode.dev/i-built-an-image-conversion-saas-on-almost-0month-heres-the-full-stack"
 cover_image: ""
-published: false
+published: true
+published_at: "2026-04-16"
 platforms:
-  hashnode: ""
+  hashnode: "https://quickconv-dev.hashnode.dev/i-built-an-image-conversion-saas-on-almost-0month-heres-the-full-stack"
   devto: ""
   medium: ""
   zenn: ""
