@@ -125,7 +125,7 @@ export default async function DevelopersPage({
               <div className="bg-muted px-4 py-2 text-sm font-mono font-semibold uppercase">
                 {lang}
               </div>
-              <pre className="p-4 overflow-x-auto text-sm">
+              <pre className="p-4 overflow-x-auto text-sm bg-muted text-foreground">
                 <code>{code}</code>
               </pre>
             </div>
