@@ -5,16 +5,11 @@ vi.mock("../services/auth", () => ({
 }));
 
 vi.mock("../repositories/user-repository", () => ({
-  upsertUser: vi.fn().mockResolvedValue({
-    email: "e2e@example.com",
-    stripeCustomerId: "id",
-    plan: "free",
-    googleId: "e2e-test-e2e@example.com",
-  }),
+  upsertE2ETestUser: vi.fn().mockResolvedValue(undefined),
 }));
 
 import testAuth from "../routes/test-auth";
-import { upsertUser } from "../repositories/user-repository";
+import { upsertE2ETestUser } from "../repositories/user-repository";
 import { createJwt } from "../services/auth";
 import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
@@ -50,7 +45,7 @@ describe("POST /api/test/token", () => {
       { ...baseEnv, E2E_TEST_SECRET: undefined } as unknown as Env
     );
     expect(res.status).toBe(404);
-    expect(upsertUser).not.toHaveBeenCalled();
+    expect(upsertE2ETestUser).not.toHaveBeenCalled();
   });
 
   it("X-E2E-Secret 不一致 → 401", async () => {
@@ -65,7 +60,7 @@ describe("POST /api/test/token", () => {
       baseEnv
     );
     expect(res.status).toBe(401);
-    expect(upsertUser).not.toHaveBeenCalled();
+    expect(upsertE2ETestUser).not.toHaveBeenCalled();
   });
 
   it("email 未指定 → 400", async () => {
@@ -80,17 +75,17 @@ describe("POST /api/test/token", () => {
       baseEnv
     );
     expect(res.status).toBe(400);
-    expect(upsertUser).not.toHaveBeenCalled();
+    expect(upsertE2ETestUser).not.toHaveBeenCalled();
   });
 
-  it("正常系 → upsertUser を呼んでから JWT を発行する", async () => {
+  it("正常系（free）→ email を正規化し、upsertE2ETestUser → JWT の順で処理する", async () => {
     const app = createApp();
     const res = await app.request(
       "/api/test/token",
       {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-E2E-Secret": "e2e-secret" },
-        body: JSON.stringify({ email: "e2e@example.com", plan: "free" }),
+        body: JSON.stringify({ email: "  E2E@Example.COM  ", plan: "free" }),
       },
       baseEnv
     );
@@ -98,21 +93,51 @@ describe("POST /api/test/token", () => {
     const body = (await res.json()) as { token: string };
     expect(body.token).toBe("mock.jwt.token");
 
-    // upsertUser が JWT 発行前に呼ばれ、googleId が決定論的であること
-    expect(upsertUser).toHaveBeenCalledTimes(1);
-    expect(upsertUser).toHaveBeenCalledWith(
-      baseEnv.DB,
-      "e2e@example.com",
-      "e2e-test-e2e@example.com",
-      "E2E Test User"
-    );
+    expect(upsertE2ETestUser).toHaveBeenCalledTimes(1);
+    expect(upsertE2ETestUser).toHaveBeenCalledWith(baseEnv.DB, "e2e@example.com", "free");
     expect(createJwt).toHaveBeenCalledTimes(1);
+    expect(createJwt).toHaveBeenCalledWith(
+      { email: "e2e@example.com", plan: "free", name: "E2E Test User", picture: "" },
+      "jwt-secret"
+    );
 
-    // 呼び出し順: upsertUser → createJwt
-    const upsertCall = (upsertUser as unknown as { mock: { invocationCallOrder: number[] } }).mock
-      .invocationCallOrder[0];
-    const createJwtCall = (createJwt as unknown as { mock: { invocationCallOrder: number[] } }).mock
-      .invocationCallOrder[0];
+    // 呼び出し順: upsertE2ETestUser → createJwt
+    const upsertCall = vi.mocked(upsertE2ETestUser).mock.invocationCallOrder[0];
+    const createJwtCall = vi.mocked(createJwt).mock.invocationCallOrder[0];
     expect(upsertCall).toBeLessThan(createJwtCall);
+  });
+
+  it("plan 指定あり → upsertE2ETestUser と JWT 両方に反映される", async () => {
+    const app = createApp();
+    const res = await app.request(
+      "/api/test/token",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-E2E-Secret": "e2e-secret" },
+        body: JSON.stringify({ email: "plus@example.com", plan: "plus_monthly" }),
+      },
+      baseEnv
+    );
+    expect(res.status).toBe(200);
+    expect(upsertE2ETestUser).toHaveBeenCalledWith(baseEnv.DB, "plus@example.com", "plus_monthly");
+    expect(vi.mocked(createJwt).mock.calls[0][0]).toMatchObject({
+      email: "plus@example.com",
+      plan: "plus_monthly",
+    });
+  });
+
+  it("plan 未指定 → デフォルト 'free' で upsertE2ETestUser される", async () => {
+    const app = createApp();
+    const res = await app.request(
+      "/api/test/token",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-E2E-Secret": "e2e-secret" },
+        body: JSON.stringify({ email: "default@example.com" }),
+      },
+      baseEnv
+    );
+    expect(res.status).toBe(200);
+    expect(upsertE2ETestUser).toHaveBeenCalledWith(baseEnv.DB, "default@example.com", "free");
   });
 });
