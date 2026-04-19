@@ -3,7 +3,6 @@ title: "Claude Code on the Web: Why Your .env Vars Don't Reach the Setup Script 
 description: "A debugging story about Claude Code Cloud Sandbox: the .env panel vars never make it into the setup script, only into the session shell. Moving clone logic to a SessionStart hook makes everything work."
 tags: ["anthropic", "claude", "devops", "bash"]
 canonical_url: ""
-cover_image: "https://storage.googleapis.com/zenn-user-upload/35c9731d164a-20260419.png"
 published: true
 published_at: "2026-04-19"
 platforms:
@@ -12,8 +11,6 @@ platforms:
   zenn: "https://zenn.dev/harieshokunin/articles/b1064354319ce2"
   qiita: ""
 ---
-
-![Claude Code on the web setup hook](https://storage.googleapis.com/zenn-user-upload/35c9731d164a-20260419.png)
 
 ## TL;DR
 
@@ -109,6 +106,8 @@ Custom vars found: 0 / expected 8
 
 It wasn't just `GH_TOKEN` — **nothing from the `.env` panel was reaching the setup script**.
 
+![Diagnostic log: 0 / 8 expected custom vars found](https://storage.googleapis.com/zenn-user-upload/35c9731d164a-20260419.png)
+
 ### The clincher: the session shell has them
 
 Inside the running Claude Code session, I checked the same variables directly from the shell:
@@ -117,6 +116,8 @@ Inside the running Claude Code session, I checked the same variables directly fr
 $ echo "GH=${#GH_TOKEN}, TZ=[$TZ], LANG=[$LANG]"
 GH=93, TZ=[Asia/Tokyo], LANG=[ja_JP.UTF-8]
 ```
+
+![Shell output showing GH=93, TZ=[Asia/Tokyo], LANG=[ja_JP.UTF-8]](https://storage.googleapis.com/zenn-user-upload/dd6ce1e200e5-20260419.png)
 
 All present. So:
 
@@ -247,5 +248,3 @@ Hope this saves someone else the afternoon I lost.
 - [Use Claude Code on the web — Claude Code Docs](https://code.claude.com/docs/en/claude-code-on-the-web)
 - [Hooks configuration — Claude Code Docs](https://code.claude.com/docs/en/hooks)
 - Original Japanese post: https://zenn.dev/harieshokunin/articles/b1064354319ce2
-
-![Verification screenshot](https://storage.googleapis.com/zenn-user-upload/dd6ce1e200e5-20260419.png)
