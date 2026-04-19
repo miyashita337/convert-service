@@ -7,8 +7,8 @@ cover_image: "https://storage.googleapis.com/zenn-user-upload/35c9731d164a-20260
 published: true
 published_at: "2026-04-19"
 platforms:
-  hashnode: ""
-  devto: ""
+  hashnode: "https://quickconv-dev.hashnode.dev/claude-code-on-the-web-why-your-env-vars-dont-reach-the-setup-script-and-how-sessionstart-hook-fixes-it"
+  devto: "https://dev.to/cc_quickconv_ff5b94a1d015/claude-code-on-the-web-why-your-env-vars-dont-reach-the-setup-script-and-how-sessionstart-hook-4n6"
   zenn: "https://zenn.dev/harieshokunin/articles/b1064354319ce2"
   qiita: ""
 ---
