@@ -51,6 +51,31 @@ pnpm dev          # ローカル開発
 pnpm build        # 全パッケージビルド
 ```
 
+## tools/team_salary 編集ルーチン（BLOCKING）
+`tools/team_salary` は別リポ（github.com/miyashita337/team_salary）の submodule。convert-service 内から直接編集して親で commit すると submodule pointer のみ進み、実体の変更は team_salary 側に置き去りになる。**必ず以下の手順で team_salary 側に PR を作る**。
+
+```bash
+# 1. 編集セッション開始 (submodule 側で feature ブランチ作成)
+cd tools/team_salary
+git fetch origin && git checkout -B feat/<topic> origin/main
+
+# 2. 編集 → commit → push → PR (team_salary 側)
+# ... 編集 ...
+git add <file>...                          # git add . は禁止
+git commit -m "<conventional message>"
+git push -u origin feat/<topic>
+gh pr create --repo miyashita337/team_salary --base main \
+  --title "..." --body "..."
+
+# 3. PR merge 後、convert-service 側で submodule pointer を bump
+cd ../..                                   # tools/team_salary から convert-service ルートへ戻る
+bash scripts/bump-team-salary.sh           # submodule update --init --remote + commit
+# 必要なら convert-service 側も PR 化して push
+```
+
+- **HTTPS push が HTTP 400 で失敗した場合**: `cd tools/team_salary && git config http.version HTTP/1.1` で回避（HTTP/2 chunked が GitHub と相性悪い既知問題）
+- **自動投稿スクリプト等の WIP 退避**: 同じルーチンで `wip/<topic>` ブランチに commit & push して退避できる
+
 ## エピック・ロードマップ
 詳細: [グランドデザイン](docs/GRAND_DESIGN.md)
 ロードマップ: https://github.com/users/miyashita337/projects/2
