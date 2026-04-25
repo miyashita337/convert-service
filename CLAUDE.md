@@ -68,8 +68,8 @@ gh pr create --repo miyashita337/team_salary --base main \
   --title "..." --body "..."
 
 # 3. PR merge 後、convert-service 側で submodule pointer を bump
-cd "$(git rev-parse --show-toplevel)"
-bash scripts/bump-team-salary.sh           # submodule update --remote + commit
+cd ../..                                   # tools/team_salary から convert-service ルートへ戻る
+bash scripts/bump-team-salary.sh           # submodule update --init --remote + commit
 # 必要なら convert-service 側も PR 化して push
 ```
 

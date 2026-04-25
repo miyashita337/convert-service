@@ -10,7 +10,8 @@
 
 set -euo pipefail
 
-cd "$(git rev-parse --show-toplevel)"
+# スクリプト自身の場所を基準にリポジトリルートへ移動（submodule 内から呼ばれても堅牢）
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 if [[ ! -d tools/team_salary ]]; then
   echo "[bump-team-salary] tools/team_salary が見つかりません" >&2
@@ -23,9 +24,9 @@ if [[ "${1:-}" == "--no-commit" ]]; then
 fi
 
 OLD_SHA=$(git submodule status tools/team_salary | awk '{print $1}' | sed 's/^[+-]//')
-git submodule update --remote tools/team_salary
-NEW_SHA=$(cd tools/team_salary && git rev-parse HEAD)
-NEW_SHORT=$(cd tools/team_salary && git rev-parse --short HEAD)
+git submodule update --init --remote tools/team_salary
+NEW_SHA=$(git -C tools/team_salary rev-parse HEAD)
+NEW_SHORT=$(git -C tools/team_salary rev-parse --short HEAD)
 
 if [[ "$OLD_SHA" == "$NEW_SHA" ]]; then
   echo "[bump-team-salary] 既に最新 ($NEW_SHORT)。何もしません。"
@@ -39,7 +40,7 @@ if [[ $NO_COMMIT -eq 1 ]]; then
   exit 0
 fi
 
-LATEST_MSG=$(cd tools/team_salary && git log -1 --pretty=%s)
+LATEST_MSG=$(git -C tools/team_salary log -1 --pretty=%s)
 
 git add tools/team_salary
 git commit -m "chore: bump team_salary to ${NEW_SHORT} (${LATEST_MSG})"
