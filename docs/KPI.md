@@ -59,12 +59,12 @@
 
 - **定義**: ユーザーが完了した変換ジョブ数（Free + 全有料プラン合算）
 - **データソース**: D1 `conversions` テーブル（または相当の variant 名 — 実テーブル名は `apps/api/src/db/schema.ts` 参照）
-- **集計クエリ例**:
+- **集計クエリ例**（`<from>` は対象月初、`<to>` は翌月初の `YYYY-MM-DD` を埋める。例: 2026-04 集計なら `<from>='2026-04-01'`, `<to>='2026-05-01'`）:
 
   ```sql
   SELECT COUNT(*) FROM conversions
   WHERE status = 'completed'
-    AND created_at >= '2026-MM-01' AND created_at < '2026-(MM+1)-01';
+    AND created_at >= '<from>' AND created_at < '<to>';
   ```
 
 - **実行手段**: `cd apps/api && npx wrangler d1 execute quickconv-db --remote --command "<上記 SQL>"`

@@ -16,7 +16,7 @@ KPI 定義は [KPI.md](./KPI.md) を参照。本ドキュメントは月次の�
 毎月 1 日に以下を順に実施する。
 
 - [ ] **GA4** で前月の DAU 月平均 / 新規訪問者数 / オーガニック流入比を取得
-- [ ] **D1** に対して [KPI.md](./KPI.md) のクエリを `wrangler d1 execute --remote` で実行し、月間変換数・変換完了率を取得
+- [ ] **D1** に対して [KPI.md](./KPI.md) のクエリを `cd apps/api && npx wrangler d1 execute quickconv-db --remote --command "<SQL>"` で実行し、月間変換数・変換完了率を取得
 - [ ] **Stripe Dashboard** で MRR / 当月新規課金ユーザー数 / プラン別購入比率を取得
 - [ ] **Sentry** で API エラー率と平均変換時間（p50）を確認
 - [ ] **GCP Billing** で Cloud Run の当月費用を確認
