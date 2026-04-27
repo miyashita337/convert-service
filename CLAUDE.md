@@ -76,6 +76,44 @@ bash scripts/bump-team-salary.sh           # submodule update --init --remote + 
 - **HTTPS push が HTTP 400 で失敗した場合**: `cd tools/team_salary && git config http.version HTTP/1.1` で回避（HTTP/2 chunked が GitHub と相性悪い既知問題）
 - **自動投稿スクリプト等の WIP 退避**: 同じルーチンで `wip/<topic>` ブランチに commit & push して退避できる
 
+## 環境変数 (.env) の前提
+
+**Claude セッション開始時、以下の .env は既にセットアップ済みとして振る舞う。** 次回以降「API キーがない」「ハンドルが分からない」と聞かない。値が無効な場合のみ補正を依頼。機密情報（APIキーやパスワード等）をコードに直書きしない（README/CLAUDE.md/commit にも機密情報の値は残さない、変数名のみ）。
+
+### convert-service ルート (`./.env`)
+| 変数 | 用途 |
+|---|---|
+| `PRODUCT_KEY` | QuickConv API 課金キー (#285 API 課金ピボット関連) |
+| `PUBLIC_KEY` | 同上、公開鍵 |
+| `DEVTO_API_KEY` | Dev.to 記事投稿 (`tools/publish-devto-*.mjs`, `tools/update-devto-*.mjs`) |
+| `HASHNODE_TOKEN` | Hashnode 記事投稿 (`tools/publish-hashnode-*.mjs`, `tools/update-hashnode-*.mjs`) |
+| `HASHNODE_PUBLICATION_ID` | Hashnode publication slug (例: `quickconv-dev`) |
+
+### team_salary submodule (`tools/team_salary/.env`)
+SNS / 投稿系の認証情報を集約。詳細は `tools/team_salary/CLAUDE.md` の「note 投稿ワークフロー運用ルール」+ 各 SKILL 参照。
+
+| 変数群 | 用途 |
+|---|---|
+| `NOTE_EMAIL` / `NOTE_PASSWORD` / `NOTE_USERNAME` | note (Playwright) |
+| `X_USERNAME` / `X_PASSWORD` / `X_API_KEY` / `X_API_SECRET` / `X_ACCESS_TOKEN` / `X_ACCESS_TOKEN_SECRET` | X (Twitter) — API v2 + Playwright fallback |
+| `IG_USERNAME` / `IG_PASSWORD` / `IG_ACCOUNT` / `IG_USER_ID` / `IG_ACCESS_TOKEN` | Instagram — Graph API + Playwright fallback |
+| `THREADS_USER_ID` / `THREADS_ACCESS_TOKEN` / `THREADS_APP_ID` / `THREADS_APP_SECRET` | Threads API |
+| `GOOGLE_AI_API_KEY` | Gemini 画像生成 |
+| `QIITA_API_TOKEN` / `QIITA_USERNAME` | Qiita API |
+| `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET` / `REDDIT_USERNAME` / `REDDIT_PASSWORD` | Reddit OAuth (現状空 — 投稿は手動運用なので未使用) |
+| `HEADLESS` / `NODE_ENV` | Playwright / 実行モード |
+
+### SNS アカウント識別子（記憶しておく）
+- note: `quickconv` / Qiita: `quickconv` / Instagram: `quickconv` / X: `@quickconv`
+- IG User ID: `17841444938496597` / Threads User ID: `34571263245822364`
+
+### スクリプト実行時の env prefix（BLOCKING・RW-006）
+note / SNS スクリプトを実行するときは必ず `.env` 経由で環境変数を load する。Keychain 直読みは macOS セキュリティ制約で 30s timeout する。
+```bash
+cd tools/team_salary
+set -a && . ./.env && set +a && npx tsx scripts/<script>.ts
+```
+
 ## エピック・ロードマップ
 詳細: [グランドデザイン](docs/GRAND_DESIGN.md)
 ロードマップ: https://github.com/users/miyashita337/projects/2
