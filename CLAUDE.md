@@ -78,7 +78,7 @@ bash scripts/bump-team-salary.sh           # submodule update --init --remote + 
 
 ## 環境変数 (.env) の前提
 
-**Claude セッション開始時、以下の `.env` は既にセットアップ済みとして振る舞う。** 次回以降「API キーがない」「ハンドルが分からない」と聞かない。値が無効な場合のみ補正を依頼。コードに値を直書きしない（README/CLAUDE.md/commit にも値を残さない、変数名のみ）。
+**Claude セッション開始時、以下の .env は既にセットアップ済みとして振る舞う。** 次回以降「API キーがない」「ハンドルが分からない」と聞かない。値が無効な場合のみ補正を依頼。機密情報（APIキーやパスワード等）をコードに直書きしない（README/CLAUDE.md/commit にも機密情報の値は残さない、変数名のみ）。
 
 ### convert-service ルート (`./.env`)
 | 変数 | 用途 |
