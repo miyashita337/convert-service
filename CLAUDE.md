@@ -51,6 +51,12 @@ pnpm dev          # ローカル開発
 pnpm build        # 全パッケージビルド
 ```
 
+## 責務分離: convert-service と team_salary
+
+convert-service は **ファイル変換サービスに特化**。記事は `docs/articles/` に置いてよいが、note / Qiita / X / Threads / IG など SNS・ブログ投稿の実装は **`tools/team_salary` 配下を流用**する（重複実装禁止）。Dev.to / Hashnode 用の既存スクリプト (`tools/publish-{devto,hashnode}-*.mjs`) は legacy として convert-service に残置で OK。
+
+詳細・流用元モジュール一覧・実行手順: [`docs/articles/README.md`](docs/articles/README.md)
+
 ## tools/team_salary 編集ルーチン（BLOCKING）
 `tools/team_salary` は別リポ（github.com/miyashita337/team_salary）の submodule。convert-service 内から直接編集して親で commit すると submodule pointer のみ進み、実体の変更は team_salary 側に置き去りになる。**必ず以下の手順で team_salary 側に PR を作る**。
 
