@@ -3,7 +3,6 @@ title: "WebPをPNGに変換する最も簡単な方法【2026年版】"
 description: "Webサイトからダウンロードした.webp画像が編集ソフトで開けない問題を解決。WebPの基礎知識とブラウザだけで完結するPNG変換手順を、現役の画像変換サービス開発者が解説します。"
 tags: ["WebP", "PNG", "画像変換", "ブログ", "Canva"]
 canonical_url: ""
-cover_image: ""
 published: false
 published_at: ""
 platforms:
