@@ -69,5 +69,5 @@ I'd love feedback on: UX, conversion quality, anything broken, or whether the pr
 ## 補足メモ
 
 - HNでバズったあとはサーバー負荷急増に注意。Cloudflare Workers + Cloud Run (max-instances=1) のため、同時接続が多いと Cloud Run のスケールアップが追いつかない可能性あり。投稿前に max-instances を一時的に上げることを検討。
-- コメントで「なぜ JPEG/PNG 変換をサポートしないのか」と聞かれる可能性が高い。回答案: "Deliberately scoped to next-gen formats. JPEG/PNG converters are everywhere; the gap was in AVIF/HEIC tooling."
+- コメントで「JPEG/PNG への変換はないのか」と聞かれる可能性がある。回答案: "We support JPG/PNG as input *and* output — the focus is converting them into next-gen formats like WebP/AVIF, and back to JPG/PNG when wider compatibility is needed. The gap we close is the AVIF/HEIC tooling around them."
 - Stripe 決済の動作確認を投稿前に必ず完了させること（Issue #262）。
