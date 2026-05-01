@@ -209,9 +209,11 @@ test.describe("Quality comparison preview", () => {
     const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
     await compareBtn.click();
 
-    // Slider should appear within 30s (covers Cloud Run cold start + retry)
+    // Slider should appear within 60s — leaves headroom for Cloud Run cold
+    // start (~30s) + a single client retry (≈1s backoff + a second attempt
+    // sharing the 90s deadline budget).
     const slider = page.locator('[data-testid="image-compare-slider"]');
-    await expect(slider).toBeVisible({ timeout: 30_000 });
+    await expect(slider).toBeVisible({ timeout: 60_000 });
 
     // No "Failed to fetch" in any error sink
     const allErrors = [...consoleErrors, ...pageErrors].join("\n");

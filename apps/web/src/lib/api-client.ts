@@ -171,10 +171,17 @@ const PREVIEW_TIMEOUT_MS = 90_000;
 /** Backoff delay before single retry on transient network errors (ms). */
 const PREVIEW_RETRY_DELAY_MS = 1_000;
 
-/** A network-level failure where retrying may help (TypeError "Failed to fetch", AbortError). */
+/** A network-level failure where retrying may help. Some browsers / runtimes
+ *  emit `TimeoutError` from `AbortSignal.timeout(...)` in addition to the
+ *  classic `TypeError: Failed to fetch` and the `AbortError` we raise from
+ *  our own AbortController. Treat all three as retryable. */
 function isTransientFetchError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
-  return err.name === "TypeError" || err.name === "AbortError";
+  return (
+    err.name === "TypeError" ||
+    err.name === "AbortError" ||
+    err.name === "TimeoutError"
+  );
 }
 
 async function preview_fetchOnce(
@@ -216,9 +223,18 @@ export async function requestPreview(
     return fd;
   };
 
+  // Use a single absolute deadline so retry never extends UX latency past the
+  // total budget. Without this, the worst case is 90s (attempt 1 timeout) +
+  // 1s (backoff) + 90s (attempt 2 timeout) ≈ 181s.
+  const deadline = Date.now() + PREVIEW_TIMEOUT_MS;
+
   const attempt = async () => {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      throw new Error("Preview request timed out");
+    }
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), PREVIEW_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), remaining);
     try {
       return await preview_fetchOnce(buildFormData(), controller.signal);
     } finally {
@@ -230,6 +246,7 @@ export async function requestPreview(
     return await attempt();
   } catch (err) {
     if (!isTransientFetchError(err)) throw err;
+    if (Date.now() + PREVIEW_RETRY_DELAY_MS >= deadline) throw err;
     await new Promise((r) => setTimeout(r, PREVIEW_RETRY_DELAY_MS));
     return attempt();
   }
