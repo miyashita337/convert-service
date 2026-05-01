@@ -2,16 +2,16 @@
 title: "動画から音声だけ抽出する方法【MP4→MP3 変換 完全ガイド 2026】"
 description: "講義動画やセミナー録画を通勤中に音声で聞き直したい。会議録音から議事録用の音声だけ取り出したい。FFmpeg を使わず、ブラウザだけで MP4→MP3 変換を完結する手順を、画像変換サービス開発者が解説します。"
 tags: ["MP4", "MP3", "動画変換", "音声抽出", "QuickConv"]
-canonical_url: ""
+canonical_url: "https://note.com/quickconv/n/n37481b4cd5fb"
 cover_image: "./images/005-mp4-to-mp3/header-mp4-to-mp3.png"
-published: false
-published_at: ""
+published: true
+published_at: "2026-05-01"
 platforms:
   hashnode: ""
   devto: ""
   medium: ""
-  note: ""
-  qiita: ""
+  note: "https://note.com/quickconv/n/n37481b4cd5fb"
+  qiita: "https://qiita.com/quickconv/items/e2a530a63772ab54263f"
   zenn: ""
 ---
 
