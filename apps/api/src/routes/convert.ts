@@ -37,9 +37,8 @@ convert.post("/", async (c) => {
     );
   }
 
-  const converterApiKey = c.env.CONVERTER_API_KEY;
-  if (!converterApiKey) {
-    console.error("CONVERTER_API_KEY is not configured");
+  if (!c.env.CONVERTER_API_KEY || !c.env.CONVERTER_URL) {
+    console.error("CONVERTER_API_KEY or CONVERTER_URL is not configured");
     return c.json(
       { error: "internal_error", message: "Service configuration error" },
       500
@@ -77,7 +76,7 @@ convert.post("/", async (c) => {
     await updateJobStatus(c.env.DB, jobId, "processing");
 
     c.executionCtx.waitUntil(
-      processConversionAsync(c.env, jobId, inputKey, inputFormat, outputFormat, converterApiKey)
+      processConversionAsync(c.env, jobId, inputKey, inputFormat, outputFormat)
     );
 
     return c.json({
@@ -97,7 +96,7 @@ convert.post("/", async (c) => {
   }
 
   const inputBody = await inputObj.arrayBuffer();
-  const result = await requestDirectConversion(c.env.CONVERTER_URL, converterApiKey, {
+  const result = await requestDirectConversion(c.env.CONVERTER_URL, c.env.CONVERTER_API_KEY, {
     jobId,
     fileBody: inputBody,
     fileName: `input.${inputFormat}`,
@@ -137,8 +136,7 @@ async function processConversionAsync(
   jobId: string,
   inputKey: string,
   inputFormat: string,
-  outputFormat: string,
-  converterApiKey: string
+  outputFormat: string
 ): Promise<void> {
   try {
     const inputObj = await env.R2_BUCKET.get(inputKey);
@@ -148,7 +146,7 @@ async function processConversionAsync(
     }
 
     const inputBody = await inputObj.arrayBuffer();
-    const result = await requestDirectConversion(env.CONVERTER_URL, converterApiKey, {
+    const result = await requestDirectConversion(env.CONVERTER_URL, env.CONVERTER_API_KEY, {
       jobId,
       fileBody: inputBody,
       fileName: `input.${inputFormat}`,

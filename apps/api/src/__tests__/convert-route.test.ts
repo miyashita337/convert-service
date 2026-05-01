@@ -95,6 +95,24 @@ describe("POST /api/convert — CONVERTER_API_KEY validation (#287)", () => {
     expect(mockRequestDirect).not.toHaveBeenCalled();
   });
 
+  it("returns 500 when CONVERTER_URL is empty", async () => {
+    const env = buildEnv({ CONVERTER_URL: "" });
+    const res = await createApp().request(
+      "/api/convert",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId: "file123", outputFormat: "webp" }),
+      },
+      env,
+    );
+
+    expect(res.status).toBe(500);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.error).toBe("internal_error");
+    expect(mockRequestDirect).not.toHaveBeenCalled();
+  });
+
   it("passes the configured CONVERTER_API_KEY to the converter (no test-key fallback)", async () => {
     const env = buildEnv({ CONVERTER_API_KEY: "real-prod-key" });
     const res = await createApp().request(
