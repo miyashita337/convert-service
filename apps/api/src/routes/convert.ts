@@ -37,6 +37,15 @@ convert.post("/", async (c) => {
     );
   }
 
+  const converterApiKey = c.env.CONVERTER_API_KEY;
+  if (!converterApiKey) {
+    console.error("CONVERTER_API_KEY is not configured");
+    return c.json(
+      { error: "internal_error", message: "Service configuration error" },
+      500
+    );
+  }
+
   const jobId = nanoid();
   const expiresAt = new Date(Date.now() + FILE_EXPIRY_HOURS * 60 * 60 * 1000).toISOString();
   const category = getConversionCategory(inputFormat);
@@ -68,7 +77,7 @@ convert.post("/", async (c) => {
     await updateJobStatus(c.env.DB, jobId, "processing");
 
     c.executionCtx.waitUntil(
-      processConversionAsync(c.env, jobId, inputKey, inputFormat, outputFormat)
+      processConversionAsync(c.env, jobId, inputKey, inputFormat, outputFormat, converterApiKey)
     );
 
     return c.json({
@@ -88,7 +97,7 @@ convert.post("/", async (c) => {
   }
 
   const inputBody = await inputObj.arrayBuffer();
-  const result = await requestDirectConversion(c.env.CONVERTER_URL, c.env.CONVERTER_API_KEY || "test-key", {
+  const result = await requestDirectConversion(c.env.CONVERTER_URL, converterApiKey, {
     jobId,
     fileBody: inputBody,
     fileName: `input.${inputFormat}`,
@@ -128,7 +137,8 @@ async function processConversionAsync(
   jobId: string,
   inputKey: string,
   inputFormat: string,
-  outputFormat: string
+  outputFormat: string,
+  converterApiKey: string
 ): Promise<void> {
   try {
     const inputObj = await env.R2_BUCKET.get(inputKey);
@@ -138,7 +148,7 @@ async function processConversionAsync(
     }
 
     const inputBody = await inputObj.arrayBuffer();
-    const result = await requestDirectConversion(env.CONVERTER_URL, env.CONVERTER_API_KEY || "test-key", {
+    const result = await requestDirectConversion(env.CONVERTER_URL, converterApiKey, {
       jobId,
       fileBody: inputBody,
       fileName: `input.${inputFormat}`,
