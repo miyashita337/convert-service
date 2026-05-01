@@ -86,7 +86,7 @@ export function ImageCompareSlider({
   }, [afterSrc]);
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("w-full", className)} data-testid="image-compare-slider">
       {/* Size reduction badge */}
       <div className="flex items-center justify-center gap-2 mb-3">
         <span

@@ -166,27 +166,71 @@ export function connectJobStream(
   return () => eventSource.close();
 }
 
+/** Preview request timeout (ms). Long enough for Cloud Run cold start (~30s) + 4 conversions. */
+const PREVIEW_TIMEOUT_MS = 90_000;
+/** Backoff delay before single retry on transient network errors (ms). */
+const PREVIEW_RETRY_DELAY_MS = 1_000;
+
+/** A network-level failure where retrying may help (TypeError "Failed to fetch", AbortError). */
+function isTransientFetchError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return err.name === "TypeError" || err.name === "AbortError";
+}
+
+async function preview_fetchOnce(
+  formData: FormData,
+  signal: AbortSignal,
+): Promise<PreviewResponse> {
+  const res = await fetch(`${API_URL}/api/preview`, {
+    method: "POST",
+    body: formData,
+    signal,
+  });
+
+  if (!res.ok) {
+    let message = "Preview request failed";
+    try {
+      const error = (await res.json()) as { message?: string };
+      if (error?.message) message = error.message;
+    } catch {
+      // body was not JSON; keep default message
+    }
+    throw new Error(message);
+  }
+
+  return res.json();
+}
+
 export async function requestPreview(
   file: File,
   outputFormat: string,
   qualities: number[],
   plan: string,
 ): Promise<PreviewResponse> {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("outputFormat", outputFormat);
-  formData.append("qualities", JSON.stringify(qualities));
-  formData.append("plan", plan);
+  const buildFormData = () => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("outputFormat", outputFormat);
+    fd.append("qualities", JSON.stringify(qualities));
+    fd.append("plan", plan);
+    return fd;
+  };
 
-  const res = await fetch(`${API_URL}/api/preview`, {
-    method: "POST",
-    body: formData,
-  });
+  const attempt = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PREVIEW_TIMEOUT_MS);
+    try {
+      return await preview_fetchOnce(buildFormData(), controller.signal);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
 
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Preview request failed");
+  try {
+    return await attempt();
+  } catch (err) {
+    if (!isTransientFetchError(err)) throw err;
+    await new Promise((r) => setTimeout(r, PREVIEW_RETRY_DELAY_MS));
+    return attempt();
   }
-
-  return res.json();
 }

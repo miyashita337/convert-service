@@ -186,6 +186,40 @@ test.describe("Quality comparison preview", () => {
     );
     await expect(convertBtn.first()).toBeVisible({ timeout: 10_000 });
   });
+
+  // Issue #275: Compare Quality must complete without "Failed to fetch" in
+  // the console, AND the slider DOM must appear once a preview is selected.
+  test("compare quality completes without Failed to fetch and renders slider (#275)", async ({
+    page,
+  }) => {
+    const consoleErrors: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") consoleErrors.push(msg.text());
+    });
+    const pageErrors: string[] = [];
+    page.on("pageerror", (err) => pageErrors.push(err.message));
+
+    const previewResponses: number[] = [];
+    page.on("response", (res) => {
+      if (res.url().includes("/api/preview")) previewResponses.push(res.status());
+    });
+
+    await setupPreview(page, testFilePath);
+
+    const compareBtn = page.getByRole("button", { name: /Compare Quality|品質を比較/i });
+    await compareBtn.click();
+
+    // Slider should appear within 30s (covers Cloud Run cold start + retry)
+    const slider = page.locator('[data-testid="image-compare-slider"]');
+    await expect(slider).toBeVisible({ timeout: 30_000 });
+
+    // No "Failed to fetch" in any error sink
+    const allErrors = [...consoleErrors, ...pageErrors].join("\n");
+    expect(allErrors).not.toContain("Failed to fetch");
+
+    // /api/preview must have completed at least once with 2xx
+    expect(previewResponses.some((s) => s >= 200 && s < 300)).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
