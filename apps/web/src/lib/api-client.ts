@@ -166,27 +166,88 @@ export function connectJobStream(
   return () => eventSource.close();
 }
 
+/** Preview request timeout (ms). Long enough for Cloud Run cold start (~30s) + 4 conversions. */
+const PREVIEW_TIMEOUT_MS = 90_000;
+/** Backoff delay before single retry on transient network errors (ms). */
+const PREVIEW_RETRY_DELAY_MS = 1_000;
+
+/** A network-level failure where retrying may help. Some browsers / runtimes
+ *  emit `TimeoutError` from `AbortSignal.timeout(...)` in addition to the
+ *  classic `TypeError: Failed to fetch` and the `AbortError` we raise from
+ *  our own AbortController. Treat all three as retryable. */
+function isTransientFetchError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return (
+    err.name === "TypeError" ||
+    err.name === "AbortError" ||
+    err.name === "TimeoutError"
+  );
+}
+
+async function preview_fetchOnce(
+  formData: FormData,
+  signal: AbortSignal,
+): Promise<PreviewResponse> {
+  const res = await fetch(`${API_URL}/api/preview`, {
+    method: "POST",
+    body: formData,
+    signal,
+  });
+
+  if (!res.ok) {
+    let message = "Preview request failed";
+    try {
+      const error = (await res.json()) as { message?: string };
+      if (error?.message) message = error.message;
+    } catch {
+      // body was not JSON; keep default message
+    }
+    throw new Error(message);
+  }
+
+  return res.json();
+}
+
 export async function requestPreview(
   file: File,
   outputFormat: string,
   qualities: number[],
   plan: string,
 ): Promise<PreviewResponse> {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("outputFormat", outputFormat);
-  formData.append("qualities", JSON.stringify(qualities));
-  formData.append("plan", plan);
+  const buildFormData = () => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("outputFormat", outputFormat);
+    fd.append("qualities", JSON.stringify(qualities));
+    fd.append("plan", plan);
+    return fd;
+  };
 
-  const res = await fetch(`${API_URL}/api/preview`, {
-    method: "POST",
-    body: formData,
-  });
+  // Use a single absolute deadline so retry never extends UX latency past the
+  // total budget. Without this, the worst case is 90s (attempt 1 timeout) +
+  // 1s (backoff) + 90s (attempt 2 timeout) ≈ 181s.
+  const deadline = Date.now() + PREVIEW_TIMEOUT_MS;
 
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Preview request failed");
+  const attempt = async () => {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      throw new Error("Preview request timed out");
+    }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), remaining);
+    try {
+      return await preview_fetchOnce(buildFormData(), controller.signal);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
+
+  try {
+    return await attempt();
+  } catch (err) {
+    if (!isTransientFetchError(err)) throw err;
+    if (Date.now() + PREVIEW_RETRY_DELAY_MS >= deadline) throw err;
+    await new Promise((r) => setTimeout(r, PREVIEW_RETRY_DELAY_MS));
+    return attempt();
   }
-
-  return res.json();
 }

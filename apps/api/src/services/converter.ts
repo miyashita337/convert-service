@@ -88,6 +88,14 @@ export async function requestDirectConversion(
   }
 }
 
+/**
+ * Converter subrequest timeout. Cloud Run cold start can take 10-30s; 60s
+ * leaves headroom for the conversion itself while keeping us inside Worker
+ * subrequest limits and avoiding mid-flight resets that surface in the browser
+ * as "Failed to fetch".
+ */
+const CONVERTER_TIMEOUT_MS = 60_000;
+
 export async function requestPreviewConversion(
   converterUrl: string,
   apiKey: string,
@@ -103,6 +111,7 @@ export async function requestPreviewConversion(
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}` },
       body: formData,
+      signal: AbortSignal.timeout(CONVERTER_TIMEOUT_MS),
     });
 
     if (!response.ok) {
