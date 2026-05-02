@@ -236,38 +236,126 @@ jobs:
           retention-days: 7
 
   # ── Stage 6: Notify ────────────────────────────────────────────
+  # 設計方針 (Issue #294):
+  # - 全ステージの失敗を捕捉 (needs に全 job 列挙)
+  # - notify job 自体は常に成功扱いにして「通知役自身が落ちる」事故を排除
+  # - Pushover が失敗 or secrets 未設定なら GitHub Issue 起票でフォールバック
   notify:
     runs-on: ubuntu-latest
-    needs: [e2e-stg, deploy-prod, e2e-prod]
+    needs: [lint-and-build, test, deploy-stg, e2e-stg, deploy-prod, e2e-prod]
     if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      issues: write
     steps:
-      - name: Determine result
+      - name: Aggregate job results
         id: result
+        env:
+          R_LINT: ${{ needs.lint-and-build.result }}
+          R_TEST: ${{ needs.test.result }}
+          R_DEPLOY_STG: ${{ needs.deploy-stg.result }}
+          R_E2E_STG: ${{ needs.e2e-stg.result }}
+          R_DEPLOY_PROD: ${{ needs.deploy-prod.result }}
+          R_E2E_PROD: ${{ needs.e2e-prod.result }}
         run: |
-          if [[ "${{ needs.e2e-stg.result }}" == "failure" ]]; then
-            echo "status=FAIL" >> "$GITHUB_OUTPUT"
-            echo "message=Staging E2E failed — production deploy was blocked" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ needs.deploy-prod.result }}" == "failure" ]]; then
-            echo "status=FAIL" >> "$GITHUB_OUTPUT"
-            echo "message=Production deploy failed" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ needs.e2e-prod.result }}" == "failure" ]]; then
-            echo "status=FAIL" >> "$GITHUB_OUTPUT"
-            echo "message=Production E2E failed — deployed code may have issues" >> "$GITHUB_OUTPUT"
-          else
+          FAILED=()
+          [[ "$R_LINT" == "failure" ]] && FAILED+=("lint-and-build")
+          [[ "$R_TEST" == "failure" ]] && FAILED+=("test")
+          [[ "$R_DEPLOY_STG" == "failure" ]] && FAILED+=("deploy-stg")
+          [[ "$R_E2E_STG" == "failure" ]] && FAILED+=("e2e-stg")
+          [[ "$R_DEPLOY_PROD" == "failure" ]] && FAILED+=("deploy-prod")
+          [[ "$R_E2E_PROD" == "failure" ]] && FAILED+=("e2e-prod")
+
+          if [[ ${#FAILED[@]} -eq 0 ]]; then
             echo "status=PASS" >> "$GITHUB_OUTPUT"
-            echo "message=All stages passed" >> "$GITHUB_OUTPUT"
+            echo "failed_jobs=" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=FAIL" >> "$GITHUB_OUTPUT"
+            echo "failed_jobs=$(IFS=,; echo "${FAILED[*]}")" >> "$GITHUB_OUTPUT"
           fi
-      - name: Send Pushover notification on failure
+      - name: Build notification payload
         if: steps.result.outputs.status == 'FAIL'
+        id: payload
+        env:
+          FAILED_JOBS: ${{ steps.result.outputs.failed_jobs }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          REPO: ${{ github.repository }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          SHORT_SHA="${SHA:0:7}"
+          COMMIT_TITLE=$(printf '%s' "$COMMIT_MSG" | head -n 1)
+          {
+            echo "short_sha=${SHORT_SHA}"
+            echo "commit_title=${COMMIT_TITLE}"
+            echo "title=QuickConv CI FAIL ${FAILED_JOBS}"
+            echo "url=https://github.com/${REPO}/actions/runs/${RUN_ID}"
+            echo "msg<<EOF"
+            echo "failed: ${FAILED_JOBS}"
+            echo "SHA: ${SHORT_SHA} (${COMMIT_TITLE})"
+            echo "Run: https://github.com/${REPO}/actions/runs/${RUN_ID}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Send Pushover notification
+        if: steps.result.outputs.status == 'FAIL'
+        id: pushover
+        continue-on-error: true
         env:
           PUSHOVER_USER_KEY: ${{ secrets.PUSHOVER_USER_KEY }}
           PUSHOVER_API_TOKEN: ${{ secrets.PUSHOVER_API_TOKEN }}
+          TITLE: ${{ steps.payload.outputs.title }}
+          MSG: ${{ steps.payload.outputs.msg }}
+          URL: ${{ steps.payload.outputs.url }}
         run: |
-          curl -sf -X POST "https://api.pushover.net/1/messages.json" \
-            -d "token=${PUSHOVER_API_TOKEN}" \
-            -d "user=${PUSHOVER_USER_KEY}" \
-            -d "title=QuickConv CI: ${{ steps.result.outputs.status }}" \
-            -d "message=${{ steps.result.outputs.message }}" \
-            -d "url=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            -d "url_title=View Run" \
-            -d "priority=1"
+          if [[ -z "$PUSHOVER_USER_KEY" || -z "$PUSHOVER_API_TOKEN" ]]; then
+            echo "::warning::PUSHOVER_USER_KEY or PUSHOVER_API_TOKEN is not set in repository secrets"
+            exit 1
+          fi
+          HTTP_CODE=$(curl -sS -o /tmp/pushover_resp.txt -w "%{http_code}" \
+            -X POST "https://api.pushover.net/1/messages.json" \
+            --data-urlencode "token=${PUSHOVER_API_TOKEN}" \
+            --data-urlencode "user=${PUSHOVER_USER_KEY}" \
+            --data-urlencode "title=${TITLE}" \
+            --data-urlencode "message=${MSG}" \
+            --data-urlencode "url=${URL}" \
+            --data-urlencode "url_title=View Run" \
+            --data-urlencode "priority=1")
+          echo "Pushover HTTP ${HTTP_CODE}"
+          cat /tmp/pushover_resp.txt || true
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "::warning::Pushover API returned HTTP ${HTTP_CODE}"
+            exit 1
+          fi
+          echo "Pushover notification sent successfully"
+      - name: Fallback to GitHub Issue
+        if: steps.result.outputs.status == 'FAIL' && steps.pushover.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          FAILED_JOBS: ${{ steps.result.outputs.failed_jobs }}
+          SHORT_SHA: ${{ steps.payload.outputs.short_sha }}
+          COMMIT_TITLE: ${{ steps.payload.outputs.commit_title }}
+          RUN_URL: ${{ steps.payload.outputs.url }}
+        run: |
+          TITLE="[ci-fail] CI failure on main: ${FAILED_JOBS} (${SHORT_SHA})"
+          EXISTING=$(gh issue list --repo "$REPO" --label ci-failure --state open \
+            --search "${SHORT_SHA} in:title" --json number --jq '.[0].number // empty')
+          if [[ -n "$EXISTING" ]]; then
+            echo "Issue #${EXISTING} already exists for SHA ${SHORT_SHA}, skipping"
+            exit 0
+          fi
+          gh label create ci-failure --repo "$REPO" \
+            --color d73a4a --description "Auto-created when CI fails on main" \
+            2>/dev/null || true
+          BODY_FILE=$(mktemp)
+          {
+            printf '%s\n\n' "Pushover 通知が失敗または secrets 未設定のため、自動起票しました。"
+            printf '%s `%s`\n' "**Failed jobs**:" "${FAILED_JOBS}"
+            printf '%s %s — %s\n' "**Commit**:" "${SHORT_SHA}" "${COMMIT_TITLE}"
+            printf '%s %s\n\n' "**Run**:" "${RUN_URL}"
+            printf '%s\n' "通知を有効化するには Repository Settings → Secrets and variables → Actions に \`PUSHOVER_USER_KEY\` / \`PUSHOVER_API_TOKEN\` を登録してください。手順は \`docs/deploy.md\` を参照。"
+          } > "$BODY_FILE"
+          gh issue create --repo "$REPO" \
+            --title "$TITLE" \
+            --label ci-failure \
+            --body-file "$BODY_FILE"

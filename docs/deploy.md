@@ -135,3 +135,28 @@ curl https://api-staging.quickconv.cc/health
 # Workers dev URL でも確認可能
 # https://quickconv-api-staging.<account>.workers.dev
 ```
+
+## CI 通知 (Pushover)
+
+main ブランチ CI が失敗したら自動で Pushover 通知が飛ぶ。secrets が未設定または Pushover API が落ちていた場合は `ci-failure` ラベル付きの Issue が自動起票されるので無通知放置にはならない。
+
+### 初回セットアップ
+
+```bash
+# Pushover で取得した値を Repository Secrets に登録 (リポジトリ root で実行)
+gh secret set PUSHOVER_USER_KEY
+gh secret set PUSHOVER_API_TOKEN
+
+# 登録確認
+gh secret list | grep PUSHOVER
+```
+
+### 動作確認
+
+```bash
+# 既存の失敗 run で notify job を再実行
+gh run list --workflow=ci.yml --branch=main --status=failure --limit=1 --json databaseId --jq '.[0].databaseId'
+gh run rerun <RUN_ID> --job notify
+```
+
+成功時は実機 Pushover に届く / 失敗時は `gh issue list --label ci-failure` に起票される。
