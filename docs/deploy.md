@@ -143,12 +143,12 @@ main ブランチ CI が失敗したら自動で Pushover 通知が飛ぶ。secr
 ### 初回セットアップ
 
 ```bash
-# Pushover で取得した値を Repository Secrets に登録
-gh secret set PUSHOVER_USER_KEY --repo miyashita337/convert-service
-gh secret set PUSHOVER_API_TOKEN --repo miyashita337/convert-service
+# Pushover で取得した値を Repository Secrets に登録 (リポジトリ root で実行)
+gh secret set PUSHOVER_USER_KEY
+gh secret set PUSHOVER_API_TOKEN
 
 # 登録確認
-gh secret list --repo miyashita337/convert-service | grep PUSHOVER
+gh secret list | grep PUSHOVER
 ```
 
 ### 動作確認
