@@ -2,14 +2,16 @@
 title: "WebP vs AVIF vs HEIC: The Real-World Image Format Comparison (2026)"
 description: "File size, quality, browser support, and conversion speed — a practical comparison of next-gen image formats with real benchmark data."
 tags: ["webdev", "images", "performance", "cloudflare", "javascript"]
-canonical_url: ""
+canonical_url: "https://quickconv-dev.hashnode.dev/webp-vs-avif-vs-heic-the-real-world-image-format-comparison-2026"
 cover_image: ""
-published: false
-published_at: ""
+published: true
+published_at: "2026-05-02"
 platforms:
-  hashnode: ""
-  devto: ""
+  hashnode: "https://quickconv-dev.hashnode.dev/webp-vs-avif-vs-heic-the-real-world-image-format-comparison-2026"
+  devto: "https://dev.to/cc_quickconv_ff5b94a1d015/webp-vs-avif-vs-heic-the-real-world-image-format-comparison-2026-14bd"
   medium: ""
+  zenn: ""
+  qiita: ""
 ---
 
 # WebP vs AVIF vs HEIC: The Real-World Image Format Comparison (2026)
