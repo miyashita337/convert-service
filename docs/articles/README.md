@@ -11,6 +11,7 @@ docs/articles/
 ├── 003-claude-code-web-setup-hook.md   # Claude Code Cloud Sandbox の env 問題 (英語)
 ├── 004-webp-to-png.md                  # WebP→PNG How-to (日本語)
 ├── 005-mp4-to-mp3.md                   # MP4→MP3 How-to (日本語)
+├── 006-zero-cost-saas.md               # 月額0円SaaS構築 (日本語)
 ├── images/<NNN>-<slug>/                # 各記事のヘッダ画像・操作画像
 └── README.md                           # 本ファイル
 ```
