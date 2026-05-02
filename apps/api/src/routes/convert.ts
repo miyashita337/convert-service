@@ -37,6 +37,14 @@ convert.post("/", async (c) => {
     );
   }
 
+  if (!c.env.CONVERTER_API_KEY || !c.env.CONVERTER_URL) {
+    console.error("CONVERTER_API_KEY or CONVERTER_URL is not configured");
+    return c.json(
+      { error: "internal_error", message: "Service configuration error" },
+      500
+    );
+  }
+
   const jobId = nanoid();
   const expiresAt = new Date(Date.now() + FILE_EXPIRY_HOURS * 60 * 60 * 1000).toISOString();
   const category = getConversionCategory(inputFormat);
@@ -88,7 +96,7 @@ convert.post("/", async (c) => {
   }
 
   const inputBody = await inputObj.arrayBuffer();
-  const result = await requestDirectConversion(c.env.CONVERTER_URL, c.env.CONVERTER_API_KEY || "test-key", {
+  const result = await requestDirectConversion(c.env.CONVERTER_URL, c.env.CONVERTER_API_KEY, {
     jobId,
     fileBody: inputBody,
     fileName: `input.${inputFormat}`,
@@ -138,7 +146,7 @@ async function processConversionAsync(
     }
 
     const inputBody = await inputObj.arrayBuffer();
-    const result = await requestDirectConversion(env.CONVERTER_URL, env.CONVERTER_API_KEY || "test-key", {
+    const result = await requestDirectConversion(env.CONVERTER_URL, env.CONVERTER_API_KEY, {
       jobId,
       fileBody: inputBody,
       fileName: `input.${inputFormat}`,
