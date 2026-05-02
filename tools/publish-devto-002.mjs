@@ -56,10 +56,17 @@ const res = await fetch("https://dev.to/api/articles", {
   body: JSON.stringify(payload),
 });
 
-const json = await res.json();
-
+const responseText = await res.text();
 if (!res.ok) {
-  console.error("エラー:", JSON.stringify(json, null, 2));
+  console.error("HTTP エラー:", res.status, responseText);
+  process.exit(1);
+}
+
+let json;
+try {
+  json = JSON.parse(responseText);
+} catch (e) {
+  console.error("JSON パース失敗:", responseText);
   process.exit(1);
 }
 
