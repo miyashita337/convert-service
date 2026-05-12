@@ -307,3 +307,24 @@ The stack is deliberately unsexy: Next.js, Hono, Sharp, SQLite. No Kubernetes, n
 ---
 
 *Built with Next.js 15, Hono 4, Sharp 0.33, Cloudflare Workers/Pages/R2/D1, GCP Cloud Run, Stripe, Sentry.*
+
+---
+
+## How QuickConv Compares to Existing Converter SaaS
+
+| Aspect | QuickConv | Convertio | iLoveIMG | TinyPNG |
+|---|---|---|---|---|
+| Free tier | 10 conversions/day | 10/day, 100MB cap | 15/hour | 20 images/month |
+| Account required | No | No (paid tier requires) | No | No (paid tier requires) |
+| API access | Yes (`api.quickconv.cc`) | Yes (paid) | Yes (paid) | Yes (free up to 500/month) |
+| Auto-delete window | 24 hours (hard) | Varies | 2 hours | Not documented |
+| WebP / AVIF / HEIC | All three, any-to-any | Yes (broad format coverage) | WebP only | PNG / JPEG / WebP |
+| Stack visibility | Open architecture (this post) | Closed | Closed | Closed |
+
+QuickConv is intentionally narrow: next-gen image formats first, indie-built, with the whole stack documented. The big converters are broader but opaque — when you hit an edge case, there's no source of truth.
+
+---
+
+## About the Author
+
+QuickConv is built and maintained by an indie developer (X: [@quickconv](https://twitter.com/quickconv)) who ships image and video conversion features end-to-end — frontend, API, converter pipeline, billing, and SEO. All benchmarks and screenshots in this post come from production runs on the [quickconv.cc](https://quickconv.cc) stack described above.
