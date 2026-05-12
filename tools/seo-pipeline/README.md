@@ -10,7 +10,7 @@ QuickConv SEO 集客自動化 (Epic #320) の MVP パイプライン。
 | `competitor-analysis.mjs` | #324 | 競合分析 (H2/H3 抽出 + Prompt Injection バリア) |
 | `outline-generator.mjs` | #325 | 構成案生成 (deterministic、template-based) |
 | `run.mjs` | #325 | 3段オーケストレーター (keyword → competitor → outline) |
-| (未実装) `publish-draft.mjs` | #326 | note/Qiita 下書き接続 + DOMPurify |
+| `publish-draft.mjs` | #326 | note/Qiita 下書き shim + XSS サニタイズゲート |
 
 ## keyword-research.mjs
 
@@ -189,4 +189,34 @@ node tools/seo-pipeline/outline-generator.mjs \
 - **競合 H2 を頻度順にマージ**: 複数競合で言及される観点を上位に
 - **常に QuickConv セクションを含む**: 競合データが空でも QuickConv 実例セクションを必ず挿入
 - **TODO マーカー**: 実機スクショ・ベンチマーク値などは TODO で明記、Phase 2 で人間が埋める
+
+## publish-draft.mjs
+
+### 使い方
+
+```bash
+# 既定 (dry-run、サニタイズ後の payload を stdout)
+node tools/seo-pipeline/publish-draft.mjs --article docs/articles/006-new.md
+
+# 実 publish (Qiita のみ、要 tools/team_salary/.env の QIITA_API_TOKEN)
+node tools/seo-pipeline/publish-draft.mjs \
+  --article docs/articles/006-new.md \
+  --publish --target qiita --note-url https://note.com/x
+
+# 明示 dry-run (--publish を後付で外したい場合)
+node tools/seo-pipeline/publish-draft.mjs --article ... --dry-run
+```
+
+### セキュリティ設計
+
+- **HITL デフォルト draft (RW-002)**: `--publish` 明示なしでは自動的に dry-run、API 呼び出しなし
+- **XSS サニタイズゲート**: `<script>` `<iframe>` `<object>` `<embed>` `<applet>` `<style>` `<link>` `<meta>` 完全除去、`on*=` イベントハンドラ属性除去、`javascript:` URL 無害化 (`blocked-js:` に置換)
+- **env 分離 (RW-014)**: 本 shim は `.env.seo` を参照。`tools/team_salary/.env` は team_salary 側サブプロセスのみ load
+- **team_salary は spawn 経由**: 既存 `publish-quickconv-qiita.ts` を子プロセスで呼ぶ。submodule 直接編集は禁止 (CLAUDE.md の編集ルーチン尊重)
+
+### 既知の制限
+
+- **note publish の shim 未実装**: 現状 `--target note` は警告メッセージのみ。手動で `tools/team_salary` 側の note 投稿スクリプト (`publish-articles.ts` 等) を直接実行する運用
+- **DOMPurify 未統合**: MVP では regex ベースサニタイザで対応。Markdown ソースが人間執筆である前提のため十分。完全な HTML 入力を扱う場合は `isomorphic-dompurify` 統合検討
+- **AC-1 (実機投稿) は credentials 必須**: CI E2E では実投稿しない。手動 / one-off 検証で確認
 
