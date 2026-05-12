@@ -5,6 +5,11 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.seo
+tools/seo-pipeline/.env.seo
+
+# SEO pipeline 出力 (runtime artifact、再生成可能)
+docs/articles/seo-drafts/
 .wrangler/
 .dev.vars
 *.tsbuildinfo
