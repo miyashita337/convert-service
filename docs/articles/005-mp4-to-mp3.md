@@ -160,3 +160,29 @@ QuickConv は MP4→MP3 だけでなく、複数の動画・音声フォーマ�
 - [QuickConv トップ](https://quickconv.cc) — 動画・音声・画像の相互変換に対応
 - 関連記事: [WebP を PNG に変換する最も簡単な方法](/articles/004-webp-to-png)
 - 関連記事: [WebP vs AVIF vs HEIC 徹底比較](/articles/002-format-comparison)
+
+---
+
+## 6. 他の MP4 → MP3 変換サービスとの比較
+
+代表的なオンライン MP4 → MP3 変換サービスを比較しました。
+
+| サービス | 無料枠 | アカウント | 自動削除 | 広告 | 出力フォーマット |
+|---|---|---|---|---|---|
+| QuickConv | 1日 10 回 / 100MB | 不要 | 24 時間 | なし | MP3 / WAV / AAC / OGG / FLAC |
+| Convertio | 1日 10 回 / 100MB | 不要（有料は要） | プランによる | 控えめ | MP3 / WAV / AAC / OGG / FLAC 等 |
+| CloudConvert | 1日 25 分のコンバート時間 | 不要 | 24 時間 | なし | 多数 |
+| OnlineVideoConverter | 無制限（広告多め） | 不要 | 不明 | 多め | MP3 / AAC 等 |
+| 123APPS Audio Converter | 1日数回 | 不要 | 不明 | 控えめ | MP3 / WAV / FLAC 等 |
+
+「広告を最小にしたい」「24 時間で確実に消えてほしい」用途なら **QuickConv** か **CloudConvert**、「とにかく素早く 1 回だけ」なら **OnlineVideoConverter** が選択肢になります。
+
+---
+
+## 著者・運営者プロフィール
+
+QuickConv（[quickconv.cc](https://quickconv.cc)）は個人開発者が運営する画像・動画・音声変換サービスです。フロントエンド・API・変換エンジン・課金まで一人で実装しており、本記事の手順や比較表は本番運用の知見に基づいています。
+
+- X: [@quickconv](https://twitter.com/quickconv)
+- 運営: QuickConv（個人開発）
+- 関連（英語）: [技術スタック全公開](./001-tech-stack.md)

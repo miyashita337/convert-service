@@ -248,3 +248,22 @@ Hope this saves someone else the afternoon I lost.
 - [Use Claude Code on the web — Claude Code Docs](https://code.claude.com/docs/en/claude-code-on-the-web)
 - [Hooks configuration — Claude Code Docs](https://code.claude.com/docs/en/hooks)
 - Original Japanese post: https://zenn.dev/harieshokunin/articles/b1064354319ce2
+
+---
+
+## How Claude Code on the Web Compares to Alternatives
+
+| Aspect | Claude Code on the Web | GitHub Codespaces | Gitpod | Local Claude Code CLI |
+|---|---|---|---|---|
+| Setup script env handling | `.env` panel vars do NOT reach setup script (this post) | All env vars reach Codespaces lifecycle scripts | All env vars reach `.gitpod.yml` tasks | `.env` files load directly |
+| SessionStart hook | Yes (workaround documented here) | No, lifecycle scripts only | No, prebuild + task only | Yes |
+| Persistent state across sessions | Sandbox state preserved | Codespace persists | Workspace persists | Local |
+| Cost | Per-Anthropic-subscription seat | Per-CPU-hour | Per-CPU-hour | Free (compute is local) |
+
+The workaround in this post is specific to Claude Code on the web. Codespaces and Gitpod give you straightforward setup-time env vars but cost per compute hour, which is a different trade-off.
+
+---
+
+## About the Author
+
+This post is from an indie developer (X: [@quickconv](https://twitter.com/quickconv)) who runs [QuickConv](https://quickconv.cc), an image / video conversion service. The Claude Code on the web bug above was found while wiring up QuickConv's `agent-base` rules and hooks into a cloud sandbox.

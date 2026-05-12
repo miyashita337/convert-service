@@ -262,3 +262,25 @@ JPEG isn't going away — it's too deeply embedded in tooling and infrastructure
 *Benchmarks measured on Node.js 22 with Sharp 0.33, running on GCP Cloud Run (2 vCPU). Results vary by image content.*
 
 *[QuickConv](https://quickconv.cc) converts between WebP, AVIF, HEIC, PNG, JPEG, and more.*
+
+---
+
+## Where to Convert: Services Compared
+
+If you don't want to run Sharp / libheif / libavif locally, here's how the major hosted services compare for next-gen image conversion specifically:
+
+| Service | WebP ↔ AVIF | HEIC support | API | Auto-delete |
+|---|---|---|---|---|
+| QuickConv | Yes, both directions | Yes (input + output) | Yes (`api.quickconv.cc`) | 24 hours |
+| Convertio | Yes | Yes | Yes (paid) | Varies by plan |
+| iLoveIMG | Limited (WebP only) | No | Yes (paid) | 2 hours |
+| CloudConvert | Yes | Yes | Yes (paid) | 24 hours |
+| TinyPNG | Limited (PNG/JPEG/WebP) | No | Yes (free up to 500/month) | Not documented |
+
+For a deeper engineering write-up, see [the technical stack post](./001-tech-stack.md).
+
+---
+
+## About the Author
+
+QuickConv is built and maintained by an indie developer (X: [@quickconv](https://twitter.com/quickconv)) who runs the conversion service end-to-end. All benchmarks and observations in this post come from real production conversions, not third-party datasets.

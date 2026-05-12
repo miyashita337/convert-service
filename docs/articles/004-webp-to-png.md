@@ -142,3 +142,29 @@ QuickConv では、**アップロードされたファイルとアップロー�
 - [QuickConv トップ](https://quickconv.cc) — WebP / AVIF / HEIC の相互変換に対応
 - [WebP 公式サイト (Google Developers)](https://developers.google.com/speed/webp)
 - 関連記事: [WebP vs AVIF vs HEIC 徹底比較](/articles/002-format-comparison)
+
+---
+
+## 6. 他の WebP → PNG 変換サービスとの比較
+
+「QuickConv 以外も気になる」という方向けに、代表的なオンライン変換サービスを WebP → PNG の用途に絞って比較しました。
+
+| サービス | 無料枠 | アカウント | 自動削除 | 透過保持 | バッチ変換 |
+|---|---|---|---|---|---|
+| QuickConv | 1日 10 回 / 100MB | 不要 | 24 時間 | 対応 | 対応 |
+| Convertio | 1日 10 回 / 100MB | 不要（有料は要） | プランによる | 対応 | 有料 |
+| iLoveIMG | 1時間 15 回 | 不要 | 2 時間 | 対応 | 対応 |
+| CloudConvert | 1日 25 分のコンバート時間 | 不要 | 24 時間 | 対応 | 対応 |
+| TinyPNG | 月 20 枚 | 不要 | 未公開 | 対応 | 対応（5枚まで） |
+
+「無料でとりあえず 1 枚」なら **iLoveIMG** が手数最少、**バッチで大量に変換** したいなら **QuickConv** か **CloudConvert** が向いています。
+
+---
+
+## 著者・運営者プロフィール
+
+QuickConv（[quickconv.cc](https://quickconv.cc)）は個人開発者が運営する画像・動画変換サービスです。フロントエンド・API・変換エンジン・課金まで一人で実装しており、本記事の手順や比較表は本番運用の知見に基づいています。
+
+- X: [@quickconv](https://twitter.com/quickconv)
+- 運営: QuickConv（個人開発）
+- 関連（英語）: [技術スタック全公開](./001-tech-stack.md)
