@@ -1,11 +1,11 @@
 {
   "version": "1",
-  "generated_at": "2026-05-17T04:32:43.939Z",
+  "generated_at": "2026-05-17T15:36:07.197Z",
   "env": {
     "node": "v25.8.1",
     "platform": "darwin",
     "arch": "arm64",
-    "sharp": "^0.33.0",
+    "sharp": "0.33.5",
     "ffmpeg": "8.1",
     "cpu_model": "arm64 arm"
   },
@@ -13,70 +13,70 @@
   "note": "Median of 5 trials (warm-up discarded). Local Sharp / ffmpeg; reflects the same engine as the production converter. Network/queue overhead not included.",
   "results": [
     {
-      "label": "WebP -> PNG (800x600, ~30KB input)",
+      "label": "WebP -> PNG (800x600, ~5KB input)",
       "input_format": "webp",
       "output_format": "png",
       "quality": null,
-      "input_bytes": 5396,
+      "input_bytes": 5446,
       "trials": 5,
-      "median_ms": 8,
-      "min_ms": 8,
-      "max_ms": 8
+      "median_ms": 9,
+      "min_ms": 9,
+      "max_ms": 9
     },
     {
       "label": "WebP -> PNG (3000x2000, medium photo)",
       "input_format": "webp",
       "output_format": "png",
       "quality": null,
-      "input_bytes": 46984,
+      "input_bytes": 47292,
       "trials": 5,
-      "median_ms": 108,
-      "min_ms": 100,
-      "max_ms": 112
+      "median_ms": 105,
+      "min_ms": 104,
+      "max_ms": 167
     },
     {
       "label": "JPEG -> WebP q80 (3000x2000)",
       "input_format": "jpg",
       "output_format": "webp",
       "quality": 80,
-      "input_bytes": 158480,
+      "input_bytes": 158402,
       "trials": 5,
-      "median_ms": 286,
-      "min_ms": 282,
-      "max_ms": 288
+      "median_ms": 289,
+      "min_ms": 288,
+      "max_ms": 293
     },
     {
       "label": "JPEG -> AVIF q65 (3000x2000)",
       "input_format": "jpg",
       "output_format": "avif",
       "quality": 65,
-      "input_bytes": 158480,
+      "input_bytes": 158402,
       "trials": 5,
-      "median_ms": 3633,
-      "min_ms": 3567,
-      "max_ms": 3744
+      "median_ms": 3815,
+      "min_ms": 3720,
+      "max_ms": 3916
     },
     {
       "label": "JPEG -> WebP q80 (800x600 small)",
       "input_format": "jpg",
       "output_format": "webp",
       "quality": 80,
-      "input_bytes": 18997,
+      "input_bytes": 18951,
       "trials": 5,
       "median_ms": 24,
-      "min_ms": 23,
-      "max_ms": 25
+      "min_ms": 24,
+      "max_ms": 32
     },
     {
       "label": "JPEG -> AVIF q65 (800x600 small)",
       "input_format": "jpg",
       "output_format": "avif",
       "quality": 65,
-      "input_bytes": 18997,
+      "input_bytes": 18951,
       "trials": 5,
-      "median_ms": 113,
-      "min_ms": 112,
-      "max_ms": 115
+      "median_ms": 117,
+      "min_ms": 114,
+      "max_ms": 135
     },
     {
       "label": "MP4 -> MP3 (30s, 320x240, libmp3lame q:a 2)",
@@ -85,9 +85,9 @@
       "quality": "libmp3lame -q:a 2 (VBR ~190 kbps)",
       "input_bytes": 693847,
       "trials": 5,
-      "median_ms": 93,
-      "min_ms": 90,
-      "max_ms": 97
+      "median_ms": 95,
+      "min_ms": 94,
+      "max_ms": 96
     }
   ]
 }

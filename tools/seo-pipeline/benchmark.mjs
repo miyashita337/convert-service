@@ -16,8 +16,8 @@
  * Notes:
  *  - All times are median of 5 trials (warm-up trial discarded).
  *  - Input fixtures are synthesized at known sizes so results are reproducible across machines.
- *  - The script must be run from apps/converter so that the `sharp` workspace dependency resolves.
- *    The script auto-chdirs.
+ *  - The script resolves `sharp` from `apps/converter`'s node_modules via createRequire
+ *    so it can be run from anywhere in the repo (no chdir needed).
  */
 
 import { execFileSync, spawnSync } from "node:child_process";
@@ -190,8 +190,10 @@ const sizes = Object.fromEntries(
 const results = [];
 
 console.error("[bench] WebP -> PNG (800x600)...");
+// Note: synthesizeImage produces well-compressed output at q80, so the actual
+// input size is ~5 KB rather than ~30 KB. The label uses the measured magnitude.
 results.push(await runImagePair({
-  label: "WebP -> PNG (800x600, ~30KB input)",
+  label: "WebP -> PNG (800x600, ~5KB input)",
   inputPath: fixtures.smallWebp,
   output: { format: "png" },
   inputBytes: sizes.smallWebp,
@@ -249,6 +251,16 @@ results.push(runMp4ToMp3Pair({
 
 // --- Environment info -----------------------------------------------------
 function sharpVersion() {
+  // Prefer the resolved version from the installed package (deterministic for the
+  // run that just happened). Fall back to the declared range in package.json only
+  // if the installed package metadata can't be read.
+  try {
+    const installedPath = requireFromConverter.resolve("sharp/package.json");
+    const installed = JSON.parse(readFileSync(installedPath, "utf8"));
+    if (installed?.version) return installed.version;
+  } catch {
+    // fall through
+  }
   try {
     const meta = JSON.parse(readFileSync(join(CONVERTER_DIR, "package.json"), "utf8"));
     return meta.dependencies?.sharp ?? "unknown";

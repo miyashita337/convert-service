@@ -10,6 +10,7 @@
  *
  * Reads sharp from apps/converter (workspace dependency).
  */
+import { mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -18,6 +19,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..", "..");
 const CONVERTER_DIR = join(REPO_ROOT, "apps", "converter");
 const OUT_DIR = join(REPO_ROOT, "docs", "articles", "images", "003-claude-code-web-setup-hook");
+// Ensure the output directory exists; running this script from a clean checkout
+// where `docs/articles/images/003-.../` has not been created yet would otherwise
+// fail with ENOENT on the first toFile() call.
+mkdirSync(OUT_DIR, { recursive: true });
 
 const requireFromConverter = createRequire(join(CONVERTER_DIR, "package.json"));
 const sharpEntryPath = requireFromConverter.resolve("sharp");
@@ -89,7 +94,7 @@ const lsSvg = `<?xml version="1.0" encoding="UTF-8"?>
   <text x="30" y="380" fill="#3fb950" font-family="system-ui" font-size="20" font-weight="600">After the SessionStart hook runs:</text>
   <text x="30" y="415" fill="#c9d1d9" font-family="system-ui" font-size="17">~/.claude/ is fully populated with symlinks into the cloned agent-base repo.</text>
   <text x="30" y="445" fill="#c9d1d9" font-family="system-ui" font-size="17">Typing &quot;/&quot; in a new session lists all custom slash commands (/capture, /pdca, /inv, ...).</text>
-  <text x="30" y="495" fill="#8b949e" font-family="system-ui" font-size="15" font-style="italic">Warm-path setup latency: ~49ms (measured on a local Mac; see article body).</text>
+  <text x="30" y="495" fill="#8b949e" font-family="system-ui" font-size="15" font-style="italic">Warm-path setup latency: ~61ms (measured on a local Mac; see article body).</text>
 </svg>`;
 
 await sharp(Buffer.from(lsSvg))

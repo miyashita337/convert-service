@@ -175,6 +175,12 @@ test("parseTagsField: 不正値は空配列", () => {
   assert.deepEqual(parseTagsField(123), []);
 });
 
+test("parseTagsField: JSON-like だが parse 失敗 (クォートなし) は bracket を剥がしてから split", () => {
+  // `[a, b, c]` is not valid JSON but is a common YAML flow-style shape.
+  // Make sure brackets don't leak into the first/last tag (CodeRabbit #3254053625).
+  assert.deepEqual(parseTagsField("[a, b, c]"), ["a", "b", "c"]);
+});
+
 test("buildPayload: title が長すぎる場合 200 chars に切り詰め", () => {
   const long = "x".repeat(300);
   const p = buildPayload({ article: "x.md", body: "x", meta: { title: long } });
@@ -256,6 +262,28 @@ test("extractPlatformUrl: 指定 key 不在なら null", () => {
 test("extractPlatformUrl: frontmatter 不在なら null (素の string も安全)", () => {
   assert.equal(extractPlatformUrl("no frontmatter here", "qiita"), null);
   assert.equal(extractPlatformUrl(null, "qiita"), null);
+});
+
+test("extractPlatformUrl: platforms: ブロック外の同名キーは拾わない (security: 誤更新先防止)", () => {
+  const md = [
+    "---",
+    "title: T",
+    "qiita: https://attacker.example.com/items/abc",
+    "platforms:",
+    '  qiita: "https://qiita.com/quickconv/items/realone"',
+    "---",
+    "body",
+  ].join("\n");
+  assert.equal(
+    extractPlatformUrl(md, "qiita"),
+    "https://qiita.com/quickconv/items/realone",
+    "platforms: ブロック配下の値のみを返すべき",
+  );
+});
+
+test("extractPlatformUrl: platforms: ブロック自体が無ければ null (top-level キーは無視)", () => {
+  const md = `---\ntitle: T\nqiita: https://qiita.com/u/items/abc\n---\nbody`;
+  assert.equal(extractPlatformUrl(md, "qiita"), null);
 });
 
 test("parseQiitaItemId: 正規 URL から item_id 抽出", () => {

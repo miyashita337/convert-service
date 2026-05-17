@@ -239,7 +239,7 @@ node tools/seo-pipeline/publish-draft.mjs \
 - note は API 経由更新ができない (Playwright が必要) ため、`--target note` 時は `ok=false` で「team_salary 側手動更新」を示す
 - 5 記事に対する dry-run 動作確認: `node tools/seo-pipeline/publish-draft.mjs --article docs/articles/004-webp-to-png.md --update --target qiita --dry-run | jq '.requests[0] | {ok, item_id, body: (.body | {title, tag_count: (.tags|length)})}'`
 
-### `benchmark.mjs` (Issue #330 AC-2)
+## benchmark.mjs (Issue #330 AC-2)
 
 記事 003 / 004 / 005 用の変換時間ベンチを 5 回の median で計測。本番 API の rate limit (10/日) を避けつつ、production converter と同じ Sharp 0.33 / ffmpeg 8.x を直接叩く設計。
 

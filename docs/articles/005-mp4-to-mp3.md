@@ -145,11 +145,11 @@ QuickConv は MP4→MP3 だけでなく、複数の動画・音声フォーマ�
 
 ## 5. 実測ベンチマーク: どのくらいで変換できるのか
 
-QuickConv の変換エンジン (Node.js 22 + ffmpeg 8.1, libmp3lame VBR `-q:a 2`) で実測した数値です。中央値は 5 回試行のうちのウォームアップ 1 回を除いた median。
+QuickConv の本番変換エンジンは Node.js 22 LTS + ffmpeg 8.x + libmp3lame で動かしています。本記事のベンチマークは production と同じ ffmpeg / libmp3lame を、計測時点の手元 Node ランタイム（実測時の Node バージョンと CPU は `docs/articles/benchmarks/<date>.json` の `env` フィールドを参照）で叩いた値です。中央値は 5 回試行のうちのウォームアップ 1 回を除いた median。
 
 | 入力 | 出力 | 入力サイズ | 変換時間（中央値） |
 |---|---|---|---|
-| MP4（30 秒、320x240、H.264+AAC） | MP3 (`libmp3lame -q:a 2`, ~190 kbps VBR) | 678 KB | 93ms |
+| MP4（30 秒、320x240、H.264+AAC） | MP3 (`libmp3lame -q:a 2`, ~190 kbps VBR) | 678 KB | 95ms |
 
 30 秒の会議録画なら 1 秒以内、1 時間のセミナー録画でもおおむね数秒から十数秒で抽出が終わる計算です（実際には R2 アップロード / ダウンロードのネットワーク時間が支配的）。
 

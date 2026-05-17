@@ -73,9 +73,14 @@ export function extractPlatformUrl(md, platform) {
   const m = md.match(/^---\n([\s\S]*?)\n---/);
   if (!m) return null;
   const yaml = m[1];
-  // platforms: block — accept any indentation depth on the child line
-  const re = new RegExp(`^[ \\t]+${platform}\\s*:\\s*(.*)$`, "m");
-  const childMatch = yaml.match(re);
+  // Isolate the `platforms:` block first so that a top-level `qiita:` / `note:`
+  // outside the block can never be picked up by accident.
+  const blockMatch = yaml.match(/^platforms\s*:\s*\n((?:[ \t]+.*\n?)*)/m);
+  if (!blockMatch) return null;
+  const platformsBlock = blockMatch[1];
+  const escaped = platform.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`^[ \\t]+${escaped}\\s*:\\s*(.*)$`, "m");
+  const childMatch = platformsBlock.match(re);
   if (!childMatch) return null;
   let val = childMatch[1].trim();
   if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
@@ -199,15 +204,21 @@ export function parseTagsField(raw) {
   if (Array.isArray(raw)) return raw.map((s) => String(s).trim()).filter(Boolean);
   if (typeof raw !== "string") return [];
   const trimmed = raw.trim();
+  // First try JSON-array parsing: `["a", "b"]` is the canonical YAML/JSON form.
   if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
     try {
       const arr = JSON.parse(trimmed);
       if (Array.isArray(arr)) return arr.map((s) => String(s).trim()).filter(Boolean);
     } catch {
-      // fall through to comma-split
+      // fall through, but strip the brackets so the comma-split path below does
+      // not leak `[`/`]` into the first/last tag.
     }
   }
-  return trimmed.split(",").map((t) => t.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+  // Strip outer brackets if present (handles malformed array-like input like
+  // `[tag1, tag2]` without quotes). Falls through to the comma-split path.
+  const inner =
+    trimmed.startsWith("[") && trimmed.endsWith("]") ? trimmed.slice(1, -1) : trimmed;
+  return inner.split(",").map((t) => t.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
 }
 
 export function buildPayload({ article, body, meta }) {
