@@ -36,6 +36,7 @@ export function parseArgs(argv) {
   let target = "both";
   let noteUrl = null;
   let dryRun = false; // 既定で `--publish` 無ければ自動的に dry-run 扱い
+  let update = false; // Issue #330 AC-3: 既存投稿を更新するモード
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--article") article = argv[++i];
@@ -47,11 +48,86 @@ export function parseArgs(argv) {
       }
     } else if (a === "--note-url") noteUrl = argv[++i];
     else if (a === "--dry-run") dryRun = true;
+    else if (a === "--update") update = true;
     else if (a === "--help" || a === "-h") return { help: true };
     else throw new Error(`Unknown argument: ${a}`);
   }
   if (!article) throw new Error("--article is required");
-  return { article, publish, target, noteUrl, dryRun: dryRun || !publish };
+  return { article, publish, target, noteUrl, dryRun: dryRun || !publish, update };
+}
+
+/* -------------------------------------------------------------------------- */
+/* update-mode helpers (Issue #330 AC-3)                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Pull a `platforms.<key>: "https://..."` value out of a Markdown article's
+ * YAML frontmatter. The minimal frontmatter parser elsewhere in this module
+ * is flat, so this helper looks for the indented child explicitly.
+ *
+ * Returns null when the key is absent or the value is the empty string,
+ * so callers can distinguish "not configured" from "configured to <url>".
+ */
+export function extractPlatformUrl(md, platform) {
+  if (typeof md !== "string" || typeof platform !== "string") return null;
+  const m = md.match(/^---\n([\s\S]*?)\n---/);
+  if (!m) return null;
+  const yaml = m[1];
+  // Isolate the `platforms:` block first so that a top-level `qiita:` / `note:`
+  // outside the block can never be picked up by accident.
+  const blockMatch = yaml.match(/^platforms\s*:\s*\n((?:[ \t]+.*\n?)*)/m);
+  if (!blockMatch) return null;
+  const platformsBlock = blockMatch[1];
+  const escaped = platform.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`^[ \\t]+${escaped}\\s*:\\s*(.*)$`, "m");
+  const childMatch = platformsBlock.match(re);
+  if (!childMatch) return null;
+  let val = childMatch[1].trim();
+  if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+    val = val.slice(1, -1);
+  }
+  return val || null;
+}
+
+/** Extract the Qiita item_id from a canonical Qiita item URL. */
+export function parseQiitaItemId(url) {
+  if (typeof url !== "string") return null;
+  const m = url.match(/^https?:\/\/qiita\.com\/[^/]+\/items\/([a-f0-9]+)\/?(?:[?#].*)?$/i);
+  return m ? m[1] : null;
+}
+
+/**
+ * Compose the request that would be sent to Qiita's `PATCH /api/v2/items/:id`
+ * endpoint for the given article. Pure function so it can be dry-run printed
+ * and unit-tested without ever touching the network.
+ */
+export function buildQiitaUpdateRequest({ article, body, meta, qiitaUrl }) {
+  if (!qiitaUrl) {
+    return { ok: false, reason: "no Qiita URL in frontmatter (platforms.qiita)" };
+  }
+  const itemId = parseQiitaItemId(qiitaUrl);
+  if (!itemId) {
+    return { ok: false, reason: `unparseable Qiita URL: ${qiitaUrl}` };
+  }
+  const payload = buildPayload({ article, body, meta });
+  // Qiita's API expects `tags: [{name, versions: []}]` not a plain array.
+  const qiitaTags = payload.tags.map((name) => ({ name, versions: [] }));
+  // IMPORTANT: omit `private` so existing visibility is preserved.
+  // The article on Qiita may already be published; sending `private: true`
+  // would unpublish it. The new-draft path (buildPayload above) still
+  // defaults private:true (RW-002); the update path is conservative and
+  // does not toggle visibility implicitly.
+  return {
+    ok: true,
+    item_id: itemId,
+    method: "PATCH",
+    url: `https://qiita.com/api/v2/items/${itemId}`,
+    body: {
+      title: payload.title,
+      body: payload.body,
+      tags: qiitaTags,
+    },
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -118,9 +194,36 @@ export function sanitizeMarkdown(md) {
 /* payload builder                                                            */
 /* -------------------------------------------------------------------------- */
 
+// Frontmatter tags accept two shapes in our articles:
+//   tags: "a, b, c"
+//   tags: ["a", "b", "c"]
+// Both should yield ["a","b","c"]. The flat parseFrontmatter stores the raw
+// line value as a string, so JSON-array notation comes in as a literal string
+// that needs parsing.
+export function parseTagsField(raw) {
+  if (Array.isArray(raw)) return raw.map((s) => String(s).trim()).filter(Boolean);
+  if (typeof raw !== "string") return [];
+  const trimmed = raw.trim();
+  // First try JSON-array parsing: `["a", "b"]` is the canonical YAML/JSON form.
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const arr = JSON.parse(trimmed);
+      if (Array.isArray(arr)) return arr.map((s) => String(s).trim()).filter(Boolean);
+    } catch {
+      // fall through, but strip the brackets so the comma-split path below does
+      // not leak `[`/`]` into the first/last tag.
+    }
+  }
+  // Strip outer brackets if present (handles malformed array-like input like
+  // `[tag1, tag2]` without quotes). Falls through to the comma-split path.
+  const inner =
+    trimmed.startsWith("[") && trimmed.endsWith("]") ? trimmed.slice(1, -1) : trimmed;
+  return inner.split(",").map((t) => t.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+}
+
 export function buildPayload({ article, body, meta }) {
   const title = (meta.title || basename(article, ".md")).slice(0, 200);
-  const tags = typeof meta.tags === "string" ? meta.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
+  const tags = parseTagsField(meta.tags);
   return {
     title,
     tags,
@@ -207,6 +310,34 @@ async function main() {
       env_state: envState,
     }),
   );
+
+  // Issue #330 AC-3: --update mode prints the PATCH request that would be sent.
+  // RW-002: actual PATCH requires --publish (HITL); --update --dry-run is safe to run automatically.
+  if (parsed.update) {
+    const out = { mode: parsed.dryRun ? "update-dry-run" : "update", target: parsed.target, requests: [] };
+    if (parsed.target === "qiita" || parsed.target === "both") {
+      const qiitaUrl = extractPlatformUrl(raw, "qiita");
+      const req = buildQiitaUpdateRequest({ article: parsed.article, body, meta, qiitaUrl });
+      out.requests.push({ platform: "qiita", ...req });
+    }
+    if (parsed.target === "note" || parsed.target === "both") {
+      const noteUrlFromFrontmatter = extractPlatformUrl(raw, "note");
+      out.requests.push({
+        platform: "note",
+        ok: false,
+        reason: "note does not expose a public update API; manual update via tools/team_salary/ (Playwright). See follow-up Issue.",
+        note_url: noteUrlFromFrontmatter,
+      });
+    }
+    console.log(JSON.stringify(out, null, 2));
+    if (!parsed.dryRun) {
+      // Actually performing the PATCH is intentionally not yet wired up in this PR.
+      // We log the intent and exit non-zero so an operator notices.
+      console.error(JSON.stringify({ level: "warn", msg: "real --update PATCH not yet implemented; refused to send", advice: "review the dry-run output, then perform the PATCH manually until follow-up Issue lands" }));
+      process.exit(4);
+    }
+    return;
+  }
 
   // RW-002: --publish 明示なしでは投稿しない、dry-run 出力のみ
   if (parsed.dryRun) {

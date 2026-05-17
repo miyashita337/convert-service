@@ -16,6 +16,8 @@ platforms:
 
 # WebP vs AVIF vs HEIC: The Real-World Image Format Comparison (2026)
 
+![QuickConv front page — supports HEIC, WebP, AVIF, PNG, JPG conversions in any direction](./images/002-format-comparison/01-quickconv-top.png)
+
 JPEG has been the default image format for over 30 years. But in 2026, three contenders have matured enough to replace it for most use cases: WebP, AVIF, and HEIC.
 
 This isn't a theoretical comparison. I run [QuickConv](https://quickconv.cc), an image conversion service that processes thousands of conversions per day. Here's what I've learned from real conversion data.
@@ -221,6 +223,8 @@ All three next-gen formats support transparency, which makes them viable replace
 ---
 
 ## How to Convert
+
+![QuickConv output format selector — JPG / WEBP / AVIF / ICO / TIFF / PDF buttons appear after a file is dropped](./images/002-format-comparison/02-format-selector.png)
 
 If you need to convert between these formats:
 
