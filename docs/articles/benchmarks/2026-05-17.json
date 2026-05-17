@@ -1,0 +1,93 @@
+{
+  "version": "1",
+  "generated_at": "2026-05-17T04:32:43.939Z",
+  "env": {
+    "node": "v25.8.1",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sharp": "^0.33.0",
+    "ffmpeg": "8.1",
+    "cpu_model": "arm64 arm"
+  },
+  "trials": 5,
+  "note": "Median of 5 trials (warm-up discarded). Local Sharp / ffmpeg; reflects the same engine as the production converter. Network/queue overhead not included.",
+  "results": [
+    {
+      "label": "WebP -> PNG (800x600, ~30KB input)",
+      "input_format": "webp",
+      "output_format": "png",
+      "quality": null,
+      "input_bytes": 5396,
+      "trials": 5,
+      "median_ms": 8,
+      "min_ms": 8,
+      "max_ms": 8
+    },
+    {
+      "label": "WebP -> PNG (3000x2000, medium photo)",
+      "input_format": "webp",
+      "output_format": "png",
+      "quality": null,
+      "input_bytes": 46984,
+      "trials": 5,
+      "median_ms": 108,
+      "min_ms": 100,
+      "max_ms": 112
+    },
+    {
+      "label": "JPEG -> WebP q80 (3000x2000)",
+      "input_format": "jpg",
+      "output_format": "webp",
+      "quality": 80,
+      "input_bytes": 158480,
+      "trials": 5,
+      "median_ms": 286,
+      "min_ms": 282,
+      "max_ms": 288
+    },
+    {
+      "label": "JPEG -> AVIF q65 (3000x2000)",
+      "input_format": "jpg",
+      "output_format": "avif",
+      "quality": 65,
+      "input_bytes": 158480,
+      "trials": 5,
+      "median_ms": 3633,
+      "min_ms": 3567,
+      "max_ms": 3744
+    },
+    {
+      "label": "JPEG -> WebP q80 (800x600 small)",
+      "input_format": "jpg",
+      "output_format": "webp",
+      "quality": 80,
+      "input_bytes": 18997,
+      "trials": 5,
+      "median_ms": 24,
+      "min_ms": 23,
+      "max_ms": 25
+    },
+    {
+      "label": "JPEG -> AVIF q65 (800x600 small)",
+      "input_format": "jpg",
+      "output_format": "avif",
+      "quality": 65,
+      "input_bytes": 18997,
+      "trials": 5,
+      "median_ms": 113,
+      "min_ms": 112,
+      "max_ms": 115
+    },
+    {
+      "label": "MP4 -> MP3 (30s, 320x240, libmp3lame q:a 2)",
+      "input_format": "mp4",
+      "output_format": "mp3",
+      "quality": "libmp3lame -q:a 2 (VBR ~190 kbps)",
+      "input_bytes": 693847,
+      "trials": 5,
+      "median_ms": 93,
+      "min_ms": 90,
+      "max_ms": 97
+    }
+  ]
+}

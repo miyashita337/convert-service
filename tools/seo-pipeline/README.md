@@ -10,7 +10,9 @@ QuickConv SEO 集客自動化 (Epic #320) の MVP パイプライン。
 | `competitor-analysis.mjs` | #324 | 競合分析 (H2/H3 抽出 + Prompt Injection バリア) |
 | `outline-generator.mjs` | #325 | 構成案生成 (deterministic、template-based) |
 | `run.mjs` | #325 | 3段オーケストレーター (keyword → competitor → outline) |
-| `publish-draft.mjs` | #326 | note/Qiita 下書き shim + XSS サニタイズゲート |
+| `publish-draft.mjs` | #326 / #330 | note/Qiita 下書き shim + XSS サニタイズゲート + `--update` モード |
+| `benchmark.mjs` | #330 | 記事ベンチマーク計測 (Sharp / ffmpeg、median of 5 trials) |
+| `render-article-003-diagrams.mjs` | #330 | 003 記事用の SVG → PNG 図版レンダリング |
 
 ## keyword-research.mjs
 
@@ -219,4 +221,38 @@ node tools/seo-pipeline/publish-draft.mjs --article ... --dry-run
 - **note publish の shim 未実装**: 現状 `--target note` は警告メッセージのみ。手動で `tools/team_salary` 側の note 投稿スクリプト (`publish-articles.ts` 等) を直接実行する運用
 - **DOMPurify 未統合**: MVP では regex ベースサニタイザで対応。Markdown ソースが人間執筆である前提のため十分。完全な HTML 入力を扱う場合は `isomorphic-dompurify` 統合検討
 - **AC-1 (実機投稿) は credentials 必須**: CI E2E では実投稿しない。手動 / one-off 検証で確認
+
+### `--update` モード (Issue #330 AC-3)
+
+既存 Qiita 記事を更新するための準備モード。frontmatter から `platforms.qiita` URL を読んで Qiita API `PATCH /api/v2/items/:id` のリクエストを組み立てる。
+
+```bash
+# dry-run (リクエスト内容を JSON で表示。API は呼ばない)
+node tools/seo-pipeline/publish-draft.mjs \
+  --article docs/articles/004-webp-to-png.md \
+  --update --target qiita --dry-run
+```
+
+設計判断:
+- `--update` 時は **`private` フィールドを送らない**: 既存記事が published なら public を維持、draft なら draft を維持。送ると Qiita 側は値で上書きするため、意図しない unpublish を起こさない conservative 動作
+- 実 PATCH (`--update --publish`) は本 PR 時点で意図的に未実装。dry-run で内容を確認 → 人間が手動で `curl -X PATCH` する HITL ゲート (RW-002 教訓)
+- note は API 経由更新ができない (Playwright が必要) ため、`--target note` 時は `ok=false` で「team_salary 側手動更新」を示す
+- 5 記事に対する dry-run 動作確認: `node tools/seo-pipeline/publish-draft.mjs --article docs/articles/004-webp-to-png.md --update --target qiita --dry-run | jq '.requests[0] | {ok, item_id, body: (.body | {title, tag_count: (.tags|length)})}'`
+
+### `benchmark.mjs` (Issue #330 AC-2)
+
+記事 003 / 004 / 005 用の変換時間ベンチを 5 回の median で計測。本番 API の rate limit (10/日) を避けつつ、production converter と同じ Sharp 0.33 / ffmpeg 8.x を直接叩く設計。
+
+```bash
+node tools/seo-pipeline/benchmark.mjs            # docs/articles/benchmarks/<date>.json に書き出し
+node tools/seo-pipeline/benchmark.mjs --dry-run  # stdout のみ
+```
+
+依存: `apps/converter` 配下に sharp が pnpm install で展開されていること (workspace dependency)。`pnpm install` を repo root で 1 回実行すればよい。
+
+計測ペア:
+- WebP → PNG (800x600 / 3000x2000)
+- JPEG → WebP q80 (small / medium)
+- JPEG → AVIF q65 (small / medium)
+- MP4 → MP3 (libmp3lame VBR `-q:a 2`)
 

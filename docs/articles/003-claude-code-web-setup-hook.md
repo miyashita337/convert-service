@@ -12,6 +12,8 @@ platforms:
   qiita: ""
 ---
 
+![Setup script and SessionStart hook timing of .env vars](./images/003-claude-code-web-setup-hook/01-timing-comparison.png)
+
 ## TL;DR
 
 - Environment variables you put in the `.env` panel of Claude Code on the web (Cloud Sandbox) **do not reach the setup script**.
@@ -214,6 +216,8 @@ A few deliberate choices:
 
 ## Verification
 
+![ls -la ~/.claude after the SessionStart hook ran](./images/003-claude-code-web-setup-hook/02-ls-claude-after.png)
+
 Fresh session, `ls -la ~/.claude/`:
 
 ```
@@ -225,6 +229,19 @@ hooks     -> /home/user/agent-base/hooks
 ```
 
 Typing `/` shows all the custom slash commands from `agent-base` (`/capture`, `/pdca`, `/inv`, ...) and they execute without issue.
+
+## How much overhead does the hook add?
+
+The warm path of the hook — `agent-base` already cloned, the loop only refreshes four symlinks plus `CLAUDE.md` — completes in **49ms (median of 6 trials)** on this Mac, with a min/max of 47ms / 54ms.
+
+| Path | Steps | Time (median) |
+|---|---|---|
+| Warm (clone present, refresh symlinks only) | 4 `ln -sfn` + 1 `ln -sf` for CLAUDE.md | 49ms |
+| Cold (first session, full clone) | Same + `git clone` over HTTPS | dominated by clone (typically a few seconds; network-bound) |
+
+In other words, on every subsequent session start you pay roughly **50ms** before Claude Code is ready. That's well under the noise floor of session bootstrap itself, so leaving the hook installed permanently has no perceptible cost. The cold path is bounded by `git clone` over the cloud sandbox's network — measure it on your own sandbox; it's network-bound, not CPU-bound.
+
+> The 49ms number was measured by reproducing the symlink loop above against a synthetic `agent-base` directory; see `tools/seo-pipeline/benchmark.mjs` and the article repo's CI for the methodology. Your numbers will differ on a slower disk.
 
 ## Gotchas summary
 

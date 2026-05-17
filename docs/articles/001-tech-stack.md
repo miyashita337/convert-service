@@ -16,6 +16,8 @@ platforms:
 
 # I Built an Image Conversion SaaS on (Almost) $0/Month — Here's the Full Stack
 
+![QuickConv front page — the static Next.js site that fronts the whole stack](./images/001-tech-stack/01-quickconv-frontend.png)
+
 A few months ago I got frustrated trying to convert a HEIC photo on my iPhone into something my client could actually open. The tools I found were either slow, ugly, or locked behind a paywall after one use. So I built [QuickConv](https://quickconv.cc) — a file conversion service focused on next-generation image formats like WebP, AVIF, and HEIC.
 
 This post is a full technical breakdown: what I chose, why I chose it, and what I'd do differently. No marketing fluff.
@@ -297,6 +299,8 @@ When I exceed free tiers, the marginal cost is still low: Workers Paid plan is $
 ---
 
 ## Try It
+
+![Conversion result page — download link appears after the converter writes back to R2](./images/001-tech-stack/02-quickconv-result.png)
 
 [quickconv.cc](https://quickconv.cc) — free tier is 10 conversions/day, no account required.
 

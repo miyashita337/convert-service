@@ -18,6 +18,10 @@ import {
   buildPayload,
   assertEnvSeparation,
   invokeTeamSalaryQiita,
+  extractPlatformUrl,
+  parseQiitaItemId,
+  buildQiitaUpdateRequest,
+  parseTagsField,
 } from "../publish-draft.mjs";
 
 /* parseArgs */
@@ -146,6 +150,31 @@ test("buildPayload: tags は配列化", () => {
   assert.deepEqual(p.tags, ["a", "b", "c"]);
 });
 
+test("parseTagsField: JSON array 形式の frontmatter tags を正しく扱う (実 article 形式)", () => {
+  assert.deepEqual(
+    parseTagsField('["WebP", "PNG", "画像変換", "ブログ", "Canva"]'),
+    ["WebP", "PNG", "画像変換", "ブログ", "Canva"],
+  );
+});
+
+test("parseTagsField: 配列がそのまま渡されてもよい", () => {
+  assert.deepEqual(parseTagsField(["a", "b"]), ["a", "b"]);
+});
+
+test("parseTagsField: コンマ区切り (クォートなし) もサポート", () => {
+  assert.deepEqual(parseTagsField("a, b , c"), ["a", "b", "c"]);
+});
+
+test("parseTagsField: 各エントリの外側引用符を剥がす (二重引用符が残らない)", () => {
+  assert.deepEqual(parseTagsField('"a", "b"'), ["a", "b"]);
+});
+
+test("parseTagsField: 不正値は空配列", () => {
+  assert.deepEqual(parseTagsField(null), []);
+  assert.deepEqual(parseTagsField(undefined), []);
+  assert.deepEqual(parseTagsField(123), []);
+});
+
 test("buildPayload: title が長すぎる場合 200 chars に切り詰め", () => {
   const long = "x".repeat(300);
   const p = buildPayload({ article: "x.md", body: "x", meta: { title: long } });
@@ -186,4 +215,106 @@ test("invokeTeamSalaryQiita: runner が非 0 を返したら ok=false", () => {
   );
   assert.equal(r.ok, false);
   assert.ok(r.reason.includes("exit 1"));
+});
+
+/* --update mode (Issue #330 AC-3) */
+
+test("parseArgs: --update flag が拾われる", () => {
+  const r = parseArgs(["--article", "x.md", "--update"]);
+  assert.equal(r.update, true);
+});
+
+test("parseArgs: --update なし → false", () => {
+  const r = parseArgs(["--article", "x.md"]);
+  assert.equal(r.update, false);
+});
+
+test("extractPlatformUrl: platforms.qiita を抽出", () => {
+  const md = `---\ntitle: T\nplatforms:\n  qiita: "https://qiita.com/quickconv/items/ea94f0e954621a91bf2c"\n  note: "https://note.com/quickconv/n/x"\n---\nbody`;
+  assert.equal(
+    extractPlatformUrl(md, "qiita"),
+    "https://qiita.com/quickconv/items/ea94f0e954621a91bf2c",
+  );
+  assert.equal(extractPlatformUrl(md, "note"), "https://note.com/quickconv/n/x");
+});
+
+test("extractPlatformUrl: クォートなしの値も受け付ける", () => {
+  const md = `---\nplatforms:\n  qiita: https://qiita.com/u/items/abc\n---\nbody`;
+  assert.equal(extractPlatformUrl(md, "qiita"), "https://qiita.com/u/items/abc");
+});
+
+test("extractPlatformUrl: 値が空文字なら null", () => {
+  const md = `---\nplatforms:\n  qiita: ""\n---\nbody`;
+  assert.equal(extractPlatformUrl(md, "qiita"), null);
+});
+
+test("extractPlatformUrl: 指定 key 不在なら null", () => {
+  const md = `---\nplatforms:\n  qiita: "x"\n---\nbody`;
+  assert.equal(extractPlatformUrl(md, "medium"), null);
+});
+
+test("extractPlatformUrl: frontmatter 不在なら null (素の string も安全)", () => {
+  assert.equal(extractPlatformUrl("no frontmatter here", "qiita"), null);
+  assert.equal(extractPlatformUrl(null, "qiita"), null);
+});
+
+test("parseQiitaItemId: 正規 URL から item_id 抽出", () => {
+  assert.equal(
+    parseQiitaItemId("https://qiita.com/quickconv/items/ea94f0e954621a91bf2c"),
+    "ea94f0e954621a91bf2c",
+  );
+});
+
+test("parseQiitaItemId: trailing slash / query string も許容", () => {
+  assert.equal(parseQiitaItemId("https://qiita.com/u/items/abc123/"), "abc123");
+  assert.equal(parseQiitaItemId("https://qiita.com/u/items/abc123?x=1"), "abc123");
+});
+
+test("parseQiitaItemId: 形式不一致なら null", () => {
+  assert.equal(parseQiitaItemId("https://example.com/x"), null);
+  assert.equal(parseQiitaItemId(""), null);
+  assert.equal(parseQiitaItemId(null), null);
+});
+
+test("buildQiitaUpdateRequest: ok=true で PATCH リクエスト構築", () => {
+  const r = buildQiitaUpdateRequest({
+    article: "004-webp-to-png.md",
+    body: "body content",
+    meta: { title: "T", tags: "a, b" },
+    qiitaUrl: "https://qiita.com/quickconv/items/abc1234567890def",
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.method, "PATCH");
+  assert.equal(r.item_id, "abc1234567890def");
+  assert.ok(r.url.endsWith("/abc1234567890def"));
+  assert.equal(r.body.title, "T");
+  assert.equal(r.body.body, "body content");
+  assert.deepEqual(r.body.tags, [
+    { name: "a", versions: [] },
+    { name: "b", versions: [] },
+  ]);
+  // private はあえて送らない (既存の公開状態を温存)
+  assert.equal(r.body.private, undefined, "update payload は visibility を変えない");
+});
+
+test("buildQiitaUpdateRequest: qiitaUrl 空なら ok=false", () => {
+  const r = buildQiitaUpdateRequest({
+    article: "x.md",
+    body: "b",
+    meta: {},
+    qiitaUrl: null,
+  });
+  assert.equal(r.ok, false);
+  assert.ok(r.reason.includes("no Qiita URL"));
+});
+
+test("buildQiitaUpdateRequest: 不正な qiitaUrl なら ok=false + reason", () => {
+  const r = buildQiitaUpdateRequest({
+    article: "x.md",
+    body: "b",
+    meta: {},
+    qiitaUrl: "https://example.com/not-qiita",
+  });
+  assert.equal(r.ok, false);
+  assert.ok(r.reason.includes("unparseable Qiita URL"));
 });
