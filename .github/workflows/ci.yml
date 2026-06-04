@@ -110,7 +110,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler pages deploy apps/web/out --project-name quickconv-web --branch staging
+        # --commit-message/--commit-hash を ASCII で明示。未指定だと wrangler が
+        # 日本語の HEAD commit message を渡し Cloudflare API が UTF-8 検証で落ちる (#344, code:8000111)
+        run: npx wrangler pages deploy apps/web/out --project-name quickconv-web --branch staging --commit-hash "$GITHUB_SHA" --commit-message "deploy $GITHUB_SHA"
       - name: Deploy API to Workers (staging)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -197,7 +199,8 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler pages deploy apps/web/out --project-name quickconv-web
+        # --commit-message/--commit-hash を ASCII で明示 (#344, code:8000111)
+        run: npx wrangler pages deploy apps/web/out --project-name quickconv-web --commit-hash "$GITHUB_SHA" --commit-message "deploy $GITHUB_SHA"
       - name: Deploy API to Workers (production)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
