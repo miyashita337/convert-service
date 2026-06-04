@@ -1,7 +1,7 @@
 /**
- * Stripe Price IDs (test mode / sandbox)
- * These IDs map to pre-created products in the Stripe dashboard.
- * Switch to live mode IDs via environment variable overrides in production.
+ * Stripe Price IDs.
+ * LIVE / TEST の2マップを保持し、STRIPE_SECRET_KEY の接頭辞 (sk_test / sk_live) で
+ * 自動切替する。staging は test-mode キーなので TEST マップ、production は LIVE マップを解決する (#343)。
  */
 
 export interface StripePriceConfig {
@@ -37,12 +37,57 @@ export const STRIPE_PRICE_IDS: Record<string, StripePriceConfig> = {
   },
 };
 
+/**
+ * Stripe Price IDs per plan and currency (TEST mode).
+ * 本番(LIVE)価格を test-mode にミラーした ID。staging（test-mode キー）で使用する (#343)。
+ */
+export const STRIPE_PRICE_IDS_TEST: Record<string, StripePriceConfig> = {
+  pass_7d: {
+    jpy: "price_1TealsBsqjfyEDMQDmN2YaZn",
+    usd: "price_1TealsBsqjfyEDMQjDGL3jat",
+  },
+  pass_30d: {
+    jpy: "price_1TealtBsqjfyEDMQi1lUMTbC",
+    usd: "price_1TealuBsqjfyEDMQeRUbjjKy",
+  },
+  plus_monthly: {
+    jpy: "price_1TealvBsqjfyEDMQIXfTx6k7",
+    usd: "price_1TealwBsqjfyEDMQ3CWajRR2",
+  },
+  plus_yearly: {
+    jpy: "price_1TealwBsqjfyEDMQPEoRrHSE",
+    usd: "price_1TealyBsqjfyEDMQzFZoCCzT",
+  },
+  pro_monthly: {
+    jpy: "price_1TealyBsqjfyEDMQXuhKQMQh",
+    usd: "price_1TealzBsqjfyEDMQ5ZsFrS4Z",
+  },
+  pro_yearly: {
+    jpy: "price_1Team0BsqjfyEDMQobV9JblV",
+    usd: "price_1Team1BsqjfyEDMQgL9IkTre",
+  },
+};
+
+/** Stripe シークレットキーの接頭辞から test-mode かを判定する */
+export function isStripeTestMode(secretKey: string | undefined | null): boolean {
+  return typeof secretKey === "string" && secretKey.startsWith("sk_test");
+}
+
+/** モードに応じた Price ID マップを返す（test→TESTマップ / live→LIVEマップ） */
+export function getStripePriceIdMap(isTest: boolean): Record<string, StripePriceConfig> {
+  return isTest ? STRIPE_PRICE_IDS_TEST : STRIPE_PRICE_IDS;
+}
+
 /** Supported currencies */
 export type SupportedCurrency = "jpy" | "usd";
 
-/** Resolve the correct Stripe Price ID for a plan and currency */
-export function getStripePriceId(planId: string, currency: SupportedCurrency): string | null {
-  const config = STRIPE_PRICE_IDS[planId];
+/** Resolve the correct Stripe Price ID for a plan and currency（モード切替対応） */
+export function getStripePriceId(
+  planId: string,
+  currency: SupportedCurrency,
+  isTest = false,
+): string | null {
+  const config = getStripePriceIdMap(isTest)[planId];
   if (!config) return null;
   return config[currency];
 }

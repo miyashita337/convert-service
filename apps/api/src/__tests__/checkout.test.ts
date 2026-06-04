@@ -10,6 +10,8 @@ vi.mock("../services/stripe", () => ({
   },
   isValidPlanId: (id: string) => ["pass_7d", "pass_30d", "plus_monthly", "pro_monthly"].includes(id),
   resolveStripePriceId: vi.fn().mockReturnValue("price_test_123"),
+  isTestModeEnv: (env: { STRIPE_SECRET_KEY?: string }) =>
+    env.STRIPE_SECRET_KEY?.startsWith("sk_test") ?? false,
 }));
 
 import checkout from "../routes/checkout";
@@ -163,14 +165,14 @@ describe("checkout /", () => {
     const app = createApp({ email: "user@example.com", stripeCustomerId: null, plan: "free" });
     await postCheckout(app, { planId: "plus_monthly" }, env);
     const { resolveStripePriceId } = await import("../services/stripe");
-    expect(resolveStripePriceId).toHaveBeenCalledWith("plus_monthly", "jpy");
+    expect(resolveStripePriceId).toHaveBeenCalledWith("plus_monthly", "jpy", true);
   });
 
   it("respects usd currency", async () => {
     const app = createApp({ email: "user@example.com", stripeCustomerId: null, plan: "free" });
     await postCheckout(app, { planId: "plus_monthly", currency: "usd" }, env);
     const { resolveStripePriceId } = await import("../services/stripe");
-    expect(resolveStripePriceId).toHaveBeenCalledWith("plus_monthly", "usd");
+    expect(resolveStripePriceId).toHaveBeenCalledWith("plus_monthly", "usd", true);
   });
 
   it("returns 429 when rate limit exceeded", async () => {

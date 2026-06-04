@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import type { Env } from "../types/env";
-import { STRIPE_PRICE_IDS, type SupportedCurrency } from "@quickconv/shared";
+import { getStripePriceIdMap, isStripeTestMode, type SupportedCurrency } from "@quickconv/shared";
 
 export function createStripeClient(env: Env): Stripe {
   return new Stripe(env.STRIPE_SECRET_KEY, {
@@ -33,12 +33,22 @@ export function isValidPlanId(id: string): id is PlanId {
 
 /**
  * Resolve the Stripe Price ID for a given plan and currency.
+ * isTest=true のとき test-mode マップ（staging 用）を解決する。
  * Falls back to JPY if the currency is not found.
  */
-export function resolveStripePriceId(planId: PlanId, currency: SupportedCurrency = "jpy"): string {
-  const config = STRIPE_PRICE_IDS[planId];
+export function resolveStripePriceId(
+  planId: PlanId,
+  currency: SupportedCurrency = "jpy",
+  isTest = false,
+): string {
+  const config = getStripePriceIdMap(isTest)[planId];
   if (!config) throw new Error(`Unknown planId: ${planId}`);
   return config[currency] ?? config.jpy;
+}
+
+/** env.STRIPE_SECRET_KEY の接頭辞から test-mode かを判定する */
+export function isTestModeEnv(env: Env): boolean {
+  return isStripeTestMode(env.STRIPE_SECRET_KEY);
 }
 
 export { type SupportedCurrency };
