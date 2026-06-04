@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
-import { createStripeClient, PLAN_CONFIGS, isValidPlanId, resolveStripePriceId, type SupportedCurrency } from "../services/stripe";
+import { createStripeClient, PLAN_CONFIGS, isValidPlanId, resolveStripePriceId, isTestModeEnv, type SupportedCurrency } from "../services/stripe";
 
 const checkout = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -64,7 +64,7 @@ checkout.post("/", async (c) => {
 
   let stripePriceId: string;
   try {
-    stripePriceId = resolveStripePriceId(body.planId, currency);
+    stripePriceId = resolveStripePriceId(body.planId, currency, isTestModeEnv(c.env));
   } catch {
     return c.json({ error: "invalid_plan", message: "Invalid plan ID." }, 400);
   }
