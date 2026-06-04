@@ -76,22 +76,26 @@ test.describe("Stripe 決済フロー", () => {
       },
     ]);
 
+    // Cookie を注入して再フェッチし、br/gzip の二重復号を避けて fulfill するヘルパー。
+    // fulfill({response}) のみだと、復号済み body に content-encoding: br ヘッダが残り
+    // ブラウザが二重復号に失敗して frontend の res.json() が SyntaxError になる
+    // → purchase-button が catch して pricing に留まり checkout.stripe.com へ遷移しない (#343 の真因)。
+    const fulfillWithCookie = async (route: import("@playwright/test").Route) => {
+      const response = await route.fetch({
+        headers: { ...route.request().headers(), Cookie: `qc_auth=${token}` },
+      });
+      const headers = { ...response.headers() };
+      delete headers["content-encoding"];
+      delete headers["content-length"];
+      await route.fulfill({ response, headers, body: await response.body() });
+    };
+
     // Intercept /api/auth/me to ensure authenticated state in frontend
     // (workaround for cross-domain cookie restrictions in CI headless browser)
-    await page.route(`**/api/auth/me`, async (route) => {
-      const response = await route.fetch({
-        headers: { ...route.request().headers(), Cookie: `qc_auth=${token}` },
-      });
-      await route.fulfill({ response });
-    });
+    await page.route(`**/api/auth/me`, fulfillWithCookie);
 
     // Intercept /api/checkout to inject cookie
-    await page.route(`**/api/checkout`, async (route) => {
-      const response = await route.fetch({
-        headers: { ...route.request().headers(), Cookie: `qc_auth=${token}` },
-      });
-      await route.fulfill({ response });
-    });
+    await page.route(`**/api/checkout`, fulfillWithCookie);
 
     // 認証確定を待ってからクリックする。useAuth が /api/auth/me を解決する前にクリックすると
     // user=null のため purchase-button が checkout ではなく login()（/api/auth/google へ遷移）に分岐し、
