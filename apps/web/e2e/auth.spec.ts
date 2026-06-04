@@ -40,13 +40,16 @@ async function loginViaGoogle(page: import("@playwright/test").Page) {
 }
 
 test.describe("Authentication flow", () => {
-  test("Google OAuth login redirects to quickconv.cc without error", async ({ page }) => {
+  // #355: 実 Google OAuth を headless で駆動する①②は Google の bot 検知でパスワード欄が
+  // 出ず原理的に不安定（quarantine）。本番認証の決定的担保は下の API レベルテスト
+  // （/api/auth/google→302, /api/auth/me→200）で継続する。
+  test.fixme("Google OAuth login redirects to quickconv.cc without error", async ({ page }) => {
     await loginViaGoogle(page);
     expect(page.url()).not.toContain("auth_error");
     expect(page.url()).toContain("quickconv.cc");
   });
 
-  test("OAuth callback sets qc_auth cookie on API domain", async ({ page, context }) => {
+  test.fixme("OAuth callback sets qc_auth cookie on API domain", async ({ page, context }) => {
     await loginViaGoogle(page);
     const cookies = await context.cookies(`${apiUrl}`);
     const authCookie = cookies.find((c) => c.name === "qc_auth");
