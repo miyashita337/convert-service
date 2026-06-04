@@ -93,7 +93,17 @@ test.describe("Stripe 決済フロー", () => {
       await route.fulfill({ response });
     });
 
+    // 認証確定を待ってからクリックする。useAuth が /api/auth/me を解決する前にクリックすると
+    // user=null のため purchase-button が checkout ではなく login()（/api/auth/google へ遷移）に分岐し、
+    // checkout.stripe.com へ遷移せず空URLになる（#343 E2E auth race）。固定sleepではなく応答到達で決定的に待つ。
+    const authMeResponse = page.waitForResponse(
+      (r) => r.url().includes("/api/auth/me"),
+      { timeout: 30000 },
+    );
     await page.goto(`${STAGING_URL}/ja/pricing`);
+    const authBody = await (await authMeResponse).json().catch(() => ({}));
+    expect(authBody.authenticated, "E2E前提: /api/auth/me が authenticated=true を返すこと").toBe(true);
+
     // Cookie同意バナーが表示されたら閉じる（React hydration 後に出現するため waitFor で待つ）
     try {
       const consent = page.getByRole("button", { name: "同意する" });
