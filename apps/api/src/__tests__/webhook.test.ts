@@ -449,5 +449,30 @@ describe("webhook /stripe", () => {
       expect(db.bind.mock.calls).toContainEqual(["pro", "dev@example.com"]);
       expect(preparedSql().some((s) => /UPDATE users SET plan/.test(s))).toBe(false);
     });
+
+    it("subscription.deleted keeps the tier of another active API subscription (C-1)", async () => {
+      // otherApi lookup returns a remaining active pro subscription
+      db.first.mockResolvedValueOnce({ plan_type: "api_pro_monthly" });
+      await postWebhook(app, db, "customer.subscription.deleted", {
+        id: "sub_api_starter",
+        customer: "cus_api_1",
+      }, {
+        planId: "api_starter_monthly",
+        userEmail: "dev@example.com",
+      });
+      // must NOT downgrade to free while a pro subscription remains
+      expect(db.bind.mock.calls).toContainEqual(["pro", "dev@example.com"]);
+      expect(db.bind.mock.calls).not.toContainEqual(["free", "dev@example.com"]);
+    });
+
+    it("invoice.payment_succeeded for an API subscription does not touch users.plan (S-2)", async () => {
+      // subscription lookup returns an API plan row
+      db.first.mockResolvedValueOnce({ plan_type: "api_starter_monthly", stripe_customer_id: "cus_api_1" });
+      const res = await postWebhook(app, db, "invoice.payment_succeeded", {
+        subscription: "sub_api_1",
+      });
+      expect(res.status).toBe(200);
+      expect(preparedSql().some((s) => /UPDATE users SET plan/.test(s))).toBe(false);
+    });
   });
 });

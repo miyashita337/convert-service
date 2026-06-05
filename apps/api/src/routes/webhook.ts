@@ -16,6 +16,11 @@ function planTierFromId(planId: string): UserPlan {
 /**
  * Set api_keys.plan for every active key owned by a developer.
  * API プラン課金は user 単位だが quota は key 単位のため、非失効キー全てを更新する。
+ *
+ * 信頼境界: userEmail は自サーバが checkout 時に書き込んだ metadata 由来。
+ * これを信頼できるのは Stripe 署名検証 (constructEventAsync) が本番で必須化されているため。
+ * 署名未検証イベントで任意 email を渡されると課金バイパスになるので、署名検証ゲートが前提。
+ * （消費者プラン経路も同じく metadata.userEmail を信頼しており設計は一貫している）
  */
 async function setApiKeysPlan(db: D1Database, userEmail: string, tier: "free" | "starter" | "pro"): Promise<void> {
   await db
@@ -227,11 +232,23 @@ webhook.post("/stripe", async (c) => {
       const sub = event.data.object;
       await updateSubscriptionStatus(db, sub.id, "canceled");
 
-      // API プラン軸: 解約で api_keys.plan を free に戻す。
+      // API プラン軸: 解約。同一 customer に他の有効な API サブスクが残っていれば
+      // その tier を維持し、無ければ free に戻す（消費者経路の otherActive 検査と同等）。
       if (isApiPlanId(sub.metadata?.planId)) {
         const userEmail = sub.metadata?.userEmail;
         if (userEmail) {
-          await setApiKeysPlan(db, userEmail, "free");
+          const customerId = sub.customer as string;
+          let nextTier: "free" | "starter" | "pro" = "free";
+          if (customerId) {
+            const otherApi = await db.prepare(
+              `SELECT plan_type FROM subscriptions
+               WHERE stripe_customer_id = ? AND status IN ('active', 'trialing')
+                 AND stripe_subscription_id != ? AND plan_type LIKE 'api%'
+               LIMIT 1`
+            ).bind(customerId, sub.id).first();
+            if (otherApi) nextTier = apiPlanTierFromId(otherApi.plan_type as string);
+          }
+          await setApiKeysPlan(db, userEmail, nextTier);
         }
         break;
       }
@@ -286,10 +303,14 @@ webhook.post("/stripe", async (c) => {
         const sub = await db.prepare("SELECT plan_type, stripe_customer_id FROM subscriptions WHERE stripe_subscription_id = ?")
           .bind(subId).first();
         if (sub) {
-          const planName = planTierFromId(sub.plan_type as string);
           await updateSubscriptionStatus(db, subId, "active");
-          await db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE stripe_subscription_id = ?")
-            .bind(planName, subId).run();
+          // API プラン軸は users.plan を触らない。api_keys.plan の復帰は
+          // customer.subscription.updated(status=active) が担当する。
+          if (!isApiPlanId(sub.plan_type as string)) {
+            const planName = planTierFromId(sub.plan_type as string);
+            await db.prepare("UPDATE users SET plan = ?, updated_at = datetime('now') WHERE stripe_subscription_id = ?")
+              .bind(planName, subId).run();
+          }
         }
       }
       break;

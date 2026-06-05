@@ -29,6 +29,32 @@ function resolveFrontendBase(env: Env): string {
   return appUrl.origin;
 }
 
+/** Rate limit: max 10 API-plan checkout sessions per user per hour（消費者 checkout と同等）。 */
+const DEV_CHECKOUT_RATE_LIMIT = 10;
+
+async function checkDevCheckoutRateLimit(db: D1Database, email: string): Promise<boolean> {
+  const hourKey = new Date().toISOString().slice(0, 13); // YYYY-MM-DDTHH
+  const key = `dev_checkout:${email}:${hourKey}`;
+
+  const row = await db
+    .prepare(`SELECT count FROM hourly_request_counts WHERE key = ?`)
+    .bind(key)
+    .first<{ count: number }>();
+
+  if ((row?.count ?? 0) >= DEV_CHECKOUT_RATE_LIMIT) return false;
+
+  await db
+    .prepare(
+      `INSERT INTO hourly_request_counts (key, count, updated_at)
+       VALUES (?1, 1, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET count = count + 1, updated_at = datetime('now')`
+    )
+    .bind(key)
+    .run();
+
+  return true;
+}
+
 // POST /api/developer/keys — Create a new API key
 developer.post("/keys", async (c) => {
   const user = requireAuth(c);
@@ -111,6 +137,11 @@ developer.post("/checkout", async (c) => {
   const planId = body?.planId;
   if (!planId || !(API_PLAN_IDS as readonly string[]).includes(planId)) {
     return c.json({ error: { code: "invalid_plan", message: "Invalid API plan ID." } }, 400);
+  }
+
+  const allowed = await checkDevCheckoutRateLimit(c.env.DB, user.email);
+  if (!allowed) {
+    return c.json({ error: { code: "rate_limit", message: "Too many checkout requests. Please try again later." } }, 429);
   }
 
   const currency: SupportedCurrency = body?.currency === "usd" ? "usd" : "jpy";

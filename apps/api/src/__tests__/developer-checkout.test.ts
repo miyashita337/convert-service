@@ -30,11 +30,20 @@ function createApp(user: { email: string; stripeCustomerId: string | null; plan:
   return app;
 }
 
-function createEnv(secretKey: string): Env {
+function createMockDb(rateLimitCount = 0) {
+  // rate-limit SELECT returns the current count; everything else is inert.
+  const first = vi.fn().mockResolvedValue(rateLimitCount > 0 ? { count: rateLimitCount } : null);
+  const run = vi.fn().mockResolvedValue({ success: true });
+  const bind = vi.fn(() => ({ first, run }));
+  const prepare = vi.fn(() => ({ bind }));
+  return { prepare, bind, first, run };
+}
+
+function createEnv(secretKey: string, db = createMockDb()): Env {
   return {
     STRIPE_SECRET_KEY: secretKey,
     APP_URL: "https://api.quickconv.cc",
-    DB: {} as unknown as D1Database,
+    DB: db as unknown as D1Database,
   } as unknown as Env;
 }
 
@@ -89,6 +98,14 @@ describe("POST /api/developer/checkout (#357)", () => {
     expect(arg.metadata.userEmail).toBe("dev@example.com");
     // planId must also ride on the subscription metadata so subscription.* events resolve it
     expect(arg.subscription_data.metadata.planId).toBe("api_starter_monthly");
+  });
+
+  it("returns 429 when the hourly checkout rate limit is exceeded", async () => {
+    const app = createApp({ email: "dev@example.com", stripeCustomerId: null, plan: "free" });
+    const env = createEnv("sk_test_xxx", createMockDb(10)); // count already at limit
+    const res = await postCheckout(app, { planId: "api_starter_monthly" }, env);
+    expect(res.status).toBe(429);
+    expect(mockSessionCreate).not.toHaveBeenCalled();
   });
 
   it("reuses an existing Stripe customer id when present", async () => {
