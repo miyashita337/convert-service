@@ -38,7 +38,8 @@ export function ApiPlanUpgrade() {
         if (!data?.keys?.length) return;
         const highest = data.keys.reduce<ApiPlan>((acc, k) => {
           const p = (k.plan as ApiPlan) ?? "free";
-          return PLAN_RANK[p] > PLAN_RANK[acc] ? p : acc;
+          // 未知のプラン値は rank 0（free 相当）として安全に比較する
+          return (PLAN_RANK[p] ?? 0) > (PLAN_RANK[acc] ?? 0) ? p : acc;
         }, "free");
         setCurrentPlan(highest);
       })
@@ -82,7 +83,9 @@ export function ApiPlanUpgrade() {
     [user, login, locale, t],
   );
 
-  const planLabel = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+  // 現プラン名は developers namespace の pricing キーでローカライズ（pricingFree/Starter/Pro）
+  const planLabelKey = (`pricing${currentPlan.charAt(0).toUpperCase()}${currentPlan.slice(1)}`) as "pricingFree";
+  const planLabel = t(planLabelKey);
 
   return (
     <section className="py-12">

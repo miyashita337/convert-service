@@ -81,11 +81,14 @@ webhook.post("/stripe", async (c) => {
         if (userEmail) {
           await setApiKeysPlan(db, userEmail, apiPlanTierFromId(planId));
         }
-        // ライフサイクル管理用に subscription を記録（deleted/unpaid で free に戻す）。
-        if (subscriptionId && stripeCustomerId) {
+        // ライフサイクル管理用に subscription を記録（deleted/unpaid の tier 解決に使う）。
+        // customer は Stripe が確定する session.customer を使う（meta.stripeCustomerId は
+        // 新規ユーザーで空文字 or 内部 UUID のため、ここでは信頼しない）。
+        const realCustomerId = typeof session.customer === "string" ? session.customer : "";
+        if (subscriptionId && realCustomerId) {
           await upsertSubscription(db, {
             stripeSubscriptionId: subscriptionId,
-            stripeCustomerId,
+            stripeCustomerId: realCustomerId,
             planType: planId,
             status: "active",
             currentPeriodEnd: null,
