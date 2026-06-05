@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Env, AppVariables } from "../types/env";
 import { createStripeClient } from "../services/stripe";
 import { upsertSubscription, updateSubscriptionStatus } from "../repositories/subscription-repository";
-import { higherPlan, type UserPlan } from "@quickconv/shared";
+import { higherPlan, isApiPlanId, apiPlanTierFromId, type UserPlan } from "@quickconv/shared";
 
 const webhook = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
@@ -11,6 +11,17 @@ function planTierFromId(planId: string): UserPlan {
   if (planId.startsWith("pro")) return "pro";
   if (planId.startsWith("plus")) return "plus";
   return "pass";
+}
+
+/**
+ * Set api_keys.plan for every active key owned by a developer.
+ * API プラン課金は user 単位だが quota は key 単位のため、非失効キー全てを更新する。
+ */
+async function setApiKeysPlan(db: D1Database, userEmail: string, tier: "free" | "starter" | "pro"): Promise<void> {
+  await db
+    .prepare("UPDATE api_keys SET plan = ? WHERE user_email = ? AND revoked_at IS NULL")
+    .bind(tier, userEmail)
+    .run();
 }
 
 /** Stripe unix timestamp → ISO 8601 string */
@@ -58,6 +69,26 @@ webhook.post("/stripe", async (c) => {
       const subscriptionId = typeof session.subscription === "string" ? session.subscription : null;
 
       if (!planId) break;
+
+      // API プラン軸: api_keys.plan を更新する（消費者プランの purchases/users とは別経路）。
+      if (isApiPlanId(planId)) {
+        const userEmail = meta.userEmail;
+        if (userEmail) {
+          await setApiKeysPlan(db, userEmail, apiPlanTierFromId(planId));
+        }
+        // ライフサイクル管理用に subscription を記録（deleted/unpaid で free に戻す）。
+        if (subscriptionId && stripeCustomerId) {
+          await upsertSubscription(db, {
+            stripeSubscriptionId: subscriptionId,
+            stripeCustomerId,
+            planType: planId,
+            status: "active",
+            currentPeriodEnd: null,
+            cancelAtPeriodEnd: false,
+          });
+        }
+        break;
+      }
 
       // Idempotent check
       const existing = await db.prepare("SELECT id FROM purchases WHERE stripe_payment_intent_id = ?").bind(paymentIntentId).first();
@@ -114,6 +145,15 @@ webhook.post("/stripe", async (c) => {
         cancelAtPeriodEnd: sub.cancel_at_period_end === true,
       });
 
+      // API プラン軸: active/trialing で api_keys.plan を即時更新（users は触らない）。
+      if (isApiPlanId(planId)) {
+        const userEmail = sub.metadata?.userEmail;
+        if (userEmail && (sub.status === "active" || sub.status === "trialing")) {
+          await setApiKeysPlan(db, userEmail, apiPlanTierFromId(planId));
+        }
+        break;
+      }
+
       // AC-6: Upgrade takes effect immediately
       if (sub.status === "active" || sub.status === "trialing") {
         const planName = planTierFromId(planId);
@@ -146,6 +186,22 @@ webhook.post("/stripe", async (c) => {
         cancelAtPeriodEnd,
       });
 
+      // API プラン軸: status に応じて api_keys.plan を更新（users は触らない）。
+      if (isApiPlanId(planId)) {
+        const userEmail = sub.metadata?.userEmail;
+        if (userEmail) {
+          if (status === "active" || status === "trialing") {
+            await setApiKeysPlan(db, userEmail, apiPlanTierFromId(planId));
+          } else if (status === "unpaid") {
+            // 全リトライ枯渇: free に降格
+            await setApiKeysPlan(db, userEmail, "free");
+            console.warn(`API subscription ${subId} unpaid — api_keys downgraded to free`);
+          }
+          // past_due: grace period — プランを維持
+        }
+        break;
+      }
+
       if (status === "active" || status === "trialing") {
         // AC-6: Upgrade is immediate
         const planName = planTierFromId(planId);
@@ -170,6 +226,15 @@ webhook.post("/stripe", async (c) => {
       // AC-3: Mark subscription as canceled
       const sub = event.data.object;
       await updateSubscriptionStatus(db, sub.id, "canceled");
+
+      // API プラン軸: 解約で api_keys.plan を free に戻す。
+      if (isApiPlanId(sub.metadata?.planId)) {
+        const userEmail = sub.metadata?.userEmail;
+        if (userEmail) {
+          await setApiKeysPlan(db, userEmail, "free");
+        }
+        break;
+      }
 
       const customerId = sub.customer as string;
       if (customerId) {

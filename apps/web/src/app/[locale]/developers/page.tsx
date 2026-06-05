@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { BreadcrumbJsonLd } from "@/components/json-ld";
+import { ApiPlanUpgrade } from "@/components/api-plan-upgrade";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { buildPageMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
@@ -163,6 +164,9 @@ export default async function DevelopersPage({
           })}
         </div>
       </section>
+
+      {/* Upgrade CTA (API plan billing — #357) */}
+      <ApiPlanUpgrade />
 
       {/* Comparison */}
       <section className="py-12">

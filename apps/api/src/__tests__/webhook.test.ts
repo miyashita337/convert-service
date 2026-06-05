@@ -371,4 +371,83 @@ describe("webhook /stripe", () => {
     // postWebhook uses no STRIPE_WEBHOOK_SECRET and localhost → should pass
     expect(res.status).toBe(200);
   });
+
+  // -------------------------------------------------------------------------
+  // #357: API plan billing axis → api_keys.plan (separate from users.plan)
+  // -------------------------------------------------------------------------
+  describe("API plan billing (#357)", () => {
+    function preparedSql(): string[] {
+      return (db.prepare.mock.calls as unknown[][]).map((c) => String(c[0]));
+    }
+
+    it("checkout.session.completed for an API plan updates api_keys.plan to starter", async () => {
+      const res = await postWebhook(app, db, "checkout.session.completed", {
+        payment_intent: "pi_api_1",
+        subscription: "sub_api_1",
+      }, {
+        planId: "api_starter_monthly",
+        userEmail: "dev@example.com",
+        stripeCustomerId: "cus_api_1",
+      });
+
+      expect(res.status).toBe(200);
+      expect(preparedSql().some((s) => /UPDATE api_keys SET plan/.test(s))).toBe(true);
+      expect(db.bind.mock.calls).toContainEqual(["starter", "dev@example.com"]);
+      // must NOT write the consumer purchases/users tables for an API plan
+      expect(preparedSql().some((s) => /INSERT INTO purchases/.test(s))).toBe(false);
+      expect(preparedSql().some((s) => /UPDATE users SET plan/.test(s))).toBe(false);
+    });
+
+    it("api_pro_monthly maps to the pro tier", async () => {
+      await postWebhook(app, db, "checkout.session.completed", {
+        payment_intent: "pi_api_2",
+        subscription: "sub_api_2",
+      }, {
+        planId: "api_pro_monthly",
+        userEmail: "dev@example.com",
+        stripeCustomerId: "cus_api_2",
+      });
+      expect(db.bind.mock.calls).toContainEqual(["pro", "dev@example.com"]);
+    });
+
+    it("customer.subscription.deleted for an API plan downgrades api_keys.plan to free", async () => {
+      const res = await postWebhook(app, db, "customer.subscription.deleted", {
+        id: "sub_api_1",
+        customer: "cus_api_1",
+      }, {
+        planId: "api_starter_monthly",
+        userEmail: "dev@example.com",
+      });
+
+      expect(res.status).toBe(200);
+      expect(db.bind.mock.calls).toContainEqual(["free", "dev@example.com"]);
+      // API-plan deletion must not fall through to the consumer downgrade logic
+      expect(preparedSql().some((s) => /UPDATE users SET plan/.test(s))).toBe(false);
+    });
+
+    it("customer.subscription.updated unpaid for an API plan downgrades to free", async () => {
+      await postWebhook(app, db, "customer.subscription.updated", {
+        id: "sub_api_1",
+        customer: "cus_api_1",
+        status: "unpaid",
+      }, {
+        planId: "api_starter_monthly",
+        userEmail: "dev@example.com",
+      });
+      expect(db.bind.mock.calls).toContainEqual(["free", "dev@example.com"]);
+    });
+
+    it("customer.subscription.updated active for an API plan sets the new tier", async () => {
+      await postWebhook(app, db, "customer.subscription.updated", {
+        id: "sub_api_1",
+        customer: "cus_api_1",
+        status: "active",
+      }, {
+        planId: "api_pro_monthly",
+        userEmail: "dev@example.com",
+      });
+      expect(db.bind.mock.calls).toContainEqual(["pro", "dev@example.com"]);
+      expect(preparedSql().some((s) => /UPDATE users SET plan/.test(s))).toBe(false);
+    });
+  });
 });

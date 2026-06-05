@@ -962,6 +962,14 @@
     "compareFormats": "フォーマット数",
     "compareFocus": "特長",
     "ctaTitle": "数分で変換開始",
-    "ctaDesc": "無料APIキーを取得して、5分以内に最初の変換を実行しましょう。"
+    "ctaDesc": "無料APIキーを取得して、5分以内に最初の変換を実行しましょう。",
+    "upgradeTitle": "APIプランをアップグレード",
+    "upgradeCurrentPlan": "現在のAPIプラン",
+    "upgradeStarter": "Starterにアップグレード",
+    "upgradePro": "Proにアップグレード",
+    "upgradeLogin": "ログインしてアップグレード",
+    "upgradeComingSoon": "有料APIプランは近日公開予定です。",
+    "upgradeError": "チェックアウトを開始できませんでした。もう一度お試しください。",
+    "upgradeManage": "有料プランをご利用中です。請求の管理はアカウントから行えます。"
   }
 }
