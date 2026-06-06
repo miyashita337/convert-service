@@ -25,11 +25,13 @@ export async function generateMetadata({
 }
 
 // 特定商取引法に基づく表記（日本の法令に基づく開示。日英共通で日本語表記を掲載する）。
-// NOTE: 「販売事業者」は個人事業主の氏名（実名）。デプロイ前に実名へ差し替えること。
-const OPERATOR_NAME = "宮下 寛之"; // TODO(#357): 運営責任者の実名に確定。仮置き。
+// 販売事業者は個人事業主の実名（開業届に基づく）。屋号は未登録のためサービス名を併記する。
+const OPERATOR_NAME = "宮下 博行"; // 開業届の氏名（ミヤシタ ヒロユキ）
+const SERVICE_NAME = "QuickConv";
 const SUPPORT_EMAIL = "quickconv.cc@gmail.com";
 
 const ROWS: { label: string; value: string }[] = [
+  { label: "サービス名", value: SERVICE_NAME },
   { label: "販売事業者", value: OPERATOR_NAME },
   { label: "運営統括責任者", value: OPERATOR_NAME },
   {
