@@ -39,10 +39,12 @@ describe("API plan stripe helpers (#357)", () => {
       expect(getApiStripePriceId("api_pro_monthly", "jpy", true)).toMatch(/^price_/);
     });
 
-    it("returns null for LIVE because the products are not yet approved (empty string)", () => {
-      // LIVE 未承認ゲート: 空文字 → null → checkout 側で 503
-      expect(getApiStripePriceId("api_starter_monthly", "jpy", false)).toBeNull();
-      expect(getApiStripePriceId("api_pro_monthly", "usd", false)).toBeNull();
+    it("resolves a non-empty LIVE price id for both plans (#357: Stripe 審査通過後に LIVE Price 充填)", () => {
+      // LIVE 承認ゲート開通: charges_enabled=true 確認後に LIVE Price ID を充填済み
+      expect(getApiStripePriceId("api_starter_monthly", "jpy", false)).toMatch(/^price_/);
+      expect(getApiStripePriceId("api_starter_monthly", "usd", false)).toMatch(/^price_/);
+      expect(getApiStripePriceId("api_pro_monthly", "jpy", false)).toMatch(/^price_/);
+      expect(getApiStripePriceId("api_pro_monthly", "usd", false)).toMatch(/^price_/);
     });
 
     it("returns null for unknown plan ids", () => {
