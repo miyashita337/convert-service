@@ -113,6 +113,12 @@ export function Footer() {
               {t("termsOfService")}
             </Link>
             <Link
+              href="/legal/commercial-transactions"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {t("commercialTransactions")}
+            </Link>
+            <Link
               href="/contact"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >

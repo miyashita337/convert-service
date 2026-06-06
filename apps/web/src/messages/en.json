@@ -27,6 +27,7 @@
     "language": "Language",
     "privacy": "Files are automatically deleted after 24 hours",
     "privacyPolicy": "Privacy Policy",
+    "commercialTransactions": "Commercial Transactions Act (JP)",
     "termsOfService": "Terms of Service",
     "home": "Home",
     "imageConversion": "Image Conversion",
@@ -969,6 +970,14 @@
     "compareFormats": "Formats",
     "compareFocus": "Focus",
     "ctaTitle": "Start Converting in Minutes",
-    "ctaDesc": "Get your free API key and make your first conversion in under 5 minutes."
+    "ctaDesc": "Get your free API key and make your first conversion in under 5 minutes.",
+    "upgradeTitle": "Upgrade Your API Plan",
+    "upgradeCurrentPlan": "Your current API plan",
+    "upgradeStarter": "Upgrade to Starter",
+    "upgradePro": "Upgrade to Pro",
+    "upgradeLogin": "Log in to upgrade",
+    "upgradeComingSoon": "Paid API plans are launching soon.",
+    "upgradeError": "Could not start checkout. Please try again.",
+    "upgradeManage": "You're on a paid plan. Manage billing from your account."
   }
 }
