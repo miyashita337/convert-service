@@ -103,12 +103,18 @@ export type ApiPlanId = (typeof API_PLAN_IDS)[number];
 
 /**
  * API プランの Stripe Price ID (LIVE mode)。
- * LIVE Product/Price は本番課金操作のため未承認 = 空文字。
- * checkout は空文字を検出したら 503 を返す（fail-fast、本番課金導線の承認ゲート）。
+ * Stripe アカウント審査通過 (charges_enabled=true, 2026-06-06) 後に LIVE Product/Price を作成し充填した (#357)。
+ * live product: Starter=prod_UecXrtOKpMftsl(¥980/mo) / Pro=prod_UecXjv9aRjO3qe(¥4,980/mo)。
  */
 export const API_STRIPE_PRICE_IDS: Record<string, StripePriceConfig> = {
-  api_starter_monthly: { jpy: "", usd: "" },
-  api_pro_monthly: { jpy: "", usd: "" },
+  api_starter_monthly: {
+    jpy: "price_1TfJIgBsqjfyEDMQwtwkR2oQ",
+    usd: "price_1TfJIhBsqjfyEDMQkxGoQIpt",
+  },
+  api_pro_monthly: {
+    jpy: "price_1TfJIiBsqjfyEDMQqfQD0sqn",
+    usd: "price_1TfJIjBsqjfyEDMQs08xz3pW",
+  },
 };
 
 /**

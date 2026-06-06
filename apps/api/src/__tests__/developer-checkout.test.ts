@@ -75,14 +75,18 @@ describe("POST /api/developer/checkout (#357)", () => {
     expect(body.error.code).toBe("invalid_plan");
   });
 
-  it("returns 503 in LIVE mode because LIVE prices are not yet approved (empty string)", async () => {
+  it("creates a Stripe Checkout session in LIVE mode (#357: Stripe 審査通過後に LIVE Price 充填)", async () => {
     const app = createApp({ email: "dev@example.com", stripeCustomerId: null, plan: "free" });
-    // sk_live → isTest=false → getApiStripePriceId returns null (LIVE empty) → fail-fast 503
+    // sk_live → isTest=false → getApiStripePriceId returns the LIVE price id → subscription checkout
     const res = await postCheckout(app, { planId: "api_starter_monthly" }, createEnv("sk_live_xxx"));
-    expect(res.status).toBe(503);
-    const body = await res.json() as { error: { code: string } };
-    expect(body.error.code).toBe("not_available");
-    expect(mockSessionCreate).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    const body = await res.json() as { url: string };
+    expect(body.url).toContain("checkout.stripe.com");
+    expect(mockSessionCreate).toHaveBeenCalledTimes(1);
+    const arg = mockSessionCreate.mock.calls[0][0];
+    expect(arg.mode).toBe("subscription");
+    // LIVE price id must be used (starts with "price_")
+    expect(arg.line_items[0].price).toMatch(/^price_/);
   });
 
   it("creates a Stripe Checkout session and returns the url in TEST mode", async () => {
