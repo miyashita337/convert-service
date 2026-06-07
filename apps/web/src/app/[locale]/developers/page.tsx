@@ -3,6 +3,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { BreadcrumbJsonLd } from "@/components/json-ld";
 import { ApiPlanUpgrade } from "@/components/api-plan-upgrade";
 import { locales, type Locale } from "@/lib/i18n/config";
+import { Link } from "@/lib/i18n/navigation";
 import { buildPageMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
 
@@ -85,12 +86,12 @@ export default async function DevelopersPage({
           {t("subtitle")}
         </p>
         <div className="mt-8 flex gap-4 justify-center flex-wrap">
-          <a
+          <Link
             href="/account"
             className="inline-flex items-center px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
           >
             {t("getApiKey")}
-          </a>
+          </Link>
           <a
             href="#docs"
             className="inline-flex items-center px-6 py-3 rounded-lg border border-border font-semibold hover:bg-accent transition-colors"
@@ -204,12 +205,12 @@ export default async function DevelopersPage({
         <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
           {t("ctaDesc")}
         </p>
-        <a
+        <Link
           href="/account"
           className="inline-flex items-center mt-8 px-8 py-4 rounded-lg bg-primary text-primary-foreground font-semibold text-lg hover:bg-primary/90 transition-colors"
         >
           {t("getApiKey")}
-        </a>
+        </Link>
       </section>
     </div>
   );

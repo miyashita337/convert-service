@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/lib/i18n/navigation";
 import {
   Download,
   RefreshCw,
@@ -259,9 +260,9 @@ export function ConversionCard({ presetFormat }: ConversionCardProps = {}) {
                 <p className="text-xs text-center text-yellow-700 dark:text-yellow-300">
                   {t("softUpsell", { remaining: remainingConversions })}
                   {" "}
-                  <a href="/pricing" className="underline font-medium hover:text-yellow-900 dark:hover:text-yellow-100">
+                  <Link href="/pricing" className="underline font-medium hover:text-yellow-900 dark:hover:text-yellow-100">
                     {t("softUpsellLink")}
-                  </a>
+                  </Link>
                 </p>
               )}
             </div>
