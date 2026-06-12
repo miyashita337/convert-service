@@ -1,5 +1,7 @@
 # Hacker News — Show HN Post
 
+> **正準ドラフトは [`docs/launch/hn-drafts.md`](../launch/hn-drafts.md)（Issue #236）**。投稿時はそちらを使うこと。本ファイルは旧メモ（重複整理は別途）。
+
 ## Title
 Show HN: QuickConv – Free image converter for WebP/AVIF/HEIC built on Cloudflare Workers
 
