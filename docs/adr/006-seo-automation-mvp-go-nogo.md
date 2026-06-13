@@ -1,7 +1,7 @@
 # ADR 006: SEO 自動化 MVP 着手判断（Go/NoGo + スコープ確定）
 
 - **日付**: 2026-05-13
-- **ステータス**: Accepted
+- **ステータス**: Accepted（§3 の運用後判断は [ADR-007](007-seo-pipeline-mvp-retrospective.md) で確定＝生成パイプライン廃止）
 - **判断者**: 個人開発者（運営者） + AgentTeams 5名協議
 - **関連**: Epic [#320](https://github.com/miyashita337/convert-service/issues/320)、Sub #321（クローズ済）、Sub #322（Phase 1 クローズ済 → Phase 2 #330）
 
@@ -15,15 +15,15 @@ YouTube動画「[AI社員を8人雇って記事作成を完全自動化](https:/
 
 ### Sub #321 ファクトチェック結果（[`docs/research/2026-05-13-seo-automation-claims-factcheck.md`](../research/2026-05-13-seo-automation-claims-factcheck.md)）
 
-| 動画主張 | 判定 |
-|---|---|
-| Ahrefs MCP 「無料で使える」 | 反証（Lite $99/月必須） |
-| X API 無料リサーチ | 反証（2026-02 以降従量課金） |
+| 動画主張                               | 判定                                      |
+| -------------------------------------- | ----------------------------------------- |
+| Ahrefs MCP 「無料で使える」            | 反証（Lite $99/月必須）                   |
+| X API 無料リサーチ                     | 反証（2026-02 以降従量課金）              |
 | 他者ツイートで E-E-A-T Experience 担保 | 反証（Quality Rater Guidelines Sep 2025） |
-| 月60本AI量産が SEO に安全 | 一部反証（Scaled Content Abuse リスク） |
-| Claude Code Desktop 予約タスク機能 | 裏付け |
-| Gemini Nano Banana 画像生成 | 裏付け |
-| WordPress REST API 自動入稿 | 裏付け（ただし QuickConv は WP 不採用） |
+| 月60本AI量産が SEO に安全              | 一部反証（Scaled Content Abuse リスク）   |
+| Claude Code Desktop 予約タスク機能     | 裏付け                                    |
+| Gemini Nano Banana 画像生成            | 裏付け                                    |
+| WordPress REST API 自動入稿            | 裏付け（ただし QuickConv は WP 不採用）   |
 
 ### Sub #322 Phase 1 結果（[PR #329](https://github.com/miyashita337/convert-service/pull/329)）
 
@@ -72,12 +72,12 @@ YouTube動画「[AI社員を8人雇って記事作成を完全自動化](https:/
 
 ## 不採用となった選択肢
 
-| 選択肢 | 理由 |
-|---|---|
-| 動画通りの 7 エージェント月60本版を採用 | fact-checker / devils-advocate / security-reviewer 全員が NO |
-| MVP を完全廃止（記事手動運用継続） | architect の MVP 提案を活かせず、Sub #322 Phase 1 の流れも止まる |
-| #323-326 を一括 PR で実装 | RW-035（暗黙契約累積）と同型構造、3+ Issue 分割が安全 |
-| Ahrefs MCP を MVP 第一選択 | $99/月、ROI 未検証、Search Console で代替可能 |
+| 選択肢                                  | 理由                                                             |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| 動画通りの 7 エージェント月60本版を採用 | fact-checker / devils-advocate / security-reviewer 全員が NO     |
+| MVP を完全廃止（記事手動運用継続）      | architect の MVP 提案を活かせず、Sub #322 Phase 1 の流れも止まる |
+| #323-326 を一括 PR で実装               | RW-035（暗黙契約累積）と同型構造、3+ Issue 分割が安全            |
+| Ahrefs MCP を MVP 第一選択              | $99/月、ROI 未検証、Search Console で代替可能                    |
 
 ---
 

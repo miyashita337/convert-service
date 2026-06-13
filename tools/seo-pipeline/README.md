@@ -4,15 +4,15 @@ QuickConv SEO 集客自動化 (Epic #320) の MVP パイプライン。
 
 ## モジュール一覧
 
-| ファイル | Issue | 役割 |
-|---|---|---|
-| `keyword-research.mjs` | #323 | キーワード選定 (Search Console + 手動 seed) |
-| `competitor-analysis.mjs` | #324 | 競合分析 (H2/H3 抽出 + Prompt Injection バリア) |
-| `outline-generator.mjs` | #325 | 構成案生成 (deterministic、template-based) |
-| `run.mjs` | #325 | 3段オーケストレーター (keyword → competitor → outline) |
-| `publish-draft.mjs` | #326 / #330 | note/Qiita 下書き shim + XSS サニタイズゲート + `--update` モード |
-| `benchmark.mjs` | #330 | 記事ベンチマーク計測 (Sharp / ffmpeg、median of 5 trials) |
-| `render-article-003-diagrams.mjs` | #330 | 003 記事用の SVG → PNG 図版レンダリング |
+| ファイル                          | Issue       | 役割                                                              |
+| --------------------------------- | ----------- | ----------------------------------------------------------------- |
+| `keyword-research.mjs`            | #323        | キーワード選定 (Search Console + 手動 seed)                       |
+| `competitor-analysis.mjs`         | #324        | 競合分析 (H2/H3 抽出 + Prompt Injection バリア)                   |
+| `outline-generator.mjs`           | #325        | 構成案生成 (deterministic、template-based)                        |
+| `run.mjs`                         | #325        | 3段オーケストレーター (keyword → competitor → outline)            |
+| `publish-draft.mjs`               | #326 / #330 | note/Qiita 下書き shim + XSS サニタイズゲート + `--update` モード |
+| `benchmark.mjs`                   | #330        | 記事ベンチマーク計測 (Sharp / ffmpeg、median of 5 trials)         |
+| `render-article-003-diagrams.mjs` | #330        | 003 記事用の SVG → PNG 図版レンダリング                           |
 
 ## keyword-research.mjs
 
@@ -234,6 +234,7 @@ node tools/seo-pipeline/publish-draft.mjs \
 ```
 
 設計判断:
+
 - `--update` 時は **`private` フィールドを送らない**: 既存記事が published なら public を維持、draft なら draft を維持。送ると Qiita 側は値で上書きするため、意図しない unpublish を起こさない conservative 動作
 - 実 PATCH (`--update --publish`) は本 PR 時点で意図的に未実装。dry-run で内容を確認 → 人間が手動で `curl -X PATCH` する HITL ゲート (RW-002 教訓)
 - note は API 経由更新ができない (Playwright が必要) ため、`--target note` 時は `ok=false` で「team_salary 側手動更新」を示す
@@ -251,8 +252,35 @@ node tools/seo-pipeline/benchmark.mjs --dry-run  # stdout のみ
 依存: `apps/converter` 配下に sharp が pnpm install で展開されていること (workspace dependency)。`pnpm install` を repo root で 1 回実行すればよい。
 
 計測ペア:
+
 - WebP → PNG (800x600 / 3000x2000)
 - JPEG → WebP q80 (small / medium)
 - JPEG → AVIF q65 (small / medium)
 - MP4 → MP3 (libmp3lame VBR `-q:a 2`)
 
+## retrospective.mjs (Issue #327 / Epic #320 Sub 7)
+
+MVP パイプライン 2 週間運用後の **撤退基準** 5 指標を集計し、継続 / Phase2 / 廃止の判定を出す。判断結果は [`docs/adr/007-seo-pipeline-mvp-retrospective.md`](../../docs/adr/007-seo-pipeline-mvp-retrospective.md)。
+
+```bash
+# 機械集計のみ (生成成功率・ビルド破壊件数)
+node tools/seo-pipeline/retrospective.mjs --since 2026-05-13
+
+# 外部コンソール依存指標を手動入力して全 5 指標を確定
+node tools/seo-pipeline/retrospective.mjs --since 2026-05-13 \
+  --claude-cost-yen 0 --indexed-count 0 [--hitl-approved 1 --hitl-total 2] [--json]
+```
+
+| 指標                 | 集計元                                                   | 機械/手動           |
+| -------------------- | -------------------------------------------------------- | ------------------- |
+| 記事生成成功率       | `docs/articles/seo-drafts/<date>/outline.md` の生成率    | 機械                |
+| HITL 承認率          | `--hitl-approved` / `--hitl-total`                       | 手動 (機械ログ不在) |
+| Claude API 料金      | `--claude-cost-yen` (Anthropic Console)                  | 手動                |
+| ビルド破壊件数       | `gh run list --workflow CI` 失敗のうち seo-pipeline 起因 | 機械                |
+| 生成記事インデックス | `--indexed-count` (Search Console)                       | 手動                |
+
+- 外部コンソール依存・機械ログ不在の指標は推測で 0 を埋めず `未計測` を明示する (サイレントフォールバック禁止)
+- ADR-006 §3 ルール: 1 指標でも breach → `廃止` / 全 PASS かつ全計測 → `Phase2` / breach なしだが未計測あり → `判定不能`
+- テスト: `node --test tools/seo-pipeline/__tests__/retrospective.test.mjs`
+
+> **注記 (2026-06-13)**: 本ツールの初回集計で生成パイプライン (`run.mjs` / `keyword-research.mjs` / `competitor-analysis.mjs` / `outline-generator.mjs`) の **廃止** が決定 (ADR-007)。実削除は別 PR。`benchmark.mjs` / `publish-draft.mjs` (`--update`) / `render-article-003-diagrams.mjs` は記事メンテナンスツールとして保持。
