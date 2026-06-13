@@ -283,4 +283,4 @@ node tools/seo-pipeline/retrospective.mjs --since 2026-05-13 \
 - ADR-006 §3 ルール: 1 指標でも breach → `廃止` / 全 PASS かつ全計測 → `Phase2` / breach なしだが未計測あり → `判定不能`
 - テスト: `node --test tools/seo-pipeline/__tests__/retrospective.test.mjs`
 
-> **注記 (2026-06-13)**: 本ツールの初回集計で生成パイプライン (`run.mjs` / `keyword-research.mjs` / `competitor-analysis.mjs` / `outline-generator.mjs`) の **廃止** が決定 (ADR-007)。実削除は別 PR。`benchmark.mjs` / `publish-draft.mjs` (`--update`) / `render-article-003-diagrams.mjs` は記事メンテナンスツールとして保持。
+> **注記 (2026-06-13)**: 初回集計では「run 0 件＝未運用」を主因に生成パイプラインの廃止に傾いたが、撤退前に **運用検証を 1 件実施**（`run.mjs` で HEIC→JPEG の骨子生成 → 手動執筆 → [Qiita public 公開](https://qiita.com/quickconv/items/f639b634d01534b1251f)）。これを受け ADR-007 は **「保留・再評価」** に改定（公開記事のインデックス/流入を ~2〜4 週後に再集計）。検証で公開ループの 3 欠陥（shim private 固定 / `SUPPORTED_SLUGS` ハードコード / `--slug` スペース形未対応）が判明。生成は骨子のみで本文価値は手動執筆が担う点は変わらず、Phase2 拡張は未承認。

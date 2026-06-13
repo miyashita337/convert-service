@@ -1,10 +1,39 @@
-# ADR 007: SEO MVP パイプライン 2 週間運用後の撤退判断
+# ADR 007: SEO MVP パイプライン 2 週間運用後の撤退判断 →（運用検証により）保留・再評価
 
-- **日付**: 2026-06-13
-- **ステータス**: Accepted
+- **日付**: 2026-06-13（同日後刻、運用検証を受けて判断を改定）
+- **ステータス**: Accepted（当初の「廃止」判断は、同日の運用検証 1 件をもって **保留（再評価）** に改定。下記「追記」が最終決定）
 - **Supersedes**: ADR-006 §3「Sub #327 の運用」(運用後判断の保留部分のみ。ADR-006 の Go/NoGo・スコープ確定は履歴として有効)
 - **判断者**: 個人開発者（運営者）
-- **関連**: Epic [#320](https://github.com/miyashita337/convert-service/issues/320)、Sub [#327](https://github.com/miyashita337/convert-service/issues/327)、[ADR-006](006-seo-automation-mvp-go-nogo.md)
+- **関連**: Epic [#320](https://github.com/miyashita337/convert-service/issues/320)、Sub [#327](https://github.com/miyashita337/convert-service/issues/327)、[ADR-006](006-seo-automation-mvp-go-nogo.md)、公開記事 [007 (Qiita)](https://qiita.com/quickconv/items/f639b634d01534b1251f)
+
+---
+
+## 追記（2026-06-13 後刻）: 運用検証により「廃止」を「保留・再評価」へ改定（最終決定）
+
+当初、本 ADR は「2 週間で run 0 件・インデックス 0 本 → 撤退基準抵触 → 廃止」と結論した（下記「計測結果」「決定」セクション）。しかしこの集計は **「一度も運用していない」ことが breach の主因**であり、撤退前に運用検証を 1 件実施した。
+
+### 実施した運用検証（パイプライン end-to-end 1 件）
+
+| 段階 | 結果                                                                                                                                                                         |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 生成 | `node tools/seo-pipeline/run.mjs --keyword "HEIC JPEG 変換"` 実行 → keywords.json(9語) + outline.md。**ただし出力は TODO 付きの骨子のみ**                                    |
+| 執筆 | 骨子から本文を手動執筆（[`docs/articles/007-heic-to-jpeg.md`](../articles/007-heic-to-jpeg.md)）。事実検証済み（HEIC 変換実在・無料枠 10MB・ベンチ数値は捏造せず未計測明示） |
+| 公開 | Qiita に **public** 公開・生存確認 OK（[記事](https://qiita.com/quickconv/items/f639b634d01534b1251f)、HTTP 200、noindex なし＝Google インデックス可能）                     |
+
+### 検証で判明した公開ループの欠陥（パイプラインが「1 コマンド公開」になっていない）
+
+1. `publish-draft.mjs` shim が Qiita を **private 固定**（SEO 用途に不適）
+2. team_salary `publish-quickconv-qiita.ts` の `SUPPORTED_SLUGS` が **ハードコード許可制**（新規記事ごとに submodule 編集が必要。本検証で 007 追加＝[team_salary PR #222](https://github.com/miyashita337/team_salary/pull/222)）
+3. 同スクリプトの引数パーサが `--slug=値` のみ対応で、shim が渡す `--slug 値`（スペース形）を取りこぼす
+
+### 改定後の決定: **保留（撤退判断を延期）**
+
+- 当初の「廃止」は撤回する（運用 1 件・公開 1 件の実績が出たため、撤退基準 #1/#5 の前提が消えた）
+- ただし **Phase 2 拡張も承認しない**。生成は骨子のみで本文価値は手動執筆が担い、公開ループには上記 3 欠陥がある（= 自動化はまだ律速を解消していない）
+- **再評価条件**: 公開した 007 記事のインデックス/流入を ~2〜4 週後に Search Console で確認し、`retrospective.mjs --since 2026-06-13 --indexed-count <n>` で再集計。SEO 効果が確認できれば公開ループ 3 欠陥を改修して継続投資、確認できなければ改めて廃止 ADR を書く
+- これに伴い deletion 追跡 Issue [#366](https://github.com/miyashita337/convert-service/issues/366) は **保留（close 候補）** とする
+
+> 以下の「計測結果」「決定」セクションは改定前の記録として保持する（撤退基準の機械集計手順そのものは有効）。
 
 ---
 
