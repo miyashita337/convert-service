@@ -26,3 +26,98 @@
   --color-border: #2a2a2a;
   --color-accent: #1e293b;
 }
+
+/* Styling for guide articles rendered from markdown (see article-guides.ts). */
+.article-prose {
+  color: var(--color-muted-foreground);
+  line-height: 1.75;
+}
+.article-prose h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+.article-prose h3 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+.article-prose p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.article-prose ul,
+.article-prose ol {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+.article-prose ul {
+  list-style: disc;
+}
+.article-prose ol {
+  list-style: decimal;
+}
+.article-prose li {
+  margin-top: 0.375rem;
+}
+.article-prose a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.article-prose strong {
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+.article-prose img {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius);
+  max-width: 100%;
+  height: auto;
+}
+.article-prose blockquote {
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-border);
+  color: var(--color-muted-foreground);
+  font-style: italic;
+}
+.article-prose code {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  background: var(--color-muted);
+  font-size: 0.875em;
+}
+.article-prose pre {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--color-muted);
+  overflow-x: auto;
+}
+.article-prose pre code {
+  padding: 0;
+  background: transparent;
+}
+.article-prose table {
+  width: 100%;
+  margin: 1.5rem 0;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.article-prose th,
+.article-prose td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+.article-prose th {
+  color: var(--color-foreground);
+  font-weight: 600;
+  background: var(--color-muted);
+}

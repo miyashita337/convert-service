@@ -1,20 +1,17 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { CONVERSION_PAIRS } from "@quickconv/shared";
+import { GUIDE_SLUGS } from "../src/lib/guide";
+import { ARTICLE_GUIDES } from "../src/lib/article-guides";
 
 const BASE_URL = "https://quickconv.cc";
 const LOCALES = ["en", "ja"] as const;
+type SitemapLocale = (typeof LOCALES)[number];
 const OUTPUT_PATH = resolve(__dirname, "../out/sitemap.xml");
 
 interface SitemapEntry {
   path: string;
 }
-
-const GUIDE_SLUGS = [
-  "what-is-avif",
-  "heic-to-jpg-guide",
-  "webp-vs-avif-vs-heic",
-];
 
 function getStaticPages(): SitemapEntry[] {
   return [{ path: "" }, { path: "/privacy" }, { path: "/terms" }, { path: "/guide" }];
@@ -34,27 +31,49 @@ function getConversionPages(): SitemapEntry[] {
   return pages;
 }
 
-function buildHreflangLinks(path: string): string {
-  return LOCALES.map(
-    (locale) =>
-      `      <xhtml:link rel="alternate" hreflang="${locale}" href="${BASE_URL}/${locale}${path}" />`
-  ).join("\n");
+function buildHreflangLinks(path: string, hreflangLocales: readonly SitemapLocale[]): string {
+  return hreflangLocales
+    .map(
+      (locale) =>
+        `      <xhtml:link rel="alternate" hreflang="${locale}" href="${BASE_URL}/${locale}${path}" />`,
+    )
+    .join("\n");
 }
 
-function buildUrlEntry(locale: string, path: string): string {
+function buildUrlEntry(
+  locale: SitemapLocale,
+  path: string,
+  hreflangLocales: readonly SitemapLocale[],
+): string {
   return `  <url>
     <loc>${BASE_URL}/${locale}${path}</loc>
-${buildHreflangLinks(path)}
+${buildHreflangLinks(path, hreflangLocales)}
     <changefreq>weekly</changefreq>
   </url>`;
 }
 
 function generateSitemap(): string {
-  const pages = [...getStaticPages(), ...getGuidePages(), ...getConversionPages()];
+  const bilingualPages = [
+    ...getStaticPages(),
+    ...getGuidePages(),
+    ...getConversionPages(),
+  ];
 
-  const urls = pages.flatMap((page) =>
-    LOCALES.map((locale) => buildUrlEntry(locale, page.path))
-  );
+  const urls: string[] = [];
+
+  // Pages available in every locale, cross-linked via hreflang.
+  for (const page of bilingualPages) {
+    for (const locale of LOCALES) {
+      urls.push(buildUrlEntry(locale, page.path, LOCALES));
+    }
+  }
+
+  // Single-language markdown guides: one entry, self-referencing hreflang only.
+  for (const article of ARTICLE_GUIDES) {
+    urls.push(
+      buildUrlEntry(article.locale, `/guide/${article.slug}`, [article.locale]),
+    );
+  }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
