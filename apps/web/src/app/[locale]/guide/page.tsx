@@ -35,6 +35,9 @@ const GUIDE_NAMESPACE_MAP: Record<string, string> = {
   "webp-vs-avif-vs-heic": "guideWebpVsAvifVsHeic",
   "heic-complete-guide": "guideHeicComplete",
   "blog-image-optimization": "guideBlogImageOpt",
+  "png-to-jpg": "guidePngToJpg",
+  "pdf-to-jpg": "guidePdfToJpg",
+  "mp4-to-gif": "guideMp4ToGif",
 };
 
 export default async function GuideListPage({

@@ -23,6 +23,9 @@ const GUIDE_NAMESPACE_MAP: Record<GuideSlug, string> = {
   "webp-vs-avif-vs-heic": "guideWebpVsAvifVsHeic",
   "heic-complete-guide": "guideHeicComplete",
   "blog-image-optimization": "guideBlogImageOpt",
+  "png-to-jpg": "guidePngToJpg",
+  "pdf-to-jpg": "guidePdfToJpg",
+  "mp4-to-gif": "guideMp4ToGif",
 };
 
 const GUIDE_SEO_KEY_MAP: Record<GuideSlug, { title: string; description: string }> = {
@@ -31,6 +34,16 @@ const GUIDE_SEO_KEY_MAP: Record<GuideSlug, { title: string; description: string 
   "webp-vs-avif-vs-heic": { title: "guideWebpVsAvifVsHeicTitle", description: "guideWebpVsAvifVsHeicDescription" },
   "heic-complete-guide": { title: "guideHeicCompleteTitle", description: "guideHeicCompleteDescription" },
   "blog-image-optimization": { title: "guideBlogImageOptTitle", description: "guideBlogImageOptDescription" },
+  "png-to-jpg": { title: "guidePngToJpgTitle", description: "guidePngToJpgDescription" },
+  "pdf-to-jpg": { title: "guidePdfToJpgTitle", description: "guidePdfToJpgDescription" },
+  "mp4-to-gif": { title: "guideMp4ToGifTitle", description: "guideMp4ToGifDescription" },
+};
+
+// Shared CTA target per conversion guide (slug → /convert/<tool>).
+const CONVERSION_GUIDE_CTA: Partial<Record<GuideSlug, string>> = {
+  "png-to-jpg": "/convert/png-to-jpg",
+  "pdf-to-jpg": "/convert/pdf-to-jpg",
+  "mp4-to-gif": "/convert/mp4-to-gif",
 };
 
 export async function generateStaticParams() {
@@ -126,6 +139,9 @@ export default async function GuideArticlePage({ params }: PageProps) {
       {slug === "webp-vs-avif-vs-heic" && <WebpVsAvifVsHeicContent t={t} tCommon={tCommon} />}
       {slug === "heic-complete-guide" && <HeicCompleteGuideContent t={t} tCommon={tCommon} />}
       {slug === "blog-image-optimization" && <BlogImageOptContent t={t} tCommon={tCommon} />}
+      {CONVERSION_GUIDE_CTA[slug] && (
+        <ConversionGuideContent t={t} tCommon={tCommon} ctaHref={CONVERSION_GUIDE_CTA[slug]!} />
+      )}
     </div>
   );
 }
@@ -685,6 +701,80 @@ function BlogImageOptContent({ t, tCommon }: ContentProps) {
         <h2 className="text-2xl font-semibold">{t("conclusionTitle")}</h2>
         <p className="mt-3 text-muted-foreground leading-relaxed">{t("conclusionText")}</p>
         <GuideCta href="/convert/png-to-webp" label={tCommon("tryConverter")} />
+      </section>
+    </>
+  );
+}
+
+interface ConversionGuideContentProps extends ContentProps {
+  ctaHref: string;
+}
+
+/**
+ * Shared layout for conversion-intent guides (png-to-jpg, pdf-to-jpg, mp4-to-gif).
+ * All three namespaces expose the same key set; only the CTA target differs.
+ */
+function ConversionGuideContent({ t, tCommon, ctaHref }: ConversionGuideContentProps) {
+  return (
+    <>
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("whyTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("whyText")}</p>
+        <ul className="mt-3 list-disc list-inside text-muted-foreground space-y-1.5">
+          <li>{t("whyReason1")}</li>
+          <li>{t("whyReason2")}</li>
+          <li>{t("whyReason3")}</li>
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("onlineTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("onlineText")}</p>
+        <ol className="mt-3 list-decimal list-inside text-muted-foreground space-y-1.5">
+          <li>{t("onlineStep1")}</li>
+          <li>{t("onlineStep2")}</li>
+          <li>{t("onlineStep3")}</li>
+        </ol>
+        <GuideCta href={ctaHref} label={tCommon("tryConverter")} />
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("altTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("altText")}</p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("tipsTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("tipsText")}</p>
+        <ul className="mt-3 list-disc list-inside text-muted-foreground space-y-1.5">
+          <li>{t("tip1")}</li>
+          <li>{t("tip2")}</li>
+          <li>{t("tip3")}</li>
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("faqTitle")}</h2>
+        <div className="mt-4 space-y-6">
+          <div>
+            <h3 className="font-semibold">{t("faqQ1")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{t("faqA1")}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">{t("faqQ2")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{t("faqA2")}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">{t("faqQ3")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{t("faqA3")}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">{t("conclusionTitle")}</h2>
+        <p className="mt-3 text-muted-foreground leading-relaxed">{t("conclusionText")}</p>
+        <GuideCta href={ctaHref} label={tCommon("tryConverter")} />
       </section>
     </>
   );
