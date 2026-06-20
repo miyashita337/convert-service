@@ -4,6 +4,11 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { BreadcrumbJsonLd, ArticleJsonLd } from "@/components/json-ld";
 import { GuideCta } from "@/components/guide-cta";
 import { GUIDE_SLUGS, isValidGuideSlug, type GuideSlug } from "@/lib/guide";
+import {
+  ARTICLE_GUIDES,
+  getArticleGuideMeta,
+  loadArticleGuide,
+} from "@/lib/article-guides";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { buildPageMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
@@ -42,13 +47,32 @@ const CONVERSION_GUIDE_CTA: Partial<Record<GuideSlug, string>> = {
 };
 
 export async function generateStaticParams() {
-  return locales.flatMap((locale) =>
+  const i18nParams = locales.flatMap((locale) =>
     GUIDE_SLUGS.map((slug) => ({ locale, slug })),
   );
+  // Article guides are published for a single locale only.
+  const articleParams = ARTICLE_GUIDES.map((a) => ({
+    locale: a.locale,
+    slug: a.slug,
+  }));
+  return [...i18nParams, ...articleParams];
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
+
+  const article = getArticleGuideMeta(slug);
+  if (article) {
+    if (article.locale !== locale) return {};
+    const loaded = loadArticleGuide(slug);
+    return buildPageMetadata({
+      title: loaded.title,
+      description: loaded.description,
+      locale: locale as Locale,
+      path: `/guide/${slug}`,
+    });
+  }
+
   if (!isValidGuideSlug(slug)) return {};
 
   const t = await getTranslations({ locale, namespace: "seo" });
@@ -64,6 +88,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function GuideArticlePage({ params }: PageProps) {
   const { locale, slug } = await params;
+
+  const article = getArticleGuideMeta(slug);
+  if (article) {
+    if (article.locale !== locale) {
+      notFound();
+    }
+    return <MarkdownArticleGuide locale={locale as Locale} slug={slug} />;
+  }
 
   if (!isValidGuideSlug(slug)) {
     notFound();
@@ -117,6 +149,61 @@ export default async function GuideArticlePage({ params }: PageProps) {
 interface ContentProps {
   t: (key: string) => string;
   tCommon: (key: string) => string;
+}
+
+/**
+ * Renders a single-language guide whose content comes from a markdown article
+ * in `docs/articles/` (see `@/lib/article-guides`). Used for guides that are
+ * published in one locale only, alongside the bilingual i18n guides above.
+ */
+async function MarkdownArticleGuide({
+  locale,
+  slug,
+}: {
+  locale: Locale;
+  slug: string;
+}) {
+  setRequestLocale(locale);
+  const article = loadArticleGuide(slug);
+  const tCommon = await getTranslations({ locale, namespace: "common" });
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-12">
+      <BreadcrumbJsonLd
+        locale={locale}
+        items={[
+          { name: tCommon("guide"), href: "/guide" },
+          { name: article.title },
+        ]}
+      />
+      <ArticleJsonLd
+        locale={locale}
+        title={article.title}
+        description={article.description}
+        path={`/guide/${slug}`}
+      />
+      <Breadcrumb
+        items={[
+          { label: tCommon("guide"), href: "/guide" },
+          { label: article.title },
+        ]}
+      />
+
+      <h1 className="text-3xl font-bold tracking-tight">{article.title}</h1>
+      {article.publishedAt && (
+        <time className="mt-2 block text-sm text-muted-foreground">
+          {article.publishedAt}
+        </time>
+      )}
+
+      <div
+        className="article-prose mt-8"
+        dangerouslySetInnerHTML={{ __html: article.html }}
+      />
+
+      <GuideCta href={article.ctaHref} label={tCommon("tryConverter")} />
+    </div>
+  );
 }
 
 function WhatIsAvifContent({ t, tCommon }: ContentProps) {

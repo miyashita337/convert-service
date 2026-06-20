@@ -3,6 +3,7 @@ import { Link } from "@/lib/i18n/navigation";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { BreadcrumbJsonLd } from "@/components/json-ld";
 import { GUIDE_SLUGS } from "@/lib/guide";
+import { ARTICLE_GUIDES, loadArticleGuide } from "@/lib/article-guides";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { buildPageMetadata } from "@/lib/metadata";
 import { ArrowRight } from "lucide-react";
@@ -49,7 +50,7 @@ export default async function GuideListPage({
   const t = await getTranslations("guideList");
   const tCommon = await getTranslations("common");
 
-  const articles = await Promise.all(
+  const i18nArticles = await Promise.all(
     GUIDE_SLUGS.map(async (slug) => {
       const ns = GUIDE_NAMESPACE_MAP[slug];
       const tArticle = await getTranslations(ns);
@@ -61,6 +62,21 @@ export default async function GuideListPage({
       };
     }),
   );
+
+  // Single-language markdown guides published for the current locale.
+  const markdownArticles = ARTICLE_GUIDES.filter(
+    (a) => a.locale === locale,
+  ).map((a) => {
+    const loaded = loadArticleGuide(a.slug);
+    return {
+      slug: a.slug,
+      title: loaded.title,
+      description: loaded.description,
+      publishedAt: loaded.publishedAt,
+    };
+  });
+
+  const articles = [...i18nArticles, ...markdownArticles];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
