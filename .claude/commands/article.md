@@ -58,9 +58,14 @@ gh label create "done"           --color "5319E7" --description "完了（corp a
    `npm install` 禁止＝RW-052）。記事はこの時点で **未公開**（`published: false`）。
 4. **フェーズラベル付与 + 報告 + 停止**:
    ```bash
-   gh issue edit <N> --add-label "draft-returned"
-   gh issue comment <N> --body "## 下書き返却 - <timestamp>\n\n- 記事: docs/articles/<NNN>-<slug>.md（published:false）\n\n会長の承認をお待ちします（承認後に公開＋クロスポストへ進みます）。"
+   gh issue edit "$ARGUMENTS" --add-label "draft-returned"
+   gh issue comment "$ARGUMENTS" --body "## 下書き返却 - $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+   - 記事: docs/articles/{NNN}-{slug}.md（published:false）
+
+   会長の承認をお待ちします（承認後に公開＋クロスポストへ進みます）。"
    ```
+   （`{NNN}-{slug}` は作成した記事ファイル名に置換する）
    会長へ下書き（記事パス・要旨）を報告し、**ここで停止して会長の承認発言を待つ**。
 
 ---
@@ -73,8 +78,8 @@ gh label create "done"           --color "5319E7" --description "完了（corp a
    `tools/publish-{devto,hashnode}-<NNN>.mjs` を用意し実行する（必要 env: `DEVTO_API_KEY` /
    `HASHNODE_TOKEN` / `HASHNODE_PUBLICATION_ID`）。
    ```bash
-   npx dotenv -e .env -- node tools/publish-devto-<NNN>.mjs
-   npx dotenv -e .env -- node tools/publish-hashnode-<NNN>.mjs
+   npx dotenv -e .env -- node tools/publish-devto-{NNN}.mjs
+   npx dotenv -e .env -- node tools/publish-hashnode-{NNN}.mjs
    ```
 2. **note / Qiita / SNS（`tools/team_salary` submodule を流用）**: submodule 側の投稿モジュールで
    note / Qiita / X / Threads / IG へクロスポストする（`docs/articles/README.md` の流用方針に従う）。
@@ -82,7 +87,7 @@ gh label create "done"           --color "5319E7" --description "完了（corp a
    note,qiita,...}` に公開 URL を反映してコミットする。
 4. **フェーズラベル付与 + 報告 + 停止**:
    ```bash
-   gh issue edit <N> --remove-label "draft-returned" --add-label "published"
+   gh issue edit "$ARGUMENTS" --remove-label "draft-returned" --add-label "published"
    ```
    会長へ各プラットフォームの公開 URL を報告し、**会長の close を待つ**。
    - いずれかの公開が失敗したら、そのプラットフォームを切り分けて再試行（自己修復ポリシー）。主要公開が
@@ -100,7 +105,7 @@ gh label create "done"           --color "5319E7" --description "完了（corp a
    反映済みであることを確認。
 3. **done ラベル付与（auto-stop トリガー）**:
    ```bash
-   gh issue edit <N> --add-label "done"
+   gh issue edit "$ARGUMENTS" --remove-label "published" --add-label "done"
    ```
    `done` 付与で claude-hub の GoalWatcher がセッションを猶予後 auto-stop する（M3）。会長へ完了報告。
 

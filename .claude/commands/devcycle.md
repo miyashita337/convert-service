@@ -74,7 +74,7 @@ gh label create "done"          --color "5319E7" --description "完了（corp au
      停止しない（`done` ラベルで停止する。AC-7）。早期 close を避けたい場合は PR 本文では参照のみに留める。
 5. **PR CI（`lint-and-build` ＋ `test`）が green** になったら:
    ```bash
-   gh issue edit <N> --add-label "staging-ready"
+   gh issue edit "$ARGUMENTS" --add-label "staging-ready"
    ```
    会長へ「実装＋PR 完了、CI green。レビューと merge をお願いします」と報告し、**会長の merge を待つ**。
 
@@ -93,7 +93,7 @@ gh label create "done"          --color "5319E7" --description "完了（corp au
 2. **判定**:
    - **`e2e-prod` まで green（本番デプロイ＋本番 E2E 成功）**:
      ```bash
-     gh issue edit <N> --remove-label "staging-ready" --add-label "deployed"
+     gh issue edit "$ARGUMENTS" --remove-label "staging-ready" --add-label "deployed"
      ```
      会長へ本番デプロイ完了＋本番 E2E green を報告し、**会長の close を待つ**。
    - **staging E2E or 本番 E2E が fail**: 本番デプロイはゲートで止まる（または本番後に検知）。原因を調査し
@@ -110,7 +110,7 @@ gh label create "done"          --color "5319E7" --description "完了（corp au
 2. **本番反映の最終確認**: `e2e-prod` が当該リリースで green であること（本番が壊れたまま done にしない）。
 3. **done ラベル付与（auto-stop トリガー）**:
    ```bash
-   gh issue edit <N> --add-label "done"
+   gh issue edit "$ARGUMENTS" --remove-label "deployed" --add-label "done"
    ```
    `done` 付与で claude-hub の GoalWatcher がセッションを猶予後 auto-stop する（M3）。会長へ完了報告。
 
