@@ -154,10 +154,13 @@ jobs:
         env:
           E2E_TEST_SECRET: ${{ secrets.E2E_TEST_SECRET }}
         run: |
+          # メールを run/attempt ごとにユニーク化する。checkout API のレート制限 (10回/時/メール)
+          # が固定メールだと attempt を跨いで蓄積し、rerun が全件 429 になって真のエラーを隠すため (#383)
+          E2E_EMAIL="e2e+staging-${GITHUB_RUN_ID}a${GITHUB_RUN_ATTEMPT}@quickconv.cc"
           RESPONSE=$(curl -sf --retry 3 -X POST "https://api-staging.quickconv.cc/api/test/token" \
             -H "Content-Type: application/json" \
             -H "X-E2E-Secret: ${E2E_TEST_SECRET}" \
-            -d '{"email":"e2e+staging@quickconv.cc","plan":"free"}') || { echo "::error::Failed to fetch E2E token"; exit 1; }
+            -d "{\"email\":\"${E2E_EMAIL}\",\"plan\":\"free\"}") || { echo "::error::Failed to fetch E2E token"; exit 1; }
           TOKEN=$(echo "$RESPONSE" | jq -r '.token')
           if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
             echo "::error::E2E token is empty or null"
