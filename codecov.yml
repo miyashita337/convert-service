@@ -1,0 +1,89 @@
+# codecov 設定（Epic agent-base#420 Phase 4 / rules/general/coverage-policy.md 準拠）
+#
+# 方針:
+#   - WARN-first: project / patch とも informational: true で導入し、数 PR dogfood 後に
+#     blocking へ昇格する（coverage-policy §6）。昇格は follow-up issue で管理する。
+#   - patch 70%（新規・変更コードの基本ゲート, §1）。project は auto = ratchet（regression 禁止, §2）。
+#   - branch coverage は vitest v8 provider が lcov(BRDA) に出力する（テストランナー側で担保, §3）。
+#   - flags を app 単位（api / converter / web / shared）に分離してアップロードする。
+
+codecov:
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "50...90"
+  status:
+    project:
+      default:
+        # ratchet 方式: ベースコミットの実測値を基準に低下を禁止する。
+        # 実測ベースライン（2026-07-05, unit のみ）: converter ~84% / shared 70% /
+        # api ~68% / web ~40%(branch)。安定後に明示 target（50%→60%→70%）へ段階引き上げ。
+        target: auto
+        threshold: 1%
+        informational: true # WARN-first（dogfood 後に false へ昇格）
+    patch:
+      default:
+        # 新規・変更コードは 70% を基本ゲートとする（coverage-policy §1）
+        target: 70%
+        threshold: 0%
+        informational: true # WARN-first（dogfood 後に false へ昇格）
+
+# flags: app / package 単位でレポートを分離（AC-3）。carryforward で未変更 flag の
+# 直近値を引き継ぐ（matrix leg 単位アップロードでも欠損しないように）。
+flags:
+  api:
+    paths:
+      - apps/api/src/
+    carryforward: true
+  converter:
+    paths:
+      - apps/converter/src/
+    carryforward: true
+  web:
+    paths:
+      - apps/web/src/
+    carryforward: true
+  shared:
+    paths:
+      - packages/shared/src/
+    carryforward: true
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: true
+
+ignore:
+  # テストコード・設定・ドキュメント・CI 定義は計測対象外（定型除外）
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/__tests__/**"
+  - "**/*.config.ts"
+  - "**/*.config.mjs"
+  - "docs/**"
+  - "**/*.md"
+  - ".github/**"
+  - "node_modules/**"
+  # 型定義のみ（ランタイムロジックを持たない, coverage-policy §4）
+  - "**/types/**"
+  # re-export barrel（ロジックなし）
+  - "packages/shared/src/index.ts"
+  # サーバ起動・ルート結線 bootstrap。unit 対象外で E2E/デプロイ検証が担保手段（§4）
+  - "apps/converter/src/index.ts"
+  - "apps/api/src/index.ts"
+  # 外部 S3(R2) 直叩き。モック境界の外側で integration/E2E が担保手段（§4）
+  - "apps/converter/src/services/r2-client.ts"
+  - "apps/api/src/services/r2.ts"
+  # Sentry 初期化（外部サービス・DSN 依存の副作用）。unit 対象外（§4）
+  - "apps/converter/src/lib/sentry.ts"
+  - "apps/api/src/middleware/sentry.ts"
+  - "packages/shared/src/config/sentry.ts"
+  # Next.js App Router のページ/レイアウト（RSC のため vitest unit 不能）。
+  # Playwright E2E が担保手段（§4, Issue #378 作業項目5）
+  - "apps/web/src/app/**"
+  # Playwright E2E 自体はカバレッジ対象外（E2E がそのまま担保手段, §4）
+  - "apps/web/e2e/**"
